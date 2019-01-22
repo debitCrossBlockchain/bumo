@@ -142,27 +142,27 @@ function applicationProposal(){
     return proposal;
 }
 
-function checkPledge(type){
+function checkPledge(roleType){
     let com = -1;
 
-    if(type === role.VALIDATOR){
+    if(roleType === role.VALIDATOR){
         com = int64Compare(thisPayCoinAmount, cfg.validator_min_pledge);
         assert(com === 0 || com === 1, 'Quality deposit is less than the minimum pledge of validator.');
     }
-    else if(type === role.KOL){
+    else if(roleType === role.KOL){
         com = int64Compare(thisPayCoinAmount, cfg.kol_min_pledge);
         assert(com === 0 || com === 1, 'Quality deposit is less than the minimum pledge of KOL.');
     }
-    else if(type === role.COMMITTEE){
+    else if(roleType === role.COMMITTEE){
         assert(thisPayCoinAmount === '0', 'No deposit is required to apply to join the committee');
     }
     else{
-        throw 'Unkown member type.';
+        throw 'Unkown role type.';
     }
 }
 
-function addCandidates(type, address, pledge, maxSize){
-    let candidates = type === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
+function addCandidates(roleType, address, pledge, maxSize){
+    let candidates = roleType === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
     let com        = int64Compare(pledge, candidates[candidates.length - 1][1]);
     
     if(candidates.length >= maxSize && com <= 0){
@@ -179,17 +179,17 @@ function addCandidates(type, address, pledge, maxSize){
         candidates = candidates.slice(0, maxSize);
     }
 
-    if(type === role.VALIDATOR && candidates.indexOf(node) < cfg.validator_size){
+    if(roleType === role.VALIDATOR && candidates.indexOf(node) < cfg.validator_size){
         let validators = candidates.slice(0, cfg.validator_size);
         setValidators(JSON.stringify(validators));
     }
 
-    let key = type === role.VALIDATOR ? validatorCandsKey : kolCandsKey;
+    let key = roleType === role.VALIDATOR ? validatorCandsKey : kolCandsKey;
     return saveObj(key, candidates);
 }
 
-function deleteCandidate(type, address){
-    let candidates = type === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
+function deleteCandidate(roleType, address){
+    let candidates = roleType === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
     let node       = candidates.find(function(x){ return x[0] === address; });
     if(node === undefined){
         return; 
@@ -201,17 +201,17 @@ function deleteCandidate(type, address){
     candidates.splice(index, 1);
     candidates.sort(doubleSort);
 
-    if(type === role.VALIDATOR && index < cfg.validator_size){
+    if(roleType === role.VALIDATOR && index < cfg.validator_size){
         let validators = candidates.slice(0, cfg.validator_size);
         setValidators(JSON.stringify(validators));
     }
 
-    let key = type === role.VALIDATOR ? validatorCandsKey : kolCandsKey;
+    let key = roleType === role.VALIDATOR ? validatorCandsKey : kolCandsKey;
     saveObj(key, candidates);
 }
 
-function updateStake(type, node, formalSize, amount){
-    let candidates = type === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
+function updateStake(roleType, node, formalSize, amount){
+    let candidates = roleType === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
 
     let oldPos = candidates.indexOf(node);
     node[1]    = int64Add(node[1], amount);
@@ -222,23 +222,23 @@ function updateStake(type, node, formalSize, amount){
        (oldPos <= formalSize && newPos > formalSize)){
         rewardDistribution();
 
-        if(type === role.VALIDATOR){
+        if(roleType === role.VALIDATOR){
             let validators = candidates.slice(0, cfg.validator_size);
             setValidators(JSON.stringify(validators));
         }
     }
 
-    let key = type === role.VALIDATOR ? validatorCandsKey : kolCandsKey;
+    let key = roleType === role.VALIDATOR ? validatorCandsKey : kolCandsKey;
     return saveObj(key, candidates);
 }
 
-function apply(type){
-    let key      = proposalKey(motion.APPLY, role[type], sender);
+function apply(roleType){
+    let key      = proposalKey(motion.APPLY, roleType, sender);
     let proposal = loadObj(key);
 
     if(proposal === false){
         /* first apply */
-        checkPledge(type);
+        checkPledge(roleType);
         proposal = applicationProposal();
         return saveObj(key, proposal);
     }
@@ -252,24 +252,24 @@ function apply(type){
 
     /* Approved, additional deposit */
     saveObj(key, proposal);
-    assert(type === role.VALIDATOR || type === role.KOL, 'Only the validator and KOL may add a deposit.');
+    assert(roleType === role.VALIDATOR || roleType === role.KOL, 'Only the validator and KOL may add a deposit.');
 
     electInit();
-    let candidates = type === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
+    let candidates = roleType === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
     let node = candidates.find(function(x){ return x[0] === sender; });
 
     if(node === undefined){
-        let maxSize = type === role.VALIDATOR ? cfg.validator_candidate_size : cfg.kol_candidate_size;
-        addCandidates(type, sender, proposal.pledge, maxSize);
+        let maxSize = roleType === role.VALIDATOR ? cfg.validator_candidate_size : cfg.kol_candidate_size;
+        addCandidates(roleType, sender, proposal.pledge, maxSize);
     }
     else{
-        let formalSize = type === role.VALIDATOR ? cfg.validator_size : cfg.kol_size;
-        updateStake(type, node, formalSize, thisPayCoinAmount);
+        let formalSize = roleType === role.VALIDATOR ? cfg.validator_size : cfg.kol_size;
+        updateStake(roleType, node, formalSize, thisPayCoinAmount);
     }
 }
 
 function penalty(evil, roleType){
-    let applicantKey  = proposalKey(motion.APPLY, role[roleType], evil);
+    let applicantKey  = proposalKey(motion.APPLY, roleType, evil);
     let applicant     = loadObj(applicantKey);
     assert(applicant !== false, 'Faild to get ' + applicantKey + ' from metadata.');
 
@@ -323,8 +323,7 @@ function approve(proposalType, item, address){
     assert(committee !== false, 'Faild to get ' + committeeKey + ' from metadata.');
     assert(committee.includes(sender), 'Only committee members have the right to approve.');
 
-    let content = proposalType === motion.CONFIG ? item : role[item];
-    let key = proposalKey(proposalType, content, address);
+    let key = proposalKey(proposalType, item, address);
     let proposal = loadObj(key);
     assert(proposal !== false, 'failed to get metadata: ' + key + '.');
         
@@ -352,39 +351,15 @@ function approve(proposalType, item, address){
     }
 }
 
-function approveIn(type, applicant){
-    approve(motion.APPLY, type, applicant);
+function voterKey(roleType, address){
+    return  'voter_' + sender + '_' + roleType + '_' + address;
 }
 
-function approveOut(type, evil){
-    approve(motion.ABOLISH, type, evil);
-}
-
-function approveCfg(proposer, item){
-    approve(motion.CONFIG, item, proposer);
-}
-
-function voterKey(type, address){
-    let key = '';
-
-    if(type === role.VALIDATORs){
-        key = 'voter_' + sender + '_validator_' + address;
-    }
-    else if(type === role.KOL){
-        key = 'voter_' + sender + '_kol_' + address;
-    }
-    else{
-        throw 'Unkown voting type.';
-    }
-
-    return key;
-}
-
-function vote(type, address){
-    assert(type === role.VALIDATOR || type === role.KOL, 'Can only vote for validator or KOL.');
+function vote(roleType, address){
+    assert(roleType === role.VALIDATOR || roleType === role.KOL, 'Can only vote for validator or KOL.');
     assert(addressCheck(address), address + ' is not valid adress.');
 
-    let key        = voterKey(type, address);
+    let key        = voterKey(roleType, address);
     let voteAmount = storageLoad(key);
 
     if(voteAmount === false){
@@ -397,20 +372,20 @@ function vote(type, address){
     storageStore(key, voteAmount);
 
     electInit();
-    let candidates = type === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
+    let candidates = roleType === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
     let node       = candidates.find(function(x){ return x[0] === address; });
 
     assert(node !== undefined, address + ' is not validator candidate or KOL candidate.');
-    let formalSize = type === role.VALIDATOR ? cfg.validator_size : cfg.kol_size;
-    updateStake(type, node, formalSize, thisPayCoinAmount);
+    let formalSize = roleType === role.VALIDATOR ? cfg.validator_size : cfg.kol_size;
+    updateStake(roleType, node, formalSize, thisPayCoinAmount);
 }
 
-function unVote(type, address, amount){
-    assert(type === role.VALIDATOR || type === role.KOL, 'Can only vote for validator or KOL.');
+function unVote(roleType, address, amount){
+    assert(roleType === role.VALIDATOR || roleType === role.KOL, 'Can only vote for validator or KOL.');
     assert(addressCheck(address), address + ' is not valid adress.');
     assert(int64Compare(amount, 0) > 0, 'Unvote amount <= 0.');
 
-    let key         = voterKey(type, address);
+    let key         = voterKey(roleType, address);
     let votedAmount = storageLoad(key);
     assert(votedAmount !== false, 'The account did not vote for: ' + address);
 
@@ -425,8 +400,8 @@ function unVote(type, address, amount){
         storageStore(key, int64Sub(votedAmount, amount));
     }
 
-    let formalSize = type === role.VALIDATOR ? cfg.validator_size : cfg.kol_size;
-    updateStake(type, address, formalSize, -amount);
+    let formalSize = roleType === role.VALIDATOR ? cfg.validator_size : cfg.kol_size;
+    updateStake(roleType, address, formalSize, -amount);
 }
 
 function abolitionProposal(proof){
@@ -448,20 +423,20 @@ function isExist(twoDimenList, address){
     return element !== undefined;
 }
 
-function reportPermission(type){
-    if(type === role.COMMITTEE){
+function reportPermission(roleType){
+    if(roleType === role.COMMITTEE){
         let committee = loadObj(committeeKey);
         assert(committee !== false, 'Faild to get ' + committeeKey + ' from metadata.');
         assert(committee.includes(sender), 'Only committee members have the right to report other committee member.');
     }
-    else if(type === role.VALIDATOR){
+    else if(roleType === role.VALIDATOR){
         let validatorCands = loadObj(validatorCandsKey);
         assert(validatorCands !== false, 'Faild to get validator candidates.');
 
         let validators = validatorCands.slice(0, cfg.validator_size);
         assert(isExist(validators, sender), 'Only validator have the right to report other validator.');
     }
-    else if(type === role.KOL){
+    else if(roleType === role.KOL){
         let kolCands = loadObj(kolCandsKey);
         assert(kolCands !== false, 'Faild to get kol candidates.');
 
@@ -475,11 +450,11 @@ function reportPermission(type){
     return true;
 }
 
-function abolish(type, address, proof){
+function abolish(roleType, address, proof){
     assert(addressCheck(address), address + ' is not valid adress.');
-    assert(reportPermission(type), sender + ' has no permission to report.');
+    assert(reportPermission(roleType), sender + ' has no permission to report.');
 
-    let key      = proposalKey(motion.ABOLISH, role[type], address);
+    let key      = proposalKey(motion.ABOLISH, roleType, address);
     let proposal = loadObj(key);
 
     if(proposal === false){
@@ -491,8 +466,8 @@ function abolish(type, address, proof){
     saveObj(key, proposal);
 }
 
-function withdraw(type){
-    let withdrawKey = proposalKey(motion.WITHDRAW, role[type], sender);
+function withdraw(roleType){
+    let withdrawKey = proposalKey(motion.WITHDRAW, roleType, sender);
     let expiration  = storageLoad(withdrawKey);
 
     if(expiration === false){
@@ -501,11 +476,11 @@ function withdraw(type){
 
     assert(int64Compare(blockTimestamp, expiration) >= 0, 'Buffer period is not over.');
 
-    let applicantKey = proposalKey(motion.APPLY, role[type], sender);
+    let applicantKey = proposalKey(motion.APPLY, roleType, sender);
     let applicant    = loadObj(applicantKey);
     assert(applicant !== false, 'failed to get metadata: ' + applicantKey + '.');
 
-    if(type === role.COMMITTEE){
+    if(roleType === role.COMMITTEE){
         let committee = loadObj(committeeKey);
         assert(committee !== false, 'Faild to get ' + committeeKey + ' from metadata.');
 
@@ -514,7 +489,7 @@ function withdraw(type){
     }
     else{
         electInit();
-        deleteCandidate(type, sender);
+        deleteCandidate(roleType, sender);
 
         if(elect.distribution[sender] === undefined){
             elect.distribution[sender] = applicant.pledge;
@@ -582,34 +557,28 @@ function main(input_str){
     assert(cfg !== false, 'Failed to load configuration.');
 
     if(input.method === 'apply'){
-        apply(params.type);
+        apply(params.role);
     }
     else if(input.method === 'approveIn'){
-	    approveIn(params.type, params.address);
-    }
-    else if(input.method === 'approveOut'){
-    	approveOut(params.type, params.address);
+	    approve(params.type, params.item, params.address);
     }
     else if(input.method === 'vote'){
-	    vote(params.type, params.address);
+	    vote(params.role, params.address);
     }
     else if(input.method === 'unVote'){
-	    unVote(params.type, params.address, params.amount);
+	    unVote(params.role, params.address, params.amount);
     }
     else if(input.method === 'abolish'){
-    	abolish(params.type, params.address, params.proof);
+    	abolish(params.role, params.address, params.proof);
     }
     else if(input.method === 'withdraw'){
-    	withdraw(params.type);
+    	withdraw(params.role);
     }
     else if(input.method === 'extract'){
     	extract();
     }
     else if(input.method === 'configure'){
     	configure(params.item, params.value);
-    }
-    else if(input.method === 'approveCfg'){
-    	approveCfg(params.proposer, params.item);
     }
     else{
         throw '<undidentified operation type>';
