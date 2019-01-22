@@ -215,8 +215,6 @@ TEST_F(ApiTest, ApiGetTransactionBlob){
 
 	tx_start_count = rep["ledger manager"]["ledger_manager.tx_count"].asInt64();
 
-
-
 	utils::Thread* worker_thread = new utils::Thread(new CheckTxWorker(tx_start_count));
 	worker_thread->Start(utils::String::Format("checkTx"));
 	threads.push_back(worker_thread);
