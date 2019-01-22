@@ -161,12 +161,9 @@ namespace bumo {
 		}
 
 		// election configuration
-		if (CHECK_VERSION_GT_1002)
-		{
-			if (!loadElectionConfig()) {
-				LOG_ERROR("Failed to load election configuration!");
-				return false;
-			}
+		if (!loadElectionConfig()) {
+			LOG_ERROR("Failed to load election configuration!");
+			return false;
 		}
 
 		bumo::General::SetSelfChainId(lclheader.chain_id());

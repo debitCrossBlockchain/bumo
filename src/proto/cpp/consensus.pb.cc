@@ -444,7 +444,7 @@ void protobuf_AddDesc_consensus_2eproto() {
     ".PbftEnv\"j\n\tFeeConfig\022\021\n\tgas_price\030\001 \001(\003"
     "\022\024\n\014base_reserve\030\002 \001(\003\"4\n\004Type\022\013\n\007UNKNOW"
     "N\020\000\022\r\n\tGAS_PRICE\020\001\022\020\n\014BASE_RESERVE\020\002\".\n\016"
-    "ElectionConfig\022\034\n\024fee_allocation_share\030\006"
+    "ElectionConfig\022\034\n\024fee_allocation_share\030\001"
     " \001(\t*\260\001\n\017PbftMessageType\022\030\n\024PBFT_TYPE_PR"
     "EPREPARE\020\000\022\025\n\021PBFT_TYPE_PREPARE\020\001\022\024\n\020PBF"
     "T_TYPE_COMMIT\020\002\022\030\n\024PBFT_TYPE_VIEWCHANGE\020"
@@ -6053,9 +6053,9 @@ bool ElectionConfig::MergePartialFromCodedStream(
     tag = p.first;
     if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // optional string fee_allocation_share = 6;
-      case 6: {
-        if (tag == 50) {
+      // optional string fee_allocation_share = 1;
+      case 1: {
+        if (tag == 10) {
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_fee_allocation_share()));
           DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
@@ -6093,14 +6093,14 @@ failure:
 void ElectionConfig::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
   // @@protoc_insertion_point(serialize_start:protocol.ElectionConfig)
-  // optional string fee_allocation_share = 6;
+  // optional string fee_allocation_share = 1;
   if (this->fee_allocation_share().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
       this->fee_allocation_share().data(), this->fee_allocation_share().length(),
       ::google::protobuf::internal::WireFormatLite::SERIALIZE,
       "protocol.ElectionConfig.fee_allocation_share");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
-      6, this->fee_allocation_share(), output);
+      1, this->fee_allocation_share(), output);
   }
 
   // @@protoc_insertion_point(serialize_end:protocol.ElectionConfig)
@@ -6109,7 +6109,7 @@ void ElectionConfig::SerializeWithCachedSizes(
 ::google::protobuf::uint8* ElectionConfig::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
   // @@protoc_insertion_point(serialize_to_array_start:protocol.ElectionConfig)
-  // optional string fee_allocation_share = 6;
+  // optional string fee_allocation_share = 1;
   if (this->fee_allocation_share().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
       this->fee_allocation_share().data(), this->fee_allocation_share().length(),
@@ -6117,7 +6117,7 @@ void ElectionConfig::SerializeWithCachedSizes(
       "protocol.ElectionConfig.fee_allocation_share");
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
-        6, this->fee_allocation_share(), target);
+        1, this->fee_allocation_share(), target);
   }
 
   // @@protoc_insertion_point(serialize_to_array_end:protocol.ElectionConfig)
@@ -6128,7 +6128,7 @@ int ElectionConfig::ByteSize() const {
 // @@protoc_insertion_point(message_byte_size_start:protocol.ElectionConfig)
   int total_size = 0;
 
-  // optional string fee_allocation_share = 6;
+  // optional string fee_allocation_share = 1;
   if (this->fee_allocation_share().size() > 0) {
     total_size += 1 +
       ::google::protobuf::internal::WireFormatLite::StringSize(
@@ -6209,7 +6209,7 @@ void ElectionConfig::InternalSwap(ElectionConfig* other) {
 #if PROTOBUF_INLINE_NOT_IN_HEADERS
 // ElectionConfig
 
-// optional string fee_allocation_share = 6;
+// optional string fee_allocation_share = 1;
 void ElectionConfig::clear_fee_allocation_share() {
   fee_allocation_share_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }

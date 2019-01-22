@@ -1577,9 +1577,9 @@ class ElectionConfig : public ::google::protobuf::Message /* @@protoc_insertion_
 
   // accessors -------------------------------------------------------
 
-  // optional string fee_allocation_share = 6;
+  // optional string fee_allocation_share = 1;
   void clear_fee_allocation_share();
-  static const int kFeeAllocationShareFieldNumber = 6;
+  static const int kFeeAllocationShareFieldNumber = 1;
   const ::std::string& fee_allocation_share() const;
   void set_fee_allocation_share(const ::std::string& value);
   void set_fee_allocation_share(const char* value);
@@ -2796,7 +2796,7 @@ inline void FeeConfig::set_base_reserve(::google::protobuf::int64 value) {
 
 // ElectionConfig
 
-// optional string fee_allocation_share = 6;
+// optional string fee_allocation_share = 1;
 inline void ElectionConfig::clear_fee_allocation_share() {
   fee_allocation_share_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }

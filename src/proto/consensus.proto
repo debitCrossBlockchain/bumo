@@ -119,5 +119,5 @@ message FeeConfig
 
 message ElectionConfig
 {
-	string fee_allocation_share = 6;
+	string fee_allocation_share = 1;
 }
