@@ -128,8 +128,8 @@ function extract(){
     log(sender + ' extracted block reward ' + income);
 }
 
-function proposalKey(proposalType, content, address){
-    return proposalType + '_' + content + '_' + address;
+function proposalKey(operate, content, address){
+    return operate + '_' + content + '_' + address;
 }
 
 function applicationProposal(){
@@ -318,17 +318,17 @@ function passOut(committee, key, item, address){
     }
 }
 
-function approve(proposalType, item, address){
+function approve(operate, item, address){
     let committee = loadObj(committeeKey);
     assert(committee !== false, 'Faild to get ' + committeeKey + ' from metadata.');
     assert(committee.includes(sender), 'Only committee members have the right to approve.');
 
-    let key = proposalKey(proposalType, item, address);
+    let key = proposalKey(operate, item, address);
     let proposal = loadObj(key);
     assert(proposal !== false, 'failed to get metadata: ' + key + '.');
         
     if(blockTimestamp >= proposal.expiration){
-        if(proposalType === motion.APPLY && proposal.pledge > 0){
+        if(operate === motion.APPLY && proposal.pledge > 0){
             transferCoin(address, proposal.pledge);
         }
         return storageDel(key);
@@ -340,13 +340,13 @@ function approve(proposalType, item, address){
         return saveObj(key, proposal);
     }
 
-    if(proposalType === motion.CONFIG){
+    if(operate === motion.CONFIG){
         updateCfg(key, proposal, item);
     }
-    else if(proposalType === motion.APPLY){
+    else if(operate === motion.APPLY){
         passIn(committee, key, proposal, item, address);
     }
-    else if(proposalType === motion.ABOLISH){
+    else if(operate === motion.ABOLISH){
         passOut(committee, key, item, address);
     }
 }
@@ -560,7 +560,7 @@ function main(input_str){
         apply(params.role);
     }
     else if(input.method === 'approveIn'){
-	    approve(params.type, params.item, params.address);
+	    approve(params.operate, params.item, params.address);
     }
     else if(input.method === 'vote'){
 	    vote(params.role, params.address);
