@@ -232,10 +232,15 @@ function updateStake(roleType, node, formalSize, amount){
     return saveObj(key, candidates);
 }
 
+function roleValid(roleType){
+    return roleType === role.COMMITTEE || roleType === role.VALIDATOR || roleType === role.KOL;
+}
+
 function apply(roleType){
+    assert(roleValid(roleType), 'Unknow role type.');
+
     let key      = proposalKey(motion.APPLY, roleType, sender);
     let proposal = loadObj(key);
-
     if(proposal === false){
         /* first apply */
         checkPledge(roleType);
@@ -318,7 +323,14 @@ function passOut(committee, key, item, address){
     }
 }
 
+function operateValid(operate){
+    return operate === motion.APPLY || operate === motion.ABOLISH || operate === motion.CONFIG;
+}
+
 function approve(operate, item, address){
+    assert(operateValid(operate), 'Unknown approve operation');
+    assert(roleValid(item) || cfg[item] !== undefined, 'Unknown approve item.');
+
     let committee = loadObj(committeeKey);
     assert(committee !== false, 'Faild to get ' + committeeKey + ' from metadata.');
     assert(committee.includes(sender), 'Only committee members have the right to approve.');
@@ -467,9 +479,10 @@ function abolish(roleType, address, proof){
 }
 
 function withdraw(roleType){
+    assert(roleValid(roleType), 'Unknow role type.');
+
     let withdrawKey = proposalKey(motion.WITHDRAW, roleType, sender);
     let expiration  = storageLoad(withdrawKey);
-
     if(expiration === false){
         return storageStore(withdrawKey, blockTimestamp + cfg.valid_period);
     }
@@ -515,7 +528,7 @@ function configProposal(item, value){
 }
 
 function configure(item, value){
-    assert(cfg[item] !== undefined, 'Configuration ' + item + ' cannot be changed.');
+    assert(cfg[item] !== undefined, 'Unknown config type');
 
     let committee = loadObj(committeeKey);
     assert(committee !== false, 'Faild to get ' + committeeKey + ' from metadata.');
@@ -559,7 +572,7 @@ function main(input_str){
     if(input.method === 'apply'){
         apply(params.role);
     }
-    else if(input.method === 'approveIn'){
+    else if(input.method === 'approve'){
 	    approve(params.operate, params.item, params.address);
     }
     else if(input.method === 'vote'){
