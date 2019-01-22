@@ -130,8 +130,8 @@ function extract(){
     log(sender + ' extracted block reward ' + income);
 }
 
-function proposalKey(address, proposalType, content){
-    return address + '_' + proposalType + '_' + content;
+function proposalKey(proposalType, content, address){
+    return proposalType + '_' + content + '_' + address;
 }
 
 function applicationProposal(){
@@ -235,7 +235,7 @@ function updateStake(type, node, formalSize, amount){
 }
 
 function apply(type){
-    let key      = proposalKey(sender, motion.apply, iRole[type]);
+    let key      = proposalKey(motion.apply, iRole[type], sender);
     let proposal = loadObj(key);
 
     if(proposal === false){
@@ -271,7 +271,7 @@ function apply(type){
 }
 
 function penalty(evil, roleType){
-    let applicantKey  = proposalKey(evil, motion.apply, iRole[roleType]);
+    let applicantKey  = proposalKey(motion.apply, iRole[roleType], evil);
     let applicant     = loadObj(applicantKey);
     assert(applicant !== false, 'Faild to get ' + applicantKey + ' from metadata.');
 
@@ -298,7 +298,7 @@ function approve(proposalType, item, address){
     assert(committee.includes(sender), 'Only committee members have the right to approve.');
 
     let content = proposalType === motion.configure ? item : iRole[item];
-    let key = proposalKey(address, proposalType, content);
+    let key = proposalKey(proposalType, content, address);
     let proposal = loadObj(key);
     assert(proposal !== false, 'failed to get metadata: ' + key + '.');
         
@@ -470,7 +470,7 @@ function abolish(type, address, proof){
     assert(addressCheck(address), address + ' is not valid adress.');
     assert(reportPermission(type), sender + ' has no permission to report.');
 
-    let key      = proposalKey(address, motion.abolish, iRole[type]);
+    let key      = proposalKey(motion.abolish, iRole[type], address);
     let proposal = loadObj(key);
 
     if(proposal === false){
@@ -483,7 +483,7 @@ function abolish(type, address, proof){
 }
 
 function withdraw(type){
-    let withdrawKey = proposalKey(sender, motion.withdraw, iRole[type]);
+    let withdrawKey = proposalKey(motion.withdraw, iRole[type], sender);
     let expiration  = storageLoad(withdrawKey);
 
     if(expiration === false){
@@ -492,7 +492,7 @@ function withdraw(type){
 
     assert(int64Compare(blockTimestamp, expiration) >= 0, 'Buffer period is not over.');
 
-    let applicantKey = proposalKey(sender, motion.apply, iRole[type]);
+    let applicantKey = proposalKey(motion.apply, iRole[type], sender);
     let applicant    = loadObj(applicantKey);
     assert(applicant !== false, 'failed to get metadata: ' + applicantKey + '.');
 
@@ -537,7 +537,7 @@ function configure(item, value){
     assert(committee !== false, 'Faild to get ' + committeeKey + ' from metadata.');
     assert(committee.includes(sender), 'Only the committee has the power to proposal to modify the configuration.');
 
-    let key      = proposalKey(sender, motion.configure, item);
+    let key      = proposalKey(motion.configure, item, sender);
     let proposal = loadObj(key);
     if(proposal !== false && proposal.value === value){
         return;
