@@ -292,6 +292,34 @@ function updateCfg(key, proposal, item){
     }
 }
 
+function passIn(committee, key, proposal, item, address){
+    proposal.passTime = blockTimestamp;
+    saveObj(key, proposal);
+
+    if(item === role.committee){
+        committee.push(address);
+        saveObj(committeeKey, committee);
+    }
+    else{
+        electInit();
+        let maxSize = item === role.validator ? cfg.validator_candidate_size : cfg.kol_candidate_size;
+        addCandidates(item, address, proposal.pledge, maxSize);
+    }
+}
+
+function passOut(committee, key, item, address){
+    storageDel(key);
+    if(item === role.committee){
+        committee.splice(committee.indexOf(address), 1);
+        saveObj(committeeKey, committee);
+    }
+    else{
+        electInit();
+        deleteCandidate(item, address);
+        penalty(address, item);
+    }
+}
+
 function approve(proposalType, item, address){
     let committee = loadObj(committeeKey);
     assert(committee !== false, 'Faild to get ' + committeeKey + ' from metadata.');
@@ -303,7 +331,7 @@ function approve(proposalType, item, address){
     assert(proposal !== false, 'failed to get metadata: ' + key + '.');
         
     if(blockTimestamp >= proposal.expiration){
-        if(proposalType === motion.apply){
+        if(proposalType === motion.apply && proposal.pledge > 0){
             transferCoin(address, proposal.pledge);
         }
         return storageDel(key);
@@ -316,30 +344,13 @@ function approve(proposalType, item, address){
     }
 
     if(proposalType === motion.configure){
-        return updateCfg(key, proposal, item);
+        updateCfg(key, proposal, item);
     }
-
-    if(proposalType === motion.apply){
-        proposal.passTime = blockTimestamp;
-        saveObj(key, proposal);
+    else if(proposalType === motion.apply){
+        passIn(committee, key, proposal, item, address);
     }
     else if(proposalType === motion.abolish){
-        storageDel(key);
-    }
-
-    if(item === role.committee){
-        committee = proposalType === motion.apply ? committee.push(address) : committee.splice(committee.indexOf(address), 1);
-        return saveObj(key, committee);
-    }
-
-    electInit();
-    if(proposalType === motion.apply){
-        let maxSize = item === role.validator ? cfg.validator_candidate_size : cfg.kol_candidate_size;
-        addCandidates(item, address, proposal.pledge, maxSize);
-    }
-    else if(proposalType === motion.abolish){
-        deleteCandidate(item, address);
-        penalty(address, item);
+        passOut(committee, key, item, address);
     }
 }
 
