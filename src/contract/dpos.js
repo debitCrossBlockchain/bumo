@@ -6,17 +6,19 @@ const kolCandsKey       = 'kol_candidates';
 const rewardKey         = 'block_reward';
 const configKey         = 'dos_config';
 
-const iRole = ['committee', 'validator', 'kol'];
+const iRole = ['committee', 'validator', 'kol', 'config'];
 const role  = {
-   'committee' : 0,
-   'validator' : 1,
-   'kol'       : 2
+    'committee' : 0,
+    'validator' : 1,
+    'kol'       : 2,
+    'config'    : 3
 };
 
 const motion = {
-    'apply'   :'application',
-    'abolish' :'abolition',
-    'withdraw':'withdraw'
+    'apply'    : 'application',
+    'abolish'  : 'abolition',
+    'withdraw' : 'withdraw',
+    'configure': 'config'
 };
 
 let sysCfg = ['fee_allocation_share'];
@@ -268,17 +270,42 @@ function apply(type){
     }
 }
 
-function approveIn(type, applicant){
+function penalty(evil, roleType){
+    let applicantKey  = proposalKey(evil, motion.apply, iRole[roleType]);
+    let applicant     = loadObj(applicantKey);
+    assert(applicant !== false, 'Faild to get ' + applicantKey + ' from metadata.');
+
+    let candidates = roleType === role.validator ? elect.validatorCands : elect.kolCands;
+    distribute(candidates, applicant.pledge);
+    storageDel(applicantKey);
+}
+
+function updateCfg(key, proposal, item){
+    storageDel(key);
+    cfg[item] = proposal.value;
+    saveObj(configKey, cfg);
+
+    if(sysCfg.includes(item)){
+        let sys = {};
+        sys[item] = proposal.value;
+        setSystemCfg(JSON.stringify(sys));
+    }
+}
+
+function approve(proposalType, item, address){
     let committee = loadObj(committeeKey);
     assert(committee !== false, 'Faild to get ' + committeeKey + ' from metadata.');
     assert(committee.includes(sender), 'Only committee members have the right to approve.');
 
-    let key      = proposalKey(applicant, motion.apply, iRole[type]);
+    let content = proposalType === motion.configure ? item : iRole[item];
+    let key = proposalKey(address, proposalType, content);
     let proposal = loadObj(key);
     assert(proposal !== false, 'failed to get metadata: ' + key + '.');
         
     if(blockTimestamp >= proposal.expiration){
-        transferCoin(applicant, proposal.pledge);
+        if(proposalType === motion.apply){
+            transferCoin(address, proposal.pledge);
+        }
         return storageDel(key);
     }
 
@@ -288,56 +315,44 @@ function approveIn(type, applicant){
         return saveObj(key, proposal);
     }
 
-    proposal.passTime = blockTimestamp;
-    saveObj(key, proposal);
-
-    if(type === role.committee){
-        committee.push(applicant);
-        saveObj(key, committee);
+    if(proposalType === motion.configure){
+        return updateCfg(key, proposal, item);
     }
-    else{
-        electInit();
-        let maxSize = type === role.validator ? cfg.validator_candidate_size : cfg.kol_candidate_size;
-        addCandidates(type, applicant, proposal.pledge, maxSize);
+
+    if(proposalType === motion.apply){
+        proposal.passTime = blockTimestamp;
+        saveObj(key, proposal);
+    }
+    else if(proposalType === motion.abolish){
+        storageDel(key);
+    }
+
+    if(item === role.committee){
+        committee = proposalType === motion.apply ? committee.push(address) : committee.splice(committee.indexOf(address), 1);
+        return saveObj(key, committee);
+    }
+
+    electInit();
+    if(proposalType === motion.apply){
+        let maxSize = item === role.validator ? cfg.validator_candidate_size : cfg.kol_candidate_size;
+        addCandidates(item, address, proposal.pledge, maxSize);
+    }
+    else if(proposalType === motion.abolish){
+        deleteCandidate(item, address);
+        penalty(address, item);
     }
 }
 
+function approveIn(type, applicant){
+    approve(motion.apply, type, applicant);
+}
+
 function approveOut(type, evil){
-    let committee = loadObj(committeeKey);
-    assert(committee !== false, 'Faild to get ' + committeeKey + ' from metadata.');
-    assert(committee.includes(sender), 'Only committee members have the right to approve.');
+    approve(motion.abolish, type, evil);
+}
 
-    let key      = proposalKey(evil, motion.abolish, iRole[type]);
-    let proposal = loadObj(key);
-    assert(proposal !== false, 'failed to get metadata: ' + key + '.');
-        
-    if(blockTimestamp >= proposal.expiration){
-        return storageDel(key);
-    }
-
-    assert(proposal.ballot.includes(sender) !== true, sender + ' has voted.');
-    proposal.ballot.push(sender);
-    if(proposal.ballot.length <= parseInt(committee.length * cfg.out_pass_rate + 0.5)){
-        return saveObj(key, proposal);
-    }
-
-    storageDel(key);
-    if(type === role.committee){
-        committee.splice(committee.indexOf(evil), 1);
-        saveObj(key, committee);
-    }
-    else{
-        electInit();
-        deleteCandidate(type, evil);
-
-        let applicantKey  = proposalKey(evil, motion.apply, iRole[type]);
-        let applicant     = loadObj(applicantKey);
-        assert(applicant !== false, 'Faild to get ' + applicantKey + ' from metadata.');
-
-        let candidates = type === role.validator ? elect.validatorCands : elect.kolCands;
-        distribute(candidates, applicant.pledge);
-        storageDel(applicantKey);
-    }
+function approveCfg(proposer, item){
+    approve(motion.configure, item, proposer);
 }
 
 function voterKey(type, address){
@@ -522,7 +537,7 @@ function configure(item, value){
     assert(committee !== false, 'Faild to get ' + committeeKey + ' from metadata.');
     assert(committee.includes(sender), 'Only the committee has the power to proposal to modify the configuration.');
 
-    let key      = sender + '_configure_' + item;
+    let key      = proposalKey(sender, motion.configure, item);
     let proposal = loadObj(key);
     if(proposal !== false && proposal.value === value){
         return;
@@ -530,36 +545,6 @@ function configure(item, value){
 
     proposal = configProposal(item, value);
     return saveObj(key, proposal);
-}
-
-function approveCfg(proposer, item){
-    let committee = loadObj(committeeKey);
-    assert(committee !== false, 'Faild to get ' + committeeKey + ' from metadata.');
-    assert(committee.includes(sender), 'Only committee members have the right to approve.');
-
-    let key      = proposer + '_configure_' + item;
-    let proposal = loadObj(key);
-    assert(proposal !== false, 'failed to get metadata: ' + key + '.');
-        
-    if(blockTimestamp >= proposal.expiration){
-        return storageDel(key);
-    }
-
-    assert(proposal.ballot.includes(sender) !== true, sender + ' has voted.');
-    proposal.ballot.push(sender);
-    if(proposal.ballot.length <= parseInt(committee.length * cfg.out_pass_rate + 0.5)){
-        return saveObj(key, proposal);
-    }
-
-    storageDel(key);
-    cfg[item] = proposal.value;
-    saveObj(configKey, cfg);
-
-    if(sysCfg.includes(item)){
-        let sys = {};
-        sys[item] = proposal.value;
-        setSystemCfg(JSON.stringify(sys));
-    }
 }
 
 function query(input_str){
