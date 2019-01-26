@@ -8,7 +8,7 @@
   - [创建选举合约账户](#创建选举合约账户)
     - [选举合约升级](#选举合约升级)
     - [选举参数初始化](#选举参数初始化)
-  - [角色类型](#角色类型)
+  - [角色和动作类型](#角色和动作类型)
   - [申请成为候选节点](#申请成为候选节点)
   - [为候选节点投票](#为候选节点投票)
   - [减少投票](#减少投票)
@@ -20,30 +20,32 @@
   - [查询功能](#查询功能)
     - [查询当前验证节点集合](#查询当前验证节点集合)
     - [查询候选节点集合信息](#查询候选节点集合信息)
-    - [查询用户投票信息](#查询用户投票信息)
+    - [查询用户的验证节点投票信息](#查询用户的验证节点投票信息)
+    - [查询验证节点申请信息](#查询验证节点申请信息)
     - [查询指定的废止恶意节点提案的信息](#查询指定的废止恶意节点提案的信息)
 - [委员会](#委员会)
   - [委员会成员初始化设置](#委员会成员初始化设置)
   - [委员会选举](#委员会选举)
     - [申请加入委员会](#申请加入委员会)
-    - [委员会新成员批准投票](#委员会新成员批准投票)
+    - [委员会批准投票](#委员会批准投票)
     - [委员会成员退出](#委员会成员退出)
     - [委员会成员申请](#委员会成员申请)
   - [委员会查询](#委员会查询)
   - [选举配置更新](#验证节点选举配置更新)
     - [选举配置结构](#选举配置结构)
     - [选举配置更新提案](#选举配置更新提案)
-    - [选举配置更新投票](#选举配置更新投票)
     - [查询选举配置信息](#查询选举配置信息)
       - [获取当前验证节点选举配置信息](#获取当前验证节点选举配置信息)
       - [获取验证节点选举配置提案信息](#获取验证节点选举配置提案信息)
-      - [获取验证节点选举配置投票信息](#获取验证节点选举配置投票信息)
 - [社区激励](#社区激励)
   - [KOL申请](#KOL申请)
+  - [查询KOL申请信息](#查询KOL申请信息)
   - [KOL退出](#KOL退出)
   - [KOL投票和取消投票](#KOL投票和取消投票)
+  - [查询用户的KOL投票信息](#查询用户的KOL投票信息)
   - [查询当前KOL信息](#查询当前KOL信息)
   - [收益模型](#收益模型)
+  - [奖励和质押金提取](#奖励和质押金提取)
 
 <!-- /TOC -->
 
@@ -121,15 +123,26 @@ delegateContractAddr = '此处填入合约B的地址'
 | valid_period                | 有效期，单位为微秒，应用在投票有效期以及退出锁定期|1296000000000|
 | fee_allocation_share        | 交易费用分配比例，70:20:10代表如果交易来自DAPP，则DAPP获得70%（否则该部分计入区块奖励block reward），20%置入区块奖励，10%分配给交易源账户的创建者|"70:20:10"|
 
-### 角色类型
+### 角色和动作类型
 
 任意 BuChain 账户可以申请成为委员会委员或候选KOL(Key Opinion Leader)，拥有节点的账户还可以申请成为候选节点，所以，对BuChain账户来说，有以下可申请的类型。
 
-```json
-let role = {
-  committee:1,
-  validator:2,
-  KOL:3
+```js
+const role  = {
+    'COMMITTEE' : 'committee',
+    'VALIDATOR' : 'validator',
+    'KOL'       : 'kol'
+};
+```
+
+任意BuChain账户可以执行apply动作，申请成为某一种角色；abolish动作只有同类型的成员间可以执行，比如只有验证节点才能提议废止验证节点；任意角色都可以执行withdraw操作主动退出集合；委员会成员可以执行config动作提议更改配置。
+
+```js
+const motion = {
+    'APPLY'   : 'apply',
+    'ABOLISH' : 'abolish',
+    'WITHDRAW': 'withdraw',
+    'CONFIG'  : 'config'
 };
 ```
 
@@ -138,7 +151,7 @@ let role = {
 任意一个拥有网络节点的账户可以通过向DPOS合约转移一笔 BU 作为押金，申请成为候选节点。经委员会投票审核（参考[委员会新成员批准投票](#委员会新成员批准投票)）通过后，可成为正式的候选节点。但能否成为验证节点，是根据一定周期内获得的总票数决定的。
 
 - 申请者向DPOS合约转移一笔 BU 作为押金（参见开发文档‘[转移BU资产](#转移bu资产)’），该押金可通过 ‘[收回押金](#收回押金)’ 操作收回。
-- ‘转移货币’操作的 input 字段填入`{ "method" : "apply", "params":{"type":2}}`,注意使用转义字符。
+- ‘转移货币’操作的 input 字段填入`{ "method" : "apply", "params":{"role":"validator"}}`,注意使用转义字符。
 - 候选节点可以多次质押，增加质押金额，提高自己的排名。
 
 >例
@@ -153,7 +166,7 @@ let role = {
       \"method\":\"apply\",
       \"params\":
       {
-        \"type\":2
+        {\"role\":\"validator\"}
       }
     }"
   }
@@ -169,7 +182,7 @@ let role = {
 - 候选节点的得票总数为自身质押额与得票数之和，候选节点增加质押额相当于给自己投票。
 - 用户可以为多个候选地址投票，可投票的候选节点个数，取决于候选节点集合大小和用户的账户余额。
 - 对同一地址重复投票，视为增加投票。
-- ‘转移货币’操作的 input 字段填入`{ "method" : "vote", "params" : { "type":"2", "address" : "填入候选节点地址"} }`，注意使用转义字符。
+- ‘转移货币’操作的 input 字段填入`{ "method" : "vote", "params" : { {"role":"validator"}, "address" : "填入候选节点地址"} }`，注意使用转义字符。
 
 >例：对指定候选节点投票
 
@@ -183,7 +196,7 @@ let role = {
         \"method\":\"vote\",
         \"params\":
         {
-          \"type\":2,
+          {\"role\":\"validator\"},
           \"address\":\"buQtZrMdBQqYzfxvqKX3M8qLZD3LNAuoSKj4\",
         }
     }"
@@ -193,7 +206,7 @@ let role = {
 ### 减少投票
 
 - 向DPOS合约转账 0 BU。
-- ‘转移货币’操作的 input 字段填入`{ "method" : "unVote", "params" : { "type":"2", "address" : "填入候选节点地址", "amount": 50000000000} }`，注意使用转义字符。
+- ‘转移货币’操作的 input 字段填入`{ "method" : "unVote", "params" : { {"role":"validator"}, "address" : "填入候选节点地址", "amount": 50000000000} }`，注意使用转义字符。
 - 减少投票的金额不得大于已投票的金额。 投票信息记录在合约中，可以通过获取投票信息接口getVoteInfo查询。
 
 ```json
@@ -206,7 +219,7 @@ let role = {
         \"method\":\"unVote\",
         \"params\":
         {
-          \"type\":2,
+          {\"role\":\"validator\"},
           \"address\":\"buQtZrMdBQqYzfxvqKX3M8qLZD3LNAuoSKj4\",
           \"amount\":50000000000 /*减少500BU投票*/
         }
@@ -221,7 +234,7 @@ let role = {
   - 锁定期结束后进入第二步，可以再次发送退出申请，此时锁定期已过，DPOS合约账户会将所有押金退回原账户，如果当前节点是验证节点，将触发验证节点集合更新。
 
 - 向DPOS合约转账 0 BU。
-- ‘转移资产’或‘转移货币’操作的 input 字段填入 `{ "method":"withdraw", "params" : {"type":2} }`，注意使用转义字符。
+- ‘转移资产’或‘转移货币’操作的 input 字段填入 `{ "method":"withdraw", "params" : {"role":"validator"} }`，注意使用转义字符。
 
 >例
 
@@ -234,7 +247,7 @@ let role = {
     "{
       \"method\":\"withdraw\",
       \"params\":{
-        \"type\":2
+        {\"role\":\"validator\"}
       }
     }"
   }
@@ -245,7 +258,7 @@ let role = {
 候选节点可通过此操作收回部分押金，当候选节点押金数额超过最低质押金额时，候选节点可从质押金中收回一部分。
 
 - 向DPOS合约转账 0 BU。
-- ‘转移资产’或‘转移货币’操作的 input 字段填入 `{ "method":"takeback", "params" : {"type":2, "amount": "1000000000000"}}`，注意使用转义字符。
+- ‘转移资产’或‘转移货币’操作的 input 字段填入 `{ "method":"takeback", "params" : {{"role":"validator"}, "amount": "1000000000000"}}`，注意使用转义字符。
 
 >例
 
@@ -258,7 +271,7 @@ let role = {
     "{
       \"method\":\"takeback\",
       \"params\":{
-        \"type\":2,
+        {\"role\":\"validator\"},
         \"amount\": \"1000000000000\"
       }
     }"
@@ -269,10 +282,10 @@ let role = {
 
 ### 废止恶意验证节点提案
 
-如果某验证节点发现有另一个验证节点为恶意节点，或者不再适合作为验证节点，可以申请废止该恶意节点。发起‘废止恶意节点’提案后，需要所有验证节点投票决定是否执行废止操作。
+如果某验证节点发现有另一个验证节点为恶意节点，或者不再适合作为验证节点，可以申请废止该恶意节点。发起‘废止恶意节点’提案后，需要由委员会投票决定是否执行废止操作。
 
 - 废止者向DPOS合约转账 0 BU。
-- ‘转移资产’或‘转移货币’操作的 input 字段填入 `{ "method" : "abolish",  "params" : { "type":2, "address" : "此处填入恶意验证节点地址", "proof" : "此处填入废止该验证节点的原因"} }`，注意使用转义字符。
+- ‘转移资产’或‘转移货币’操作的 input 字段填入 `{ "method" : "abolish",  "params" : { {"role":"validator"}, "address" : "此处填入恶意验证节点地址", "proof" : "此处填入废止该验证节点的原因"} }`，注意使用转义字符。
 
 >例
 
@@ -286,7 +299,7 @@ let role = {
       \"method\":\"abolish\",
       \"params\":
       {
-        \"type\":2,
+        {\"role\":\"validator\"},
         \"address\":\"buQmvKW11Xy1GL9RUXJKrydWuNykfaQr9SKE\"，
         \"proof\":\"I_saw_it_uncomfotable.\"
       }
@@ -301,7 +314,7 @@ let role = {
 如果发起废止操作的验证节点后来发现被废止节点并非恶意节点，可以取消废止操作。但如果该废止操作已经被其他验证节点投票通过，则无法取消。
 
 - 废止者向DPOS合约转账 0 BU。
-- ‘转移资产’或‘转移货币’操作的 input 字段填入`{ "method" : "quitAbolish",  "params" : {"type":2, "address" : "此处填入恶意验证节点地址" } }`。
+- ‘转移资产’或‘转移货币’操作的 input 字段填入`{ "method" : "quitAbolish",  "params" : {{"role":"validator"}, "address" : "此处填入恶意验证节点地址" } }`。
 
 >例
 
@@ -315,7 +328,7 @@ let role = {
       \"method\":\"quitAbolish\",
       \"params\":
       { 
-        \"type\":2,
+        {\"role\":\"validator\"},
         \"address\":\"buQmvKW11Xy1GL9RUXJKrydWuNykfaQr9SKE\"
       }
     }"
@@ -323,34 +336,6 @@ let role = {
 ```
 
 注意：只有申请废止者才可以取消，其他节点和验证者节点无权取消。
-
-### 对废止恶意验证节点提案投票
-
-投票通过后，恶意节点将被废止。恶意节点被废止后，恶意节点的押金将被罚没，且平均分给剩余的验证节点作为押金, 取模的余数奖励给票数最高的验证节点。
-
-- 验证节点向DPOS合约账户转账 0 BU。
-- ‘转移资产’或‘转移货币’操作的 input 字段填入 `{ "method" : "voteForAbolish", "params" : {"type":2, "address" : "此处填入被投票的恶意验证节点地址" } }`，注意使用转义字符。
-
->例
-
-```json
-  "payCoin" :
-  {
-    "dest_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
-    "amount" :0,
-    "input":
-    "{
-       \"method\":\"voteForAbolish\",
-      \"params\":
-      {
-        \"type\":2,
-        \"address\":\"buQmvKW11Xy1GL9RUXJKrydWuNykfaQr9SKE\"
-      }
-    }"
-  }
-```
-
-注意：只有验证节点拥有投票权。若有效期内该废止提案未投票通过，则提案作废，申请被废止的节点将继续作为验证节点参与共识。
 
 ### 查询功能
 
@@ -384,7 +369,7 @@ let role = {
   }
 ```
 
-#### 查询用户投票信息
+#### 查询用户的验证节点投票信息
 
 >例
 
@@ -397,7 +382,35 @@ let role = {
       \"method\": \"getVoterInfo\",
       \"params\":
       {
-         \"address\":\"buQrVDKPCVE6LfCf8TyZEaiZ8R99NrSn4Fuz\"
+         \"address\":\"buQrVDKPCVE6LfCf8TyZEaiZ8R99NrSn4Fuz\",
+         \"role\": \"validator\",
+         \"vote_for\": \"buQmvKW11Xy1GL9RUXJKrydWuNykfaQr9SKE\"
+      }
+    }",
+    "opt_type" : 2,
+    "source_address" : ""
+  }
+```
+
+#### 查询验证节点申请信息
+
+input 中的 address 字段填入申请者地址。
+
+>例
+
+```json
+  {
+    "contract_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
+    "code" : "",
+    "input" :
+    "{
+      \"method\": \"getProposal\",
+      \"params\":
+      {
+        {
+          \"operate\": \"apply\",
+          \"item\":\"validator\"},
+          \"address\":\"buQmvKW11Xy1GL9RUXJKrydWuNykfaQr9SKE\"
       }
     }",
     "opt_type" : 2,
@@ -417,11 +430,13 @@ input 中的 address 字段填入指定的恶意节点地址。
     "code" : "",
     "input" :
     "{
-      \"method\": \"getAbolish\",
+      \"method\": \"getProposal\",
       \"params\":
       {
-        \"type\":2,
-         \"address\":\"buQmvKW11Xy1GL9RUXJKrydWuNykfaQr9SKE\"
+        {
+          \"operate\": \"abolish\",
+          \"item\":\"validator\"},
+          \"address\":\"buQmvKW11Xy1GL9RUXJKrydWuNykfaQr9SKE\"
       }
     }",
     "opt_type" : 2,
@@ -450,7 +465,7 @@ input 中的 address 字段填入指定的恶意节点地址。
 #### 申请加入委员会
 
 - 用户向DPOS合约转账 0 BU，申请成为新委员。成为新得委员需获得委员会1/2以上的成员同意。
-- ‘转移货币’操作的 input 字段填入 { "method" : "apply", "params" : {"type":1}}，注意使用转义字符。
+- ‘转移货币’操作的 input 字段填入 { "method" : "apply", "params" : {"role":"committee"}}，注意使用转义字符。
 
 >例
 
@@ -463,7 +478,7 @@ input 中的 address 字段填入指定的恶意节点地址。
     "{
       \"method\":\"apply\"，
       \"params\" : {
-        \"type\":1
+        \"role\": \"committee\"
       }
     }"
   }
@@ -473,11 +488,11 @@ input 中的 address 字段填入指定的恶意节点地址。
 
 注意：申请成为候选节点的账户必须拥有节点，且节点地址和账户地址相同。
 
-### 委员会新成员批准投票
+### 委员会批准投票
 
-- 候选节点，候选KOL以及委员会新成员的加入都需要经过委员会的审核和批准，获得半数以上委员会成员的投票才能加入。根据需要批准的类型，指定type。
+- 需要经过委员会的审核和批准的提案包含：候选节点，候选KOL以及委员会新成员的加入/退出（主动退出除外），以及配置更新， 半数以上委员会成员批准通过后提案才会执行。根据需要批准的类型，指定operate。
 - 委员会成员向DPOS合约转账 0 BU。
-- ‘转移货币’操作的 input 字段填入 { "method":"approve", "params" : {"type":1, "address": "此处填入新成员地址"} }，注意使用转义字符。
+- ‘转移货币’操作的 input 字段填入 { "method":"approve", "params" : {"role": "committee", "address": "此处填入新成员地址", "operate": "此处填入提案类型"} }，注意使用转义字符。
 
 >例
 
@@ -489,7 +504,7 @@ input 中的 address 字段填入指定的恶意节点地址。
     "input":"{
       \"method\":\"approve\",
       \"params\" : {
-        \"type\":1,
+        \"role\":\"committee\",
         \"address\": \"buQZoJk8bq6A1AtsmfRw3rYJ79eMHUyct9i2\"
       }
     }"
@@ -499,7 +514,7 @@ input 中的 address 字段填入指定的恶意节点地址。
 #### 委员会成员退出
 
 - 向DPOS合约转账 0 BU。
-- ‘转移资产’或‘转移货币’操作的 input 字段填入 `{ "method":"withdraw", "params" : {"type":1} }`，注意使用转义字符。
+- ‘转移资产’或‘转移货币’操作的 input 字段填入 `{ "method":"withdraw", "params" : {"role":"committee"} }`，注意使用转义字符。
 - 委员会成员主动退出无需其他成员批准。
 
 >例
@@ -512,7 +527,7 @@ input 中的 address 字段填入指定的恶意节点地址。
     "input":"{
       \"method\":\"withdraw\",
       \"params\" : {
-        \"type\":1
+        \"role\":\"committee\"
       }
     }"
   }
@@ -546,7 +561,7 @@ input 中的 address 字段填入指定的恶意节点地址。
 
 - 委员会成员向DPOS合约转账 0 BU。
 - 候选节点可以提议更新某一个参数，也可以同时更新多个参数，只需要在配置中填入需要更新的参数即可。
-- ‘转移资产’或‘转移货币’操作的 input 字段填入 { "method" : "proposalCfg",  "params" : { "configuration" : {"kol_pledge_amount": "此处填入KOL最低质押金额"} }，注意使用转义字符。
+- ‘转移资产’或‘转移货币’操作的 input 字段填入 { "method" : "configure",  "params" : { "item" :"kol_min_pledge", "value": "此处填入KOL最低质押金额"} }，注意使用转义字符。
 
 >例
 
@@ -557,38 +572,11 @@ input 中的 address 字段填入指定的恶意节点地址。
     "amount" :0,
     "input":
     "{
-      \"method\":\"proposalCfg\",
+      \"method\":\"configure\",
       \"params\":
       {
-        \"configuration\":
-        {
-            \"kol_pledge_amount\": 2000000000000,
-            \"validators_refresh_interval\":172800 ,
-            \"candidate_pledge_amount\": 100000000000000
-        }
-      }
-    }"
-  }
-```
-
-#### 选举配置更新投票
-
-- 委员会成员向DPOS合约转账 0 BU。
-- ‘转移资产’或‘转移货币’操作的 input 字段填入 { "method" : "voteCfg", "params" : { "proposalId" : "此处填入选举配置更新提案ID" } }，注意使用转义字符。
-
->例
-
-```json
-  "payCoin" :
-  {
-    "dest_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
-    "amount" :0,
-    "input":
-    "{
-       \"method\":\"voteCfg\",
-      \"params\":
-      {
-         \"proposalId\":\"buQmvKW11Xy1GL9RUXJKrydWuNykfaQr9SKE1\"
+        \"item\": \"kol_min_pledge\",
+        \"value\": 2000000000000
       }
     }"
   }
@@ -622,30 +610,7 @@ input 中的 address 字段填入指定的恶意节点地址。
   {
     "contract_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
     "code" : "",
-    "input" : "{\"method\": \"getConfigProposal\"}",
-    "opt_type" : 2,
-    "source_address" : ""
-  }
-```
-
-#### 获取验证节点选举配置投票信息
-
-input 中的 proposalId 字段填入指定的配置提案ID。
-
->例
-
-```json
-  {
-    "contract_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
-    "code" : "",
-    "input" :
-    "{
-      \"method\": \"getConfigVote\",
-      \"params\":
-      {
-        \"proposalId\":\"buQmvKW11Xy1GL9RUXJKrydWuNykfaQr9SKE1\"
-      }
-    }",
+    "input" : "{\"method\": \"getProposal\", \"params\": {\"operate\": \"config\", \"item\": \"kol_min_pledge\", \"address\": \"buQmvKW11Xy1GL9RUXJKrydWuNykfaQr9SKE\"}",
     "opt_type" : 2,
     "source_address" : ""
   }
@@ -660,7 +625,7 @@ input 中的 proposalId 字段填入指定的配置提案ID。
 任意一个用户账户可以通过向DPOS合约转移一笔 BU 作为押金，申请成为候选KOL，只有在有效期内获得半数以上的委员会成员通过才能加入候选KOL列表，参考[委员会新成员批准投票](#委员会新成员批准投票)。能否成为正式KOL，是根据一定周期内获得的用户投票总票数决定的。
 
 - 申请者向DPOS合约转移一笔 BU 作为押金（参见开发文档‘[转移BU资产](#转移bu资产)’），该押金可通过 ‘[收回押金](#收回押金)’ 操作收回。
-- ‘转移货币’操作的 input 字段填入 `{ "method" : "apply", "params" : {"type":3} }`，注意使用转义字符。
+- ‘转移货币’操作的 input 字段填入 `{ "method" : "apply", "params" : {"role":"kol"} }`，注意使用转义字符。
 
 >例
 
@@ -672,7 +637,7 @@ input 中的 proposalId 字段填入指定的配置提案ID。
     "input":"{
       \"method\":\"apply\",
       \"params\" : {
-        \"type\":3
+        \"role\":\"kol\"
       }
     }"
   }
@@ -680,6 +645,31 @@ input 中的 proposalId 字段填入指定的配置提案ID。
 
 申请成功后可以通过[查询当前KOL信息](#查询当前KOL信息)接口，查询候选KOL信息。
 
+#### 查询KOL申请信息
+
+input 中的 address 字段填入申请者地址。
+
+>例
+
+```json
+  {
+    "contract_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
+    "code" : "",
+    "input" :
+    "{
+      \"method\": \"getProposal\",
+      \"params\":
+      {
+        {
+          \"operate\": \"apply\",
+          \"item\":\"kol\"},
+          \"address\":\"buQmvKW11Xy1GL9RUXJKrydWuNykfaQr9SKE\"
+      }
+    }",
+    "opt_type" : 2,
+    "source_address" : ""
+  }
+```
 
 ### KOL退出
 
@@ -687,7 +677,7 @@ input 中的 proposalId 字段填入指定的配置提案ID。
   - 第一步是申请退出，申请成功后进入退出锁定期，锁定期为15天。
   - 锁定期结束后进入第二步，可以再次发送退出申请，此时锁定期已过，DPOS合约账户会将所有押金退回原账户，如果当前节点是KOL，将触发KOL集合更新。
 - 向DPOS合约转账 0 BU。
-- ‘转移资产’或‘转移货币’操作的 input 字段填入 `{ "method":"withdraw", "params" : {"type":3}}`，注意使用转义字符。
+- ‘转移资产’或‘转移货币’操作的 input 字段填入 `{ "method":"withdraw", "params" : {"role":"kol"}}`，注意使用转义字符。
 
 >例
 
@@ -699,7 +689,7 @@ input 中的 proposalId 字段填入指定的配置提案ID。
     "input":"{
       \"method\":\"withdraw\",
       \"params\" : {
-        \"type\":3
+        \"role\":\"kol\"
       }
     }"
   }
@@ -713,9 +703,9 @@ input 中的 proposalId 字段填入指定的配置提案ID。
 - 用户可以为多个候选KOL投票，可投票的候选KOL个数，取决于候选KOL集合大小和用户的账户余额。
 - 对同一地址重复投票，后值将覆盖前值。后值大，则视为增加投票，后值小，则视为减少投票，地址参数不能省略。
 - 如果投票额为0，视为用户撤销对该候选KOL的投票，地址参数不能省略，参考[为候选节点投票和取消投票](#为候选节点投票和取消投票)。
-- ‘转移货币’操作的 input 字段填入 `{ "method":"vote", "params" : {"type":3, "address": "此处填入候选KOL的地址"}}`，注意使用转义字符。
+- ‘转移货币’操作的 input 字段填入 `{ "method":"vote", "params" : {"role":"kol", "address": "此处填入候选KOL的地址"}}`，注意使用转义字符。
 
->例
+>投票
 
 ```json
   "payCoin" :
@@ -725,10 +715,55 @@ input 中的 proposalId 字段填入指定的配置提案ID。
     "input":"{
       \"method\":\"vote\",
       \"params\" : {
-        \"type\":3,
+        \"role\":\"kol\",
         \"address\": \"buQYKj4TTJPVDPXCLWeBZMoCr1JPhq9Z2tJm\"
       }
     }"
+  }
+```
+
+>取消投票
+
+```json
+  "payCoin" :
+  {
+    "dest_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
+    "amount" :0,
+    "input":"{
+      \"method\":\"unVote\",
+      \"params\" : {
+        \"role\":\"kol\",
+        \"address\": \"buQYKj4TTJPVDPXCLWeBZMoCr1JPhq9Z2tJm\"
+        \"coin_amount\": 50000000
+      }
+    }"
+  }
+```
+
+coin_amount为减少投票的代币金额。
+
+### 查询用户的KOL投票信息
+
+- params内address为投票用户地址
+
+>例
+
+```json
+  {
+    "contract_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
+    "code" : "",
+    "input" :
+    "{
+      \"method\": \"getVoterInfo\",
+      \"params\":
+      {
+         \"address\":\"buQrVDKPCVE6LfCf8TyZEaiZ8R99NrSn4Fuz\",
+         \"role\": \"kol\",
+         \"vote_for\": \"buQmvKW11Xy1GL9RUXJKrydWuNykfaQr9SKE\"
+      }
+    }",
+    "opt_type" : 2,
+    "source_address" : ""
   }
 ```
 
@@ -746,6 +781,60 @@ input 中的 proposalId 字段填入指定的配置提案ID。
     "opt_type" : 2,
     "source_address" : ""
   }
+```
+
+### 奖励和质押金提取
+
+- 验证节点，候选节点，KOL获得的奖励数额都记录在合约中，达到一定数额时，用户可以主动发起取现请求进行奖励取现。
+- 候选节点或者候选KOL主动退出集合时，冻结期满后可以再次请求退出，触发集合更新以及将质押金转移到取现记录中等待取现。此时用户可以发起取现请求将质押金取现(为简化质押金取现操作，可以冻结期满后的withdraw请求和取现请求合并到一个交易内提交)。
+- 向DPOS合约转账0BU。
+- ‘转移资产’或‘转移货币’操作的 input 字段填入 `{ "method":"extract"}`，注意使用转义字符。
+
+>奖励取现
+
+```json
+  "payCoin" :
+  {
+    "dest_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
+    "amount" :0,
+    "input":"{
+      \"method\":\"extract\",
+    }"
+  }
+```
+
+>质押金取现
+
+```json
+"operations" :
+[
+  {
+    "type": 7,
+    "pay_coin":
+    {
+      "dest_address": "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
+      "amount": 0,
+      "input":
+      "{
+        \"method\":\"withdraw\",
+        \"params\":{
+          {\"role\":\"validator\"}
+        }
+      }"
+    }
+  },
+  {
+    "type": 7,
+    "pay_coin":
+    {
+      "dest_address": "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
+      "amount": 0,
+      "input":"{
+        \"method\":\"extract\",
+      }"
+    }
+  }
+]
 ```
 
 ### 收益模型
