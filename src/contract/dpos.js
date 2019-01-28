@@ -5,7 +5,7 @@ const validatorCandsKey = 'validator_candidates';
 const kolCandsKey       = 'kol_candidates';
 const stakeKey          = 'all_stake';
 const rewardKey         = 'reward_distribute';
-const configKey         = 'dos_config';
+const configKey         = 'dpos_config';
 
 const role  = {
     'COMMITTEE' : 'committee',
@@ -337,7 +337,7 @@ function approve(operate, item, address){
     let key = proposalKey(operate, item, address);
     let proposal = loadObj(key);
     assert(proposal !== false, 'failed to get metadata: ' + key + '.');
-        
+
     if(blockTimestamp >= proposal.expiration){
         if(operate === motion.APPLY && proposal.pledge > 0){
             transferCoin(address, proposal.pledge);
@@ -545,13 +545,36 @@ function configure(item, value){
 
 function query(input_str){
     let input  = JSON.parse(input_str);
+    let params = input.params;
 
     let result = {};
-    if(input.method === 'getValidators'){
-        result.current_validators = getValidators();
+    if(input.method === 'getValidators') {
+        result.validators = getValidators();
     }
-    else if(input.method === 'getCandidates'){
-        result.current_candidates = storageLoad(validatorCandsKey);
+    else if(input.method === 'getValidatorCandidates') {
+        result.validator_candidates = loadObj(validatorCandsKey);
+    }
+    else if(input.method === 'getKols') {
+        let kolCands = loadObj(kolCandsKey);
+        assert(kolCands !== false, 'Faild to get kol candidates.');
+
+        result.kols = kolCands.slice(0, cfg.kol_size);
+    }
+    else if(input.method === 'getKolCandidates') {
+        result.kol_candidates = loadObj(kolCandsKey);
+    }
+    else if(input.method === 'getCommittee') {
+        result.committee = loadObj(committeeKey);
+    }
+    else if(input.method === 'queryReward') {
+        result.reward = loadObj(rewardKey);
+    }
+    else if(input.method === 'getConfiguration') {
+        result.configuration = loadObj(configKey);
+    }
+    else if(input.method === 'getProposal') {
+        let key = proposalKey(params.operate, params.item, params.address);
+        result.proposal = loadObj(key);
     }
     else{
        	throw '<unidentified operation type>';
@@ -620,7 +643,8 @@ function init(input_str){
         'out_pass_rate'            : 0.7,
         'valid_period'             : 1296000000000,  /* 15 * 24 * 60 * 60 * 1000 * 1000 */
         'fee_allocation_share'     : '70:20:10',     /* DAPP_70% : blockReward_20% : creator_10% */
-        'reward_allocation_share'  : '50:40:10'      /* validator_50% : validatorCandidate_40% : kol_10% */
+        'reward_allocation_share'  : '50:40:10',      /* validator_50% : validatorCandidate_40% : kol_10% */
+        'delegate_contract_address': ''
     };
     saveObj(configKey, cfg);
 
