@@ -3,7 +3,8 @@
 const committeeKey      = 'committee';
 const validatorCandsKey = 'validator_candidates';
 const kolCandsKey       = 'kol_candidates';
-const rewardKey         = 'block_reward';
+const stakeKey          = 'all_stake';
+const rewardKey         = 'reward_distribute';
 const configKey         = 'dos_config';
 
 const role  = {
@@ -61,13 +62,10 @@ function transferCoin(dest, amount)
 }
 
 function electInit(){
-    let rewards = loadObj(rewardKey);
-    assert(rewards !== false, 'Faild to get all stake and reward distribution table.');
+    elect.distribution = loadObj(rewardKey);
+    assert(elect.distribution !== false, 'Faild to get reward distribution table.');
 
-    elect.allStake     = int64Add(rewards.allStake, thisPayCoinAmount);
-    elect.distribution = rewards.distribution;
-
-    elect.balance  = getBalance();
+    elect.balance = getBalance();
     assert(elect.balance !== false, 'Faild to get account balance.');
 
     elect.validatorCands = loadObj(validatorCandsKey);
@@ -100,23 +98,24 @@ function distribute(twoDimenList, allReward){
 }
 
 function rewardDistribution(){
-    let rewards = int64Sub(elect.balance, elect.allStake);
-    if(rewards === '0'){
+    let reward = int64Sub(elect.balance, elect.allStake);
+    if(reward === '0'){
         return;
     }
 
-    let oneTenth = rewards / 10;
+    let oneTenth = reward / 10;
     distribute(elect.kols, oneTenth);
     distribute(elect.validators, oneTenth * 5);
     distribute(elect.validatorCands, oneTenth * 4);
 
-    let left = rewards % 10;
+    let left = reward % 10;
     elect.distribution[elect.validators[0][0]] = int64Add(elect.distribution[elect.validators[0][0]], left);
 
-    let distributed = {};
-    distributed.allStake     = getBalance();
-    distributed.distribution = elect.distribution;
-    saveObj(rewardKey, distributed);
+    let balance = getBalance();
+    assert(balance !== false, 'Failed to getBalance.');
+
+    saveObj(stakeKey, balance);
+    saveObj(rewardKey, elect.distribution);
 }
 
 function extract(){
@@ -562,12 +561,22 @@ function query(input_str){
     return JSON.stringify(result);
 }
 
-function main(input_str){
-    let input  = JSON.parse(input_str);
-    let params = input.params;
-
+function prepare(){
     cfg = loadObj(configKey);
     assert(cfg !== false, 'Failed to load configuration.');
+
+    elect.allStake = loadObj(stakeKey);
+    assert(elect.allStake !== false, 'Faild to get all stake.');
+
+    elect.allStake = int64Add(elect.allStake, thisPayCoinAmount);
+    saveObj(stakeKey, elect.allStake);
+}
+
+function main(input_str){
+    prepare();
+
+    let input  = JSON.parse(input_str);
+    let params = input.params;
 
     if(input.method === 'apply'){
         apply(params.role);
@@ -629,14 +638,8 @@ function init(input_str){
 
     let candidates = validators.sort(doubleSort);
     saveObj(validatorCandsKey, candidates);
-
-    let balance = getBalance();
-    assert(balance !== false, 'Faild to get account balance.');
-
-    let reward = {};
-    reward.allStake     = balance;
-    reward.distribution = {};
-    saveObj(rewardKey, reward);
+    saveObj(stakeKey, 100000000); /* 0.1BU */
+    saveObj(rewardKey, {});
 
     return true;
 }
