@@ -634,14 +634,15 @@ function initialization(committeeStr){
 }
 
 function main(input_str){
-    prepare();
-
     let input  = JSON.parse(input_str);
     let params = input.params;
 
     if(input.method === 'init'){
-        initialization(params.committee);
+        return initialization(params.committee);
     }
+
+    prepare();
+
     if(input.method === 'apply'){
         apply(params.role);
     }
