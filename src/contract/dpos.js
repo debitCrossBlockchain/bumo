@@ -595,12 +595,53 @@ function prepare(){
     saveObj(stakeKey, elect.allStake);
 }
 
+function initialization(committeeStr){
+    cfg = {
+        'committee_size'           : 100,
+        'kol_size'                 : 30,
+        'kol_candidate_size'       : 300,
+        'kol_min_pledge'           : 5000000000000,  /* 5 0000 0000 0000 */
+        'validator_size'           : 30,
+        'validator_candidate_size' : 300,
+        'validator_min_pledge'     : 500000000000000,/* 500 0000 0000 0000 */
+        'in_pass_rate'             : 0.5,
+        'out_pass_rate'            : 0.7,
+        'valid_period'             : 1296000000000,  /* 15 * 24 * 60 * 60 * 1000 * 1000 */
+        'fee_allocation_share'     : '70:20:10',     /* DAPP_70% : blockReward_20% : creator_10% */
+        'reward_allocation_share'  : '50:40:10',      /* validator_50% : validatorCandidate_40% : kol_10% */
+        'delegate_contract_address': ''
+    };
+    saveObj(configKey, cfg);
+
+    let committee = JSON.parse(committeeStr);
+    assert(int64Compare(committee.length, cfg.committee_size) <= 0, 'Committee size exceeded.');
+
+    let i = 0;
+    for(i = 0; i < committee.length; i += 1){
+        assert(addressCheck(committee[i]), 'Committee member(' +committee[i] + ') is not valid adress.');
+    }
+    saveObj(committeeKey, committee);
+
+    let validators = getValidators();
+    assert(validators !== false, 'Get validators failed.');
+
+    let candidates = validators.sort(doubleSort);
+    saveObj(validatorCandsKey, candidates);
+    saveObj(stakeKey, 100000000); /* 0.1BU */
+    saveObj(rewardKey, {});
+
+    return true;
+}
+
 function main(input_str){
     prepare();
 
     let input  = JSON.parse(input_str);
     let params = input.params;
 
+    if(input.method === 'init'){
+        initialization(params.committee);
+    }
     if(input.method === 'apply'){
         apply(params.role);
     }
@@ -631,39 +672,5 @@ function main(input_str){
 }
 
 function init(input_str){
-    cfg = {
-        'committee_size'           : 100,
-        'kol_size'                 : 30,
-        'kol_candidate_size'       : 300,
-        'kol_min_pledge'           : 5000000000000,  /* 5 0000 0000 0000 */
-        'validator_size'           : 30,
-        'validator_candidate_size' : 300,
-        'validator_min_pledge'     : 500000000000000,/* 500 0000 0000 0000 */
-        'in_pass_rate'             : 0.5,
-        'out_pass_rate'            : 0.7,
-        'valid_period'             : 1296000000000,  /* 15 * 24 * 60 * 60 * 1000 * 1000 */
-        'fee_allocation_share'     : '70:20:10',     /* DAPP_70% : blockReward_20% : creator_10% */
-        'reward_allocation_share'  : '50:40:10',      /* validator_50% : validatorCandidate_40% : kol_10% */
-        'delegate_contract_address': ''
-    };
-    saveObj(configKey, cfg);
-
-    let committee = JSON.parse(input_str);
-    assert(int64Compare(committee.length, cfg.committee_size) <= 0, 'Committee size exceeded.');
-
-    let i = 0;
-    for(i = 0; i < committee.length; i += 1){
-        assert(addressCheck(committee[i]), 'Committee member(' +committee[i] + ') is not valid adress.');
-    }
-    saveObj(committeeKey, committee);
-
-    let validators = getValidators();
-    assert(validators !== false, 'Get validators failed.');
-
-    let candidates = validators.sort(doubleSort);
-    saveObj(validatorCandsKey, candidates);
-    saveObj(stakeKey, 100000000); /* 0.1BU */
-    saveObj(rewardKey, {});
-
     return true;
 }
