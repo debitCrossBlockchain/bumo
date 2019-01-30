@@ -79,6 +79,10 @@ function electInit(){
 }
 
 function distribute(twoDimenList, allReward){
+    if(twoDimenList.length === 0){
+        return false;
+    }
+
     let reward = int64Div(allReward, twoDimenList.length);
 
     let i = 0;
@@ -95,6 +99,8 @@ function distribute(twoDimenList, allReward){
     let left       = int64Mod(allReward, twoDimenList.length);
     let element1st = elect.distribution[twoDimenList[0][0]];
     element1st     = int64Add(element1st, left);
+
+    return true;
 }
 
 function rewardDistribution(){
@@ -103,10 +109,12 @@ function rewardDistribution(){
         return;
     }
 
-    let oneTenth = reward / 10;
-    distribute(elect.kols, oneTenth);
+    let oneTenth    = reward / 10;
+    let ret         = distribute(elect.kols, oneTenth);
+    let candiReward = ret ? (oneTenth * 4) : (oneTenth * 5);
+
     distribute(elect.validators, oneTenth * 5);
-    distribute(elect.validatorCands, oneTenth * 4);
+    distribute(elect.validatorCands, candiReward);
 
     let left = reward % 10;
     elect.distribution[elect.validators[0][0]] = int64Add(elect.distribution[elect.validators[0][0]], left);
@@ -624,9 +632,9 @@ function initialization(committeeStr){
 
     let validators = getValidators();
     assert(validators !== false, 'Get validators failed.');
+    saveObj(validatorCandsKey, validators.sort(doubleSort));
+    saveObj(kolCandsKey, {});
 
-    let candidates = validators.sort(doubleSort);
-    saveObj(validatorCandsKey, candidates);
     saveObj(stakeKey, 100000000); /* 0.1BU */
     saveObj(rewardKey, {});
 
