@@ -63,23 +63,23 @@ function transferCoin(dest, amount)
 
 function electInit(){
     elect.distribution = loadObj(rewardKey);
-    assert(elect.distribution !== false, 'Faild to get reward distribution table.');
+    assert(elect.distribution !== false, 'Failed to get reward distribution table.');
 
-    elect.balance = getBalance();
-    assert(elect.balance !== false, 'Faild to get account balance.');
+    elect.balance = getBalance(thisAddress);
+    assert(elect.balance !== false, 'Failed to get account balance.');
 
     elect.validatorCands = loadObj(validatorCandsKey);
-    assert(elect.validatorCands !== false, 'Faild to get validator candidates.');
+    assert(elect.validatorCands !== false, 'Failed to get validator candidates.');
 
     elect.kolCands = loadObj(kolCandsKey);
-    assert(elect.kolCands !== false, 'Faild to get kol candidates.');
+    assert(elect.kolCands !== false, 'Failed to get kol candidates.');
 
     elect.validators = elect.validatorCands.slice(0, cfg.validator_size);
     elect.kols       = elect.kolCands.slice(0, cfg.kol_size);
 }
 
 function distribute(twoDimenList, allReward){
-    if(twoDimenList.length === 0){
+    if (twoDimenList.length === 0){
         return false;
     }
 
@@ -119,7 +119,7 @@ function rewardDistribution(){
     let left = reward % 10;
     elect.distribution[elect.validators[0][0]] = int64Add(elect.distribution[elect.validators[0][0]], left);
 
-    let balance = getBalance();
+    let balance = getBalance(thisAddress);
     assert(balance !== false, 'Failed to getBalance.');
 
     saveObj(stakeKey, balance);
@@ -283,7 +283,7 @@ function apply(roleType){
 function penalty(evil, roleType){
     let applicantKey  = proposalKey(motion.APPLY, roleType, evil);
     let applicant     = loadObj(applicantKey);
-    assert(applicant !== false, 'Faild to get ' + applicantKey + ' from metadata.');
+    assert(applicant !== false, 'Failed to get ' + applicantKey + ' from metadata.');
 
     let candidates = roleType === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
     distribute(candidates, applicant.pledge);
@@ -339,7 +339,7 @@ function approve(operate, item, address){
     assert(roleValid(item) || cfg[item] !== undefined, 'Unknown approve item.');
 
     let committee = loadObj(committeeKey);
-    assert(committee !== false, 'Faild to get ' + committeeKey + ' from metadata.');
+    assert(committee !== false, 'Failed to get ' + committeeKey + ' from metadata.');
     assert(committee.includes(sender), 'Only committee members have the right to approve.');
 
     let key = proposalKey(operate, item, address);
@@ -445,19 +445,19 @@ function isExist(twoDimenList, address){
 function reportPermission(roleType){
     if(roleType === role.COMMITTEE){
         let committee = loadObj(committeeKey);
-        assert(committee !== false, 'Faild to get ' + committeeKey + ' from metadata.');
+        assert(committee !== false, 'Failed to get ' + committeeKey + ' from metadata.');
         assert(committee.includes(sender), 'Only committee members have the right to report other committee member.');
     }
     else if(roleType === role.VALIDATOR){
         let validatorCands = loadObj(validatorCandsKey);
-        assert(validatorCands !== false, 'Faild to get validator candidates.');
+        assert(validatorCands !== false, 'Failed to get validator candidates.');
 
         let validators = validatorCands.slice(0, cfg.validator_size);
         assert(isExist(validators, sender), 'Only validator have the right to report other validator.');
     }
     else if(roleType === role.KOL){
         let kolCands = loadObj(kolCandsKey);
-        assert(kolCands !== false, 'Faild to get kol candidates.');
+        assert(kolCands !== false, 'Failed to get kol candidates.');
 
         let kols = kolCands.slice(0, cfg.kol_size);
         assert(isExist(kols, sender), 'Only kol have the right to report other kol.');
@@ -502,7 +502,7 @@ function withdraw(roleType){
 
     if(roleType === role.COMMITTEE){
         let committee = loadObj(committeeKey);
-        assert(committee !== false, 'Faild to get ' + committeeKey + ' from metadata.');
+        assert(committee !== false, 'Failed to get ' + committeeKey + ' from metadata.');
 
         committee.splice(committee.indexOf(sender), 1);
         saveObj(committeeKey, committee);
@@ -538,7 +538,7 @@ function configure(item, value){
     assert(cfg[item] !== undefined, 'Unknown config type');
 
     let committee = loadObj(committeeKey);
-    assert(committee !== false, 'Faild to get ' + committeeKey + ' from metadata.');
+    assert(committee !== false, 'Failed to get ' + committeeKey + ' from metadata.');
     assert(committee.includes(sender), 'Only the committee has the power to proposal to modify the configuration.');
 
     let key      = proposalKey(motion.CONFIG, item, sender);
@@ -564,7 +564,7 @@ function query(input_str){
     }
     else if(input.method === 'getKols') {
         let kolCands = loadObj(kolCandsKey);
-        assert(kolCands !== false, 'Faild to get kol candidates.');
+        assert(kolCands !== false, 'Failed to get kol candidates.');
 
         result.kols = kolCands.slice(0, cfg.kol_size);
     }
@@ -597,13 +597,13 @@ function prepare(){
     assert(cfg !== false, 'Failed to load configuration.');
 
     elect.allStake = loadObj(stakeKey);
-    assert(elect.allStake !== false, 'Faild to get all stake.');
+    assert(elect.allStake !== false, 'Failed to get all stake.');
 
     elect.allStake = int64Add(elect.allStake, thisPayCoinAmount);
     saveObj(stakeKey, elect.allStake);
 }
 
-function initialization(committeeStr){
+function initialization(params){
     cfg = {
         'committee_size'           : 100,
         'kol_size'                 : 30,
@@ -617,24 +617,24 @@ function initialization(committeeStr){
         'valid_period'             : 1296000000000,  /* 15 * 24 * 60 * 60 * 1000 * 1000 */
         'fee_allocation_share'     : '70:20:10',     /* DAPP_70% : blockReward_20% : creator_10% */
         'reward_allocation_share'  : '50:40:10',      /* validator_50% : validatorCandidate_40% : kol_10% */
-        'delegate_contract_address': ''
+        'delegate_address'         : params.delegate_address
     };
     saveObj(configKey, cfg);
 
-    let committee = JSON.parse(committeeStr);
-    assert(int64Compare(committee.length, cfg.committee_size) <= 0, 'Committee size exceeded.');
+    assert(int64Compare(params.committee.length, cfg.committee_size) <= 0, 'Committee size exceeded.');
 
     let i = 0;
-    for(i = 0; i < committee.length; i += 1){
-        assert(addressCheck(committee[i]), 'Committee member(' +committee[i] + ') is not valid adress.');
+    for(i = 0; i < params.committee.length; i += 1){
+        assert(addressCheck(params.committee[i]), 'Committee member(' + params.committee[i] + ') is not valid adress.');
     }
-    saveObj(committeeKey, committee);
+    saveObj(committeeKey, params.committee);
 
     let validators = getValidators();
     assert(validators !== false, 'Get validators failed.');
-    saveObj(validatorCandsKey, validators.sort(doubleSort));
-    saveObj(kolCandsKey, {});
 
+    let candidates = validators.sort(doubleSort);
+    saveObj(validatorCandsKey, candidates);
+    saveObj(kolCandsKey, []);
     saveObj(stakeKey, 100000000); /* 0.1BU */
     saveObj(rewardKey, {});
 
@@ -646,7 +646,7 @@ function main(input_str){
     let params = input.params;
 
     if(input.method === 'init'){
-        return initialization(params.committee);
+        return initialization(params);
     }
 
     prepare();
