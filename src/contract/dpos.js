@@ -57,7 +57,7 @@ function transferCoin(dest, amount)
         return true; 
     }
 
-    payCoin(dest, amount);
+    payCoin(dest, String(amount));
     log('Pay coin( ' + amount + ') to dest account(' + dest + ') succeed.');
 }
 
@@ -82,7 +82,8 @@ function distribute(twoDimenList, allReward){
     if (twoDimenList.length === 0){
         return false;
     }
-
+	
+	log('Distribute reward ' + allReward + ' to ' + twoDimenList.length + ' address');
     let reward = int64Div(allReward, twoDimenList.length);
 
     let i = 0;
@@ -170,8 +171,11 @@ function checkPledge(roleType){
 
 function addCandidates(roleType, address, pledge, maxSize){
     let candidates = roleType === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
-    let com        = int64Compare(pledge, candidates[candidates.length - 1][1]);
-    
+	let com = -1;
+	if(candidates.length > 0) {
+    	com = int64Compare(pledge, candidates[candidates.length - 1][1]);
+	}
+
     if(candidates.length >= maxSize && com <= 0){
         return;
     }
@@ -360,12 +364,15 @@ function approve(operate, item, address){
     }
 
     if(operate === motion.CONFIG){
+		log('Config of ' + item + ' proposal passed');
         updateCfg(key, proposal, item);
     }
     else if(operate === motion.APPLY){
+		log('Apply proposal of ' + item + '_' + address + ' passed');
         passIn(committee, key, proposal, item, address);
     }
     else if(operate === motion.ABOLISH){
+		log('Abolish proposal of ' + item + '_' + address + ' passed');
         passOut(committee, key, item, address);
     }
 }
@@ -491,9 +498,10 @@ function withdraw(roleType){
     let withdrawKey = proposalKey(motion.WITHDRAW, roleType, sender);
     let expiration  = storageLoad(withdrawKey);
     if(expiration === false){
-        return storageStore(withdrawKey, blockTimestamp + cfg.valid_period);
+        return storageStore(withdrawKey, String(blockTimestamp + cfg.valid_period));
     }
-
+	
+	log('blockTimestamp:' + blockTimestamp + ' , expiration:' + expiration);
     assert(int64Compare(blockTimestamp, expiration) >= 0, 'Buffer period is not over.');
 
     let applicantKey = proposalKey(motion.APPLY, roleType, sender);
