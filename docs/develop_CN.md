@@ -153,13 +153,15 @@ HTTP GET /createKeyPair
 
 ```json
 {
-  "error_code" : 0,
-  "result" : {
-          "address": "buQd4TBqSbHw3EoLMnSmH4SJFMkHUtEQbUvz",        //账户地址
-          "private_key": "privbzYwbUSCwQZq7eXgu4C9cpqrQD4enXY49V7qUrifc6fCtiPmBhWA",  //账户私钥
-          "public_key": "b0016558bd75fe20d6f7953cef0a95509d11d73652b70f183c72ede25711778dfc0039ea73f3",  //账户公钥
-          "public_key_raw": "6558bd75fe20d6f7953cef0a95509d11d73652b70f183c72ede25711778dfc00"       //公钥排除前缀和后缀后的数据
-  }
+   "error_code" : 0,
+   "result" : {
+      "address" : "buQqRgkmtckz3U4kX91F2NmZzJ9rkadjYaa2",  //账户地址
+      "private_key" : "privbtnSGRQ46FF3MaqiGiDNytz2soFw4iNHKahTqszR6mRrmq7qhVYh",  //账户私钥
+      "private_key_aes" : "7594a97bc5e6432704cc5f58ff60727ee9bda10a6117915d025553afec7f81527cb857b882b7c775391fe1fe3f7f3ec198ea69ada138b19cbe169a1a3fa2dec8",  //AES加密账户私钥之后的数据
+      "public_key" : "b00101da11713eaad86ad8ededfc28e86b8cd619ca2d593a21d8b82da34320a7e63b09c279bc", //账户公钥
+      "public_key_raw" : "01da11713eaad86ad8ededfc28e86b8cd619ca2d593a21d8b82da34320a7e63b",  //公钥排除前缀和后缀后的数据
+      "sign_type" : "ed25519"  //账户加密类型
+   }
 }
 
 ```
