@@ -39,7 +39,7 @@
 
 ## 编译
 
-如果不想编译源码，可以直接使用安装包部署，[安装包下载]( https://github.com/bumoproject/bumo/releases/ "download")，下载完成后参考[Linux 安装包安装](#linux安装包安装)，[MAC 安装包安装](#mac安装包安装)
+如果不想编译源码，可以直接使用安装包部署，[安装包下载]( https://github.com/bumoproject/bumo/releases/ "download")，下载完成后参考[Linux 安装包安装](#使用安装包安装)，[MAC 安装包安装](#使用安装包安装)
 
 ### Linux
 支持 Ubuntu、Centos 等大多数操作系统编译，推荐使用版本Ubuntu 14.04，Centos 7。下面编译步骤以 Ubuntu 14.04 示例
