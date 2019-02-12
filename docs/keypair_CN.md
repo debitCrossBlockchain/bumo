@@ -434,8 +434,8 @@ https://developers.google.com/protocol-buffers/docs/overview
 
 ```
     message Asset{
-        AssetKey key = 1;                      // 资产标识
-        int64 amount = 2;                   // 资产数量
+        AssetKey	key = 1;                      // 资产标识
+        int64		amount = 2;                   // 资产数量
     }
 ```
 
@@ -524,7 +524,7 @@ https://developers.google.com/protocol-buffers/docs/overview
 ```
 ### 使用示例
 
-> 本节中提供了proto脚本，以及c++、java、javascript、pyton、object-c和php生成的proto源码的示例，详细信息请查看以下链接: https://github.com/bumoproject/bumo/tree/develop/src/proto
+> 本节中提供了proto脚本，以及cpp、java、javascript、pyton、object-c和php生成的proto源码的示例，详细信息请查看以下链接: https://github.com/bumoproject/bumo/tree/develop/src/proto
 
 链接中的目录结构说明：
 
