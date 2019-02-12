@@ -1854,6 +1854,23 @@ Referenced Documents: [Smart Contract Rules](../src/web/jslint/ContractRules.md)
     */
     ```
 
+- ##### Gets the metadata for the specified account
+
+    `getAccountMetadata(account_address, metadata_key);`
+
+    - account_address: account address
+    - metadata_key: metadata's key 
+
+    example
+    ```javascript
+    let value = getAccountMetadata('buQsZNDpqHJZ4g5hz47CqVMk5154w1bHKsHY', 'abc');
+
+    /*
+      Authority: Read-Only
+      return: Successfully to a string, such as 'values', failed to false
+    */
+    ```
+
 - ##### Get block information
 
     `getBlockHash(offset_seq);`
@@ -1883,6 +1900,23 @@ Referenced Documents: [Smart Contract Rules](../src/web/jslint/ContractRules.md)
     */
     
     ```
+
+- ##### Public key to address
+
+    `toAddress(public_key);`
+    - public_key:Public key，base16 encoded string
+    - success，return account address; failed to false
+
+    example
+    ```javascript
+    let ret = toAddress('b0016ebe6191f2eb73a4f62880b2874cae1191183f50e1b18b23fcf40b75b7cd5745d671d1c8');
+    /*
+      Authority: Read-Only
+      return: Successfully-> "buQi6f36idrKiGrno3RcdjUjGAibUC37FJK6"，failed to false
+    */
+
+    ```
+
 
 - ##### Check the validity of string number
 
@@ -2011,6 +2045,61 @@ Referenced Documents: [Smart Contract Rules](../src/web/jslint/ContractRules.md)
       return, Successfully->value in type string as'1234567891200000000'; failed->exceptions
     */
     
+    ```
+          
+ - ##### sha256 calculate
+    `sha256(data[, dataType]);`
+
+    - data: The raw data for the hash to be computed, fill in the data in different formats, depending on the dataType.
+    - dataType：Data type, integer, optional field, default is 0. 0: base16 encoded string, such as "61626364"; 1: ordinary original string, such as "abcd";2: base64 encoded string, such as "YWJjZA==".Base16 or base64 encoding is recommended for binary data hash calculations.
+    - return: Success returns the base16-encoded string after the hash, and failure returns false
+
+    example
+    ```javascript
+    let ret = sha256('61626364');
+    /*
+      Authority: Read-Only
+      function：sha256
+      return：Returns a base16 format string of 64 bytes successfully '88d4266fd4e6338d13b845fcf289579d209c897823b9217da3e161936f031589'，Failure to return false
+    */
+
+    ```
+
+     - ##### Verify that the signature is valid
+    `ecVerify(signedData, publicKey,blobData [, blobDataType]);`
+
+    - signedData: Signature data, base16-encoded string.
+    - publicKey：Public key, base16-encoded string.
+    - blobData：The raw data, depending on the blobDataType, is filled in in different formats.
+    - blobDataType：BlobData's data type, integer, optional field, default is 0.0: base16 encoded string, such as "61626364";1: normal raw string, such as "abcd"; 2: base64 encoded string, such as "YWJjZA==".If you validate binary data, base16 or base64 encoding is recommended.
+    - return, Successfully->true,Failure to return false
+
+    example
+    ```javascript
+    let ret = ecVerify('3471aceac411975bb83a22d7a0f0499b4bfcb504e937d29bb11ea263b5f657badb40714850a1209a0940d1ccbcfc095c4b2d38a7160a824a6f9ba11f743ad80a', 'b0014e28b305b56ae3062b2cee32ea5b9f3eccd6d738262c656b56af14a3823b76c2a4adda3c', 'abcd', 1);
+    /*
+      Authority: Read-Only
+      return：Success returns true, failed to false
+    */
+
+    ```
+
+     - ##### DelegateCall
+    `delegateCall(contractAddress, input);`
+
+    - contractAddress: The address of the contract invoked.
+    - input：Call parameters.
+    
+    delegateCall function triggers the entry to the called contract main function,and assign the execution environment of the current contract to the invoked contract.
+    
+    example
+    ```javascript
+    let ret = delegateCall('buQBwe7LZYCYHfxiEGb1RE9XC9kN2qrGXWCY'，'{}');
+    /*
+      Authority: Read-Only
+      return：Success returns true, failure to throw exception
+    */
+
     ```
 
 - ##### Log
