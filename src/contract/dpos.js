@@ -134,8 +134,10 @@ function extract(){
     let income = elect.distribution[sender];
     transferCoin(sender, income);
 
-    delete elect.distribution[sender];
-    saveObj(rewardKey, elect.distribution);
+    if(elect.validatorCands[sender] === undefined && elect.kols[sender] === undefined){
+        delete elect.distribution[sender];
+        saveObj(rewardKey, elect.distribution);
+    }
 
     log(sender + ' extracted block reward ' + income);
 }
