@@ -13,10 +13,7 @@
   - [为候选节点投票](#为候选节点投票)
   - [减少投票](#减少投票)
   - [候选节点退出](#候选节点退出)
-  - [收回押金](#收回押金)
   - [废止恶意验证节点提案](#废止恶意验证节点提案)
-  - [撤销废止恶意验证节点提案](#撤销废止恶意验证节点提案)
-  - [对废止恶意验证节点提案投票](#对废止恶意验证节点提案投票)
   - [查询功能](#查询功能)
     - [查询当前验证节点集合](#查询当前验证节点集合)
     - [查询候选节点集合信息](#查询候选节点集合信息)
@@ -29,7 +26,6 @@
     - [申请加入委员会](#申请加入委员会)
     - [委员会批准投票](#委员会批准投票)
     - [委员会成员退出](#委员会成员退出)
-    - [委员会成员申请](#委员会成员申请)
   - [委员会查询](#委员会查询)
   - [选举配置更新](#验证节点选举配置更新)
     - [选举配置结构](#选举配置结构)
@@ -129,7 +125,7 @@ dpos 合约账户创建成功后，才可以进行后续的操作，且该账户
 
 ### 角色和动作类型
 
-任意 BuChain 账户可以申请成为委员会委员或候选KOL(Key Opinion Leader)，拥有节点的账户还可以申请成为候选节点，所以，对BuChain账户来说，有以下可申请的类型。
+任意 BuChain 账户可以申请成为委员会委员或候选KOL(Key Opinion Leader)，拥有节点的账户还可以申请成为候选验证节点，所以，对BuChain账户来说，有以下可申请的类型。
 
 ```js
 const role  = {
@@ -186,7 +182,7 @@ const motion = {
 - 候选节点的得票总数为自身质押额与得票数之和，候选节点增加质押额相当于给自己投票。
 - 用户可以为多个候选地址投票，可投票的候选节点个数，取决于候选节点集合大小和用户的账户余额。
 - 对同一地址重复投票，视为增加投票。
-- ‘转移货币’操作的 input 字段填入`{ "method" : "vote", "params" : { {"role":"validator"}, "address" : "填入候选节点地址"} }`，注意使用转义字符。
+- ‘转移货币’操作的 input 字段填入`{ "method" : "vote", "params" : { "role":"validator", "address" : "填入候选节点地址"} }`，注意使用转义字符。
 
 >例：对指定候选节点投票
 
@@ -200,7 +196,7 @@ const motion = {
         \"method\":\"vote\",
         \"params\":
         {
-          {\"role\":\"validator\"},
+          \"role\":\"validator\",
           \"address\":\"buQtZrMdBQqYzfxvqKX3M8qLZD3LNAuoSKj4\",
         }
     }"
@@ -210,7 +206,7 @@ const motion = {
 ### 减少投票
 
 - 向DPOS合约转账 0 BU。
-- ‘转移货币’操作的 input 字段填入`{ "method" : "unVote", "params" : { {"role":"validator"}, "address" : "填入候选节点地址", "amount": 50000000000} }`，注意使用转义字符。
+- ‘转移货币’操作的 input 字段填入`{ "method" : "unVote", "params" : { "role":"validator", "address" : "填入候选节点地址", "amount": 50000000000} }`，注意使用转义字符。
 - 减少投票的金额不得大于已投票的金额。 投票信息记录在合约中，可以通过获取投票信息接口getVoteInfo查询。
 
 ```json
@@ -223,7 +219,7 @@ const motion = {
         \"method\":\"unVote\",
         \"params\":
         {
-          {\"role\":\"validator\"},
+          \"role\":\"validator\",
           \"address\":\"buQtZrMdBQqYzfxvqKX3M8qLZD3LNAuoSKj4\",
           \"amount\":50000000000 /*减少500BU投票*/
         }
@@ -233,12 +229,13 @@ const motion = {
 
 ### 候选节点退出
 
-- 候选节点可通过此操作退出候选节点并收回全部押金。退出流程分两步：
+- 候选节点可通过此操作退出候选节点并收回全部押金。退出流程分三步：
   - 第一步是申请退出，申请成功后进入退出锁定期，锁定期为15天。
-  - 锁定期结束后进入第二步，可以再次发送退出申请，此时锁定期已过，DPOS合约账户会将所有押金退回原账户，如果当前节点是验证节点，将触发验证节点集合更新。
+  - 锁定期结束后进入第二步，可以再次发送退出申请，此时锁定期已过，DPOS合约账户会将所有押金转移至区块奖励分配列表，如果当前节点是验证节点，将触发验证节点集合更新。
+  - 用户触发 [奖励和质押金提取](#奖励和质押金提取) 将押金和区块奖励一同收回。
 
 - 向DPOS合约转账 0 BU。
-- ‘转移资产’或‘转移货币’操作的 input 字段填入 `{ "method":"withdraw", "params" : {"role":"validator"} }`，注意使用转义字符。
+- ‘转移资产’或‘转移货币’操作的 input 字段填入 `{ "method":"withdraw", "params" : "role":"validator" }`，注意使用转义字符。
 
 >例
 
@@ -251,38 +248,11 @@ const motion = {
     "{
       \"method\":\"withdraw\",
       \"params\":{
-        {\"role\":\"validator\"}
+        \"role\":\"validator\"
       }
     }"
   }
 ```
-
-### 收回押金
-
-候选节点可通过此操作收回部分押金，当候选节点押金数额超过最低质押金额时，候选节点可从质押金中收回一部分。
-
-- 向DPOS合约转账 0 BU。
-- ‘转移资产’或‘转移货币’操作的 input 字段填入 `{ "method":"takeback", "params" : {{"role":"validator"}, "amount": "1000000000000"}}`，注意使用转义字符。
-
->例
-
-```json
-  "payCoin" :
-  {
-    "dest_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
-    "amount" :0,
-    "input":
-    "{
-      \"method\":\"takeback\",
-      \"params\":{
-        {\"role\":\"validator\"},
-        \"amount\": \"1000000000000\"
-      }
-    }"
-  }
-```
-
-操作成功后，DPOS合约账户会将数额为amount值的押金退回原账户，收回部分押金后，剩余押金不得低于最低质押金额。
 
 ### 废止恶意验证节点提案
 
@@ -312,34 +282,6 @@ const motion = {
 ```
 
 注意：申请废止者和被废止者必须都是验证者节点。
-
-### 撤销废止恶意验证节点提案
-
-如果发起废止操作的验证节点后来发现被废止节点并非恶意节点，可以取消废止操作。但如果该废止操作已经被其他验证节点投票通过，则无法取消。
-
-- 废止者向DPOS合约转账 0 BU。
-- ‘转移资产’或‘转移货币’操作的 input 字段填入`{ "method" : "quitAbolish",  "params" : {{"role":"validator"}, "address" : "此处填入恶意验证节点地址" } }`。
-
->例
-
-```json
-  "payCoin" :
-  {
-    "dest_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
-    "amount" :0,
-    "input":
-    "{ 
-      \"method\":\"quitAbolish\",
-      \"params\":
-      { 
-        {\"role\":\"validator\"},
-        \"address\":\"buQmvKW11Xy1GL9RUXJKrydWuNykfaQr9SKE\"
-      }
-    }"
-  }
-```
-
-注意：只有申请废止者才可以取消，其他节点和验证者节点无权取消。
 
 ### 查询功能
 
@@ -494,9 +436,9 @@ input 中的 address 字段填入指定的恶意节点地址。
 
 ### 委员会批准投票
 
-- 需要经过委员会的审核和批准的提案包含：候选节点，候选KOL以及委员会新成员的加入/退出（主动退出除外），以及配置更新， 半数以上委员会成员批准通过后提案才会执行。根据需要批准的类型，指定operate。
+- 需要经过委员会的审核和批准的提案包含：候选节点，候选KOL和委员会新成员的加入/废除，以及配置更新。 半数以上委员会成员批准通过后提案才会执行。审核投票的时候需要指定提案动作类型、被提案者角色和被提案者地址，如果审核的是配置更新提案，不需要提供角色和地址，只需要指定配置项目即可。
 - 委员会成员向DPOS合约转账 0 BU。
-- ‘转移货币’操作的 input 字段填入 { "method":"approve", "params" : {"role": "committee", "address": "此处填入新成员地址", "operate": "此处填入提案类型"} }，注意使用转义字符。
+- ‘转移货币’操作的 input 字段填入 { "method":"approve", "params" : {"item": "committee", "address": "此处填入加入或废除的地址", "operate": "此处填入提案类型"} }，注意使用转义字符。
 
 >例
 
@@ -509,16 +451,19 @@ input 中的 address 字段填入指定的恶意节点地址。
       \"method\":\"approve\",
       \"params\" : {
         \"role\":\"committee\",
-        \"address\": \"buQZoJk8bq6A1AtsmfRw3rYJ79eMHUyct9i2\"
+        \"address\": \"buQZoJk8bq6A1AtsmfRw3rYJ79eMHUyct9i2\"，
+        \"operate\": \"apply\"
       }
     }"
   }
 ```
 
+- 委员会在截止日期内投票超过审核通过率，则审核通过。如果审核的是申请提案，投票通过后，申请者被加入对应集合。如果审核的是废止提案，则被提案者从对应集合内被删除。如果审核的是配置更新提案，则以提案内的值取代原配置项值。
+
 #### 委员会成员退出
 
 - 向DPOS合约转账 0 BU。
-- ‘转移资产’或‘转移货币’操作的 input 字段填入 `{ "method":"withdraw", "params" : {"role":"committee"} }`，注意使用转义字符。
+- ‘转移资产’或‘转移货币’操作的 input 字段填入 `{ "method":"withdraw", "params" : "role":"committee" }`，注意使用转义字符。
 - 委员会成员主动退出无需其他成员批准。
 
 >例
@@ -629,7 +574,7 @@ input 中的 address 字段填入指定的恶意节点地址。
 任意一个用户账户可以通过向DPOS合约转移一笔 BU 作为押金，申请成为候选KOL，只有在有效期内获得半数以上的委员会成员通过才能加入候选KOL列表，参考[委员会新成员批准投票](#委员会新成员批准投票)。能否成为正式KOL，是根据一定周期内获得的用户投票总票数决定的。
 
 - 申请者向DPOS合约转移一笔 BU 作为押金（参见开发文档‘[转移BU资产](#转移bu资产)’），该押金可通过 ‘[收回押金](#收回押金)’ 操作收回。
-- ‘转移货币’操作的 input 字段填入 `{ "method" : "apply", "params" : {"role":"kol"} }`，注意使用转义字符。
+- ‘转移货币’操作的 input 字段填入 `{ "method" : "apply", "params" : "role":"kol" }`，注意使用转义字符。
 
 >例
 
@@ -666,7 +611,7 @@ input 中的 address 字段填入申请者地址。
       {
         {
           \"operate\": \"apply\",
-          \"item\":\"kol\"},
+          \"item\":\"kol\",
           \"address\":\"buQmvKW11Xy1GL9RUXJKrydWuNykfaQr9SKE\"
       }
     }",
