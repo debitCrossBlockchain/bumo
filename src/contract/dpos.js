@@ -541,6 +541,7 @@ function withdraw(roleType){
         else{
             elect.distribution[sender] = int64Add(elect.distribution[sender], applicant.pledge);
         }
+        saveObj(rewardKey, elect.distribution);
     }
 
     storageDel(applicantKey);
