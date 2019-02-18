@@ -351,7 +351,7 @@ Chain.issueAsset("CNY", 10000);
     ```javascript
     let ret = Chain.delegateQuery('buQBwe7LZYCYHfxiEGb1RE9XC9kN2qrGXWCY'，"");
     /*
-      权限：可写
+      权限：只读
       返回：如果目标账户为普通账户，则返回true，如果目标账户为合约，调用成功则返回字符串 {"result":"4"}，其中 result 字段的值即查询的具体结果，调用失败返回 {"error":true} 字符串。
     */
 
@@ -381,19 +381,19 @@ Chain.issueAsset("CNY", 10000);
 
 - ### 查询合约
 
-    `Chain.delegateQuery(contractAddress, input);`
+    `Chain.contractQuery(contractAddress, input);`
 
     - contractAddress: 被调用的合约地址。
     - input：调用参数。
     
-    Chain.delegateQuery 函数会触发被调用的合约query函数入口
+    Chain.contractQuery 会调用合约的查询接口
     
     例如
     ```javascript
-    let ret = Chain.delegateQuery('buQBwe7LZYCYHfxiEGb1RE9XC9kN2qrGXWCY'，"");
+    let ret = Chain.contractQuery('buQBwe7LZYCYHfxiEGb1RE9XC9kN2qrGXWCY'，"");
     /*
-      权限：可写
-      返回：如果目标账户为普通账户，则返回true，如果目标账户为合约，调用成功则返回字符串 {"result":"4"}，其中 result 字段的值即查询的具体结果，调用失败返回 {"error":true} 字符串。
+      权限：只读
+      返回：调用成功则返回字符串 {"result":"xxx"}，其中 result 字段的值即查询的具体结果，调用失败返回 {"error":true} 字符串。
     */
 
     ```
