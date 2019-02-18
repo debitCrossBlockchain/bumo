@@ -20,9 +20,9 @@ const motion = {
     'CONFIG'  : 'config'
 };
 
+let elect  = {};
+let cfg    = {};
 let sysCfg = ['fee_allocation_share'];
-let elect = {};
-let cfg = {};
 
 function doubleSort(a, b){
     let com = int64Compare(b[1], a[1]) ;
@@ -659,8 +659,8 @@ function initialization(params){
 
     let candidates = validators.sort(doubleSort);
     saveObj(validatorCandsKey, candidates);
-    saveObj(kolCandsKey, []);
     saveObj(stakeKey, 100000000); /* 0.1BU */
+    saveObj(kolCandsKey, []);
     saveObj(rewardKey, {});
 
     return true;
