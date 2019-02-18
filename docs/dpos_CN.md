@@ -285,7 +285,7 @@ const motion = {
 
 ### 查询功能
 
-用户通过向查询接口（即 query 接口）提供指定参数，可以查看相关信息, 调用查询接口当前只能通过 callContract, contract_address 字段填入DPOS合约账户地址。
+用户通过向查询接口（即 query 接口）提供指定参数，可以查看相关信息, 调用查询接口当前只能通过 callContract接口。 contract_address 字段填入DPOS合约账户地址。
 
 #### 查询当前验证节点集合
 

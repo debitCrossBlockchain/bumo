@@ -374,8 +374,7 @@ function approve(operate, item, address){
     assert(proposal.ballot.includes(sender) !== true, sender + ' has voted.');
     proposal.ballot.push(sender);
 
-    let passRate = operate === motion.WITHDRAW ? cfg.out_pass_rate : cfg.in_pass_rate;
-    if(proposal.ballot.length <= parseInt(committee.length * passRate + 0.5)){
+    if(proposal.ballot.length <= parseInt(committee.length * cfg.pass_rate + 0.5)){
         return saveObj(key, proposal);
     }
 
@@ -637,8 +636,7 @@ function initialization(params){
         'validator_size'           : 30,
         'validator_candidate_size' : 300,
         'validator_min_pledge'     : 500000000000000,/* 500 0000 0000 0000 */
-        'in_pass_rate'             : 0.5,
-        'out_pass_rate'            : 0.7,
+        'pass_rate'                : 0.5,
         'valid_period'             : 1296000000000,  /* 15 * 24 * 60 * 60 * 1000 * 1000 */
         'fee_allocation_share'     : '70:20:10',     /* DAPP_70% : blockReward_20% : creator_10% */
         'reward_allocation_share'  : '50:40:10',      /* validator_50% : validatorCandidate_40% : kol_10% */
