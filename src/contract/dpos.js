@@ -133,6 +133,10 @@ function extract(){
 
     let income = elect.distribution[sender];
     transferCoin(sender, income);
+
+    delete elect.distribution[sender];
+    saveObj(rewardKey, elect.distribution);
+
     log(sender + ' extracted block reward ' + income);
 }
 
@@ -289,8 +293,16 @@ function penalty(evil, roleType){
     let applicant     = loadObj(applicantKey);
     assert(applicant !== false, 'Failed to get ' + applicantKey + ' from metadata.');
 
+    let allAsset = applicant.pledge;
+    if(elect.distribution[evil] !== undefined){
+        allAsset = int64Add(applicant.pledge, elect.distribution[evil]);
+
+        delete elect.distribution[evil];
+        saveObj(rewardKey, elect.distribution);
+    }
+
     let candidates = roleType === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
-    distribute(candidates, applicant.pledge);
+    distribute(candidates, allAsset);
     storageDel(applicantKey);
 }
 
@@ -359,7 +371,9 @@ function approve(operate, item, address){
 
     assert(proposal.ballot.includes(sender) !== true, sender + ' has voted.');
     proposal.ballot.push(sender);
-    if(proposal.ballot.length <= parseInt(committee.length * cfg.in_pass_rate + 0.5)){
+
+    let passRate = operate === motion.WITHDRAW ? cfg.out_pass_rate : cfg.in_pass_rate;
+    if(proposal.ballot.length <= parseInt(committee.length * passRate + 0.5)){
         return saveObj(key, proposal);
     }
 
@@ -625,7 +639,7 @@ function initialization(params){
         'valid_period'             : 1296000000000,  /* 15 * 24 * 60 * 60 * 1000 * 1000 */
         'fee_allocation_share'     : '70:20:10',     /* DAPP_70% : blockReward_20% : creator_10% */
         'reward_allocation_share'  : '50:40:10',      /* validator_50% : validatorCandidate_40% : kol_10% */
-        'delegate_address'         : params.delegate_address
+        'logic_contract'           : params.logic_contract
     };
     saveObj(configKey, cfg);
 

@@ -53,16 +53,16 @@
 
 ### 创建选举合约账户
 
-DPOS合约账户创建成功后，才可以进行后续的操作，且该账户是全局唯一的, 不能重复创建。
+dpos 合约账户创建成功后，才可以进行后续的操作，且该账户是全局唯一的, 不能重复创建。
 
 #### 选举合约升级
 
-- 由于dpos选举合约已经存在于区块链系统中，而合约创建后无法更改，所以升级合约需要通过软件版本升级的方式实现，Bumo v1.2.0 之后的版本自动使用新合约地址，老合约地址(buQtxgoaDrVJGtoPT66YnA2S84yE8FbBqQDJ)将废弃不用。
-- 为方便dpos合约后续升级，避免每次都通过软件版本升级的方式实现合约更新，新版dpos合约结合delegateCall调用，入口合约（假设为合约A）使用delegateCall方式将逻辑调用委托给另一个合约（假设为合约B）执行，delegateCall可以指定合约B的地址，故而可以通过更新合约A中存储的合约B的地址实现dpos逻辑功能的升级。是否更新由[委员会](#委员会)投票决定。
-- 由于合约创建时需要进行调用测试，创建时需要先创建合约B，再创建合约A。
-- 创建dpos逻辑功能合约B时无需指定合约地址，由系统自动生成。创建合约A时则需要指定合约地址为：buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss，并且在合约中指定已经创建好的逻辑合约B的地址。
+- 由于 dpos 合约已经存在于区块链系统中，而合约创建后无法更改，所以需要通过版本升级的方式更新。Bumo v1.2.0 之后的版本自动使用新合约地址，老合约地址(buQtxgoaDrVJGtoPT66YnA2S84yE8FbBqQDJ)将废弃不用。
+- 为方便dpos合约后续升级，避免每次都借助版本升级功能，新版 dpos 合约以 delegateCall 机制实现。入口合约（假设为合约 A ）使用delegateCall将调用委托给逻辑合约（假设为合约 B ）执行，delegateCall 可以指定逻辑合约的地址。所以，合约升级时，只需要创建一个新的逻辑合约，然后将入口合约中存储的逻辑合约地址更改为新地址即可，是否更新由 [委员会](#委员会) 投票决定。
+- 由于合约创建时需要进行调用测试，所以，创建逻辑合约后，才能创建入口合约。
+- 创建 dpos 逻辑合约时无需指定合约地址，由系统自动生成。创建 dpos 入口合约时则需要指定合约地址为：buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss，并且在入口合约中指定已经创建好的逻辑合约的地址。
 
-- 创建逻辑合约B：将 src\ledger\dpos.js 文件中的源码全部拷贝作为账户中 payload 字段的值。
+- 创建逻辑合约：将 src\ledger\dpos.js 文件中的源码全部拷贝作为账户中 payload 字段的值。
 
 >例
 
@@ -73,13 +73,13 @@ DPOS合约账户创建成功后，才可以进行后续的操作，且该账户�
   },
 ```
 
-- 创建入口合约A：先获取到合约B的地址，然后修改合约A中的参数：
+- 创建入口合约A：先获取到逻辑合约B的地址，然后修改合约A中的参数：
 
 ```js
-delegateContractAddr = '此处填入合约B的地址'
+  cfg.logic_contract = '此处填入逻辑合约B的地址'
 ```
 
-- 然后将dpos_delegate.js文件中的源码全部拷贝作为账户中的payload字段的值
+- 然后将 dpos_delegate.js 文件中的源码全部拷贝作为账户中的 payload 字段的值。
 
 ```json
   "dest_address": "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
@@ -91,22 +91,24 @@ delegateContractAddr = '此处填入合约B的地址'
 
 #### 选举参数初始化
 
- 在 dpos.js 文件指定的合约代码中, 以下变量可根据需要修改。但一旦DPOS合约创建成功，则需要通过[选举配置更新](#选举配置更新)流程来修改。
+ 在 dpos.js 的合约代码中, 以下配置可根据需要通过 [选举配置更新](#选举配置更新) 流程来修改。
 
  ```json
 {
-  'committee_size'          : 100,
-  'kol_size'                : 30,
-  'kol_candidate_size'      : 300,
-  'kol_min_pledge'          : 5000000000000,   /* 5 0000 0000 0000 */
-  'validators_size'         : 30,
-  'validator_candidate_size': 300,
-  'validator_min_pledge'    : 500000000000000, /* 500 0000 0000 0000 */
-  'in_pass_rate'            : 0.5,
-  'out_pass_rate'           : 0.7,
-  'valid_period'            : 1296000000000,    /* 15 * 24 * 60 * 60 * 1000 * 1000 */
-  'fee_allocation_share'    : "70:20:10"
-}
+  'committee_size'           : 100,
+  'kol_size'                 : 30,
+  'kol_candidate_size'       : 300,
+  'kol_min_pledge'           : 5000000000000,  /* 5 0000 0000 0000 */
+  'validator_size'           : 30,
+  'validator_candidate_size' : 300,
+  'validator_min_pledge'     : 500000000000000,/* 500 0000 0000 0000 */
+  'in_pass_rate'             : 0.5,
+  'out_pass_rate'            : 0.7,
+  'valid_period'             : 1296000000000,  /* 15 * 24 * 60 * 60 * 1000 * 1000 */
+  'fee_allocation_share'     : '70:20:10',     /* DAPP_70% : blockReward_20% : creator_10% */
+  'reward_allocation_share'  : '50:40:10',      /* validator_50% : validatorCandidate_40% : kol_10% */
+  'logic_contract'           : params.logic_contract
+    };
 ```
 
 |   参数  |    说明          | 默认值                                         |
@@ -115,13 +117,15 @@ delegateContractAddr = '此处填入合约B的地址'
 | kol_size                    | KOL成员集合数目           |30|
 | kol_candidate_size          | KOL候选人集合数目         |300|
 | kol_min_pledge              | KOL候选人最小质押金额     |5000000000000|
-| validators_size             | 验证节点集合数目          |30|
+| validator_size              | 验证节点集合数目          |30|
 | validator_candidate_size    | 验证节点候选人集合数目     |300|
 | validator_min_pledge        | 验证节点候选人最小质押金额  |500000000000000|
-| in_pass_rate                | 委员会进入审核投票通过率，投票数 > 四舍五入( 节点总数 * in_pass_rate ) 则投票通过，例如，假设总共有4个节点，4 * 0.5 = 2, 投票数 > 2，那么至少要有3个投票才能通过。|0.5|
-| out_pass_rate               | 委员会退出审核投票通过率，投票数 >= 四舍五入( 节点总数 * out_pass_rate ) 则投票通过，例如，假设总共有 4 个节点，那么 4 * 0.7 = 2.8，四舍五入后为 3，那么投票数必须 >= 3 才能通过, 如果总共有 6 个节点，那么 6 * 0.7 = 4.2，四舍五入后为 4，投票数必须 >= 4 才能通过，废止验证节点投票和选举配置更新都采用此通过率;|0.7|
+| in_pass_rate                | 进入审核投票通过率，当节点或账户参选验证节点或 kol 时，委员会的投票审核需要超过此投票率，申请者才能获得候选者资格，配置更新的审核也是适用此投票率。投票数 > 四舍五入( 节点总数 * in_pass_rate ) 则投票通过，例如，假设总共有4个节点，4 * 0.5 = 2, 投票数 > 2，那么至少要有3个投票才能通过。|0.5|
+| out_pass_rate               | 废止审核投票通过率，当提案废止某个验证节点或 kol 时，委员会的投票审核需要超过此投票率，被提案者才能被废除。投票数 >= 四舍五入( 节点总数 * out_pass_rate ) 则投票通过，例如，假设总共有 4 个节点，那么 4 * 0.7 = 2.8，四舍五入后为 3，那么投票数必须 >= 3 才能通过, 如果总共有 6 个节点，那么 6 * 0.7 = 4.2，四舍五入后为 4，投票数必须 >= 4 才能通过，废止验证节点投票和选举配置更新都采用此通过率;|0.7|
 | valid_period                | 有效期，单位为微秒，应用在投票有效期以及退出锁定期|1296000000000|
 | fee_allocation_share        | 交易费用分配比例，70:20:10代表如果交易来自DAPP，则DAPP获得70%（否则该部分计入区块奖励block reward），20%置入区块奖励，10%分配给交易源账户的创建者|"70:20:10"|
+| reward_allocation_share     |区块奖励的分配比例，50:40:10 代表验证节点集合平分区块奖励的 50%，验证节点的候选节点集合（包括验证节点集合）平分区块奖励的 40%，kol 集合平分区块奖励的 10%。|"50:40:10" |
+|logic_contract |dpos的逻辑合约地址| "${logic_address}"|
 
 ### 角色和动作类型
 
