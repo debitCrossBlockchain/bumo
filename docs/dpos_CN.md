@@ -14,7 +14,7 @@
   - [减少投票](#减少投票)
   - [候选节点退出](#候选节点退出)
   - [废止恶意验证节点提案](#废止恶意验证节点提案)
-  - [查询功能](#查询功能)
+  - [验证节点选举信息查询](#验证节点选举信息查询)
     - [查询当前验证节点集合](#查询当前验证节点集合)
     - [查询候选节点集合信息](#查询候选节点集合信息)
     - [查询用户的验证节点投票信息](#查询用户的验证节点投票信息)
@@ -98,8 +98,7 @@ dpos 合约账户创建成功后，才可以进行后续的操作，且该账户
   'validator_size'           : 30,
   'validator_candidate_size' : 300,
   'validator_min_pledge'     : 500000000000000,/* 500 0000 0000 0000 */
-  'in_pass_rate'             : 0.5,
-  'out_pass_rate'            : 0.7,
+  'pass_rate'             : 0.5,
   'valid_period'             : 1296000000000,  /* 15 * 24 * 60 * 60 * 1000 * 1000 */
   'fee_allocation_share'     : '70:20:10',     /* DAPP_70% : blockReward_20% : creator_10% */
   'reward_allocation_share'  : '50:40:10',      /* validator_50% : validatorCandidate_40% : kol_10% */
@@ -116,10 +115,9 @@ dpos 合约账户创建成功后，才可以进行后续的操作，且该账户
 | validator_size              | 验证节点集合数目          |30|
 | validator_candidate_size    | 验证节点候选人集合数目     |300|
 | validator_min_pledge        | 验证节点候选人最小质押金额  |500000000000000|
-| in_pass_rate                | 进入审核投票通过率，当节点或账户参选验证节点或 kol 时，委员会的投票审核需要超过此投票率，申请者才能获得候选者资格，配置更新的审核也是适用此投票率。投票数 > 四舍五入( 节点总数 * in_pass_rate ) 则投票通过，例如，假设总共有4个节点，4 * 0.5 = 2, 投票数 > 2，那么至少要有3个投票才能通过。|0.5|
-| out_pass_rate               | 废止审核投票通过率，当提案废止某个验证节点或 kol 时，委员会的投票审核需要超过此投票率，被提案者才能被废除。投票数 >= 四舍五入( 节点总数 * out_pass_rate ) 则投票通过，例如，假设总共有 4 个节点，那么 4 * 0.7 = 2.8，四舍五入后为 3，那么投票数必须 >= 3 才能通过, 如果总共有 6 个节点，那么 6 * 0.7 = 4.2，四舍五入后为 4，投票数必须 >= 4 才能通过，废止验证节点投票和选举配置更新都采用此通过率;|0.7|
-| valid_period                | 有效期，单位为微秒，应用在投票有效期以及退出锁定期|1296000000000|
-| fee_allocation_share        | 交易费用分配比例，70:20:10代表如果交易来自DAPP，则DAPP获得70%（否则该部分计入区块奖励block reward），20%置入区块奖励，10%分配给交易源账户的创建者|"70:20:10"|
+| pass_rate                   | 审核投票通过率。在有效审核期内，投票支持提案的委员的个数超过通过率，提案才会被执行。投票数 > 四舍五入( 节点总数 * pass_rate ) 则投票通过，例如，假设总共有4个节点，4 * 0.5 = 2, 投票数 > 2，那么至少要有3个投票才能通过 |0.5|
+| valid_period                | 有效期，单位为微秒，包括审核投票有效期和退出锁定期|1296000000000|
+| fee_allocation_share        | 交易费用分配比例，70:20:10表示，如果交易来自DAPP，则DAPP获得70%（否则该部分计入区块奖励block reward），20%置入区块奖励，10%分配给交易源账户的创建者|"70:20:10"|
 | reward_allocation_share     |区块奖励的分配比例，50:40:10 代表验证节点集合平分区块奖励的 50%，验证节点的候选节点集合（包括验证节点集合）平分区块奖励的 40%，kol 集合平分区块奖励的 10%。|"50:40:10" |
 |logic_contract |dpos的逻辑合约地址| "${logic_address}"|
 
@@ -127,22 +125,24 @@ dpos 合约账户创建成功后，才可以进行后续的操作，且该账户
 
 任意 BuChain 账户可以申请成为委员会委员或候选KOL(Key Opinion Leader)，拥有节点的账户还可以申请成为候选验证节点，所以，对BuChain账户来说，有以下可申请的类型。
 
+#### 角色(role)
 ```js
-const role  = {
-    'COMMITTEE' : 'committee',
-    'VALIDATOR' : 'validator',
-    'KOL'       : 'kol'
+enum role{
+    'committee',
+    'validator',
+    'kol'
 };
 ```
 
 任意BuChain账户可以执行apply动作，申请成为某一种角色；abolish动作只有同类型的成员间可以执行，比如只有验证节点才能提议废止验证节点；任意角色都可以执行withdraw操作主动退出集合；委员会成员可以执行config动作提议更改配置。
 
+#### 动作(motion)
 ```js
-const motion = {
-    'APPLY'   : 'apply',
-    'ABOLISH' : 'abolish',
-    'WITHDRAW': 'withdraw',
-    'CONFIG'  : 'config'
+enum motion{
+    'apply',
+    'abolish',
+    'withdraw',
+    'config'
 };
 ```
 
@@ -171,9 +171,10 @@ const motion = {
     }"
   }
 ```
+- role 参数的值必须为 [角色(role)](#角色(role)) 指定的值之一。
+- 参选委员会委员或 kol 也是调用 apply 接口，apply接口以 role 参数区分申请的类型。
 
-申请成功后可以通过[查询功能](#查询功能)，查询候选节点信息。
-
+申请成功后可以通过[查询提案](#查询提案)，查询申请信息。
 注意：申请成为候选节点的账户必须拥有节点，且节点地址和账户地址相同。
 
 ### 为候选节点投票
@@ -283,9 +284,9 @@ const motion = {
 
 注意：申请废止者和被废止者必须都是验证者节点。
 
-### 查询功能
+### 验证节点选举信息查询
 
-用户通过向查询接口（即 query 接口）提供指定参数，可以查看相关信息, 调用查询接口当前只能通过 callContract接口。 contract_address 字段填入DPOS合约账户地址。
+用户通过向查询接口（即 query 接口）提供指定参数，可以查看相关信息。 调用查询接口当前只能通过 callContract接口， contract_address 字段填入DPOS合约账户地址。
 
 #### 查询当前验证节点集合
 
@@ -309,7 +310,7 @@ const motion = {
   {
     "contract_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
     "code" : "",
-    "input" : "{\"method\": \"getCandidates\"}",
+    "input" : "{\"method\": \"getValidatorCandidates\"}",
     "opt_type" : 2,
     "source_address" : ""
   }
@@ -325,18 +326,21 @@ const motion = {
     "code" : "",
     "input" :
     "{
-      \"method\": \"getVoterInfo\",
+      \"method\": \"getVoteInfo\",
       \"params\":
       {
-         \"address\":\"buQrVDKPCVE6LfCf8TyZEaiZ8R99NrSn4Fuz\",
-         \"role\": \"validator\",
-         \"vote_for\": \"buQmvKW11Xy1GL9RUXJKrydWuNykfaQr9SKE\"
+         \"voter\":\"buQrVDKPCVE6LfCf8TyZEaiZ8R99NrSn4Fuz\",
+         \"vote_for\": \"buQmvKW11Xy1GL9RUXJKrydWuNykfaQr9SKE\",
+         \"role\": \"validator\"
       }
     }",
     "opt_type" : 2,
     "source_address" : ""
   }
 ```
+- voter 投票者
+- vote_for 被投票支持的候选节点
+- role 投票支持的角色，当前为 validator
 
 #### 查询验证节点申请信息
 
