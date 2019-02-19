@@ -441,6 +441,7 @@ function unVote(roleType, address, amount){
         storageStore(key, int64Sub(votedAmount, amount));
     }
 
+    electInit();
     let formalSize = roleType === role.VALIDATOR ? cfg.validator_size : cfg.kol_size;
     updateStake(roleType, address, formalSize, -amount);
 }
