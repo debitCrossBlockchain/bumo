@@ -374,7 +374,7 @@ function approve(operate, item, address){
     assert(proposal.ballot.includes(sender) !== true, sender + ' has voted.');
     proposal.ballot.push(sender);
 
-    if(proposal.ballot.length <= parseInt(committee.length * cfg.pass_rate + 0.5)){
+    if(proposal.ballot.length <= parseInt(committee.length * cfg.pass_rate)){
         return saveObj(key, proposal);
     }
 
@@ -585,6 +585,8 @@ function query(input_str){
     }
     else if(input.method === 'getValidatorCandidates') {
         result.validator_candidates = loadObj(validatorCandsKey);
+    }
+    else if(input.method === 'getVoteInfo'){
     }
     else if(input.method === 'getKols') {
         let kolCands = loadObj(kolCandsKey);
