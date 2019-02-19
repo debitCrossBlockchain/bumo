@@ -23,6 +23,7 @@ const motion = {
 let elect  = {};
 let cfg    = {};
 let sysCfg = ['fee_allocation_share'];
+let distributed = false;
 
 function doubleSort(a, b){
     let com = int64Compare(b[1], a[1]) ;
@@ -51,6 +52,11 @@ function saveObj(key, value)
     log('Set key(' + key + '), value(' + str + ') in metadata succeed.');
 }
 
+function minusStake(amount){
+    let stake = int64Sub(elect.allStake, amount);
+    storageStore(stakeKey, stake);
+}
+
 function transferCoin(dest, amount)
 {
     if(amount === '0'){
@@ -58,6 +64,8 @@ function transferCoin(dest, amount)
     }
 
     payCoin(dest, String(amount));
+    minusStake(amount);
+
     log('Pay coin( ' + amount + ') to dest account(' + dest + ') succeed.');
 }
 
@@ -124,7 +132,7 @@ function rewardDistribution(){
     assert(balance !== false, 'Failed to getBalance.');
 
     saveObj(stakeKey, balance);
-    saveObj(rewardKey, elect.distribution);
+    distributed = true;
 }
 
 function extract(){
@@ -136,7 +144,7 @@ function extract(){
 
     if(elect.validatorCands[sender] === undefined && elect.kols[sender] === undefined){
         delete elect.distribution[sender];
-        saveObj(rewardKey, elect.distribution);
+        distributed = true;
     }
 
     log(sender + ' extracted block reward ' + income);
@@ -300,7 +308,7 @@ function penalty(evil, roleType){
         allAsset = int64Add(applicant.pledge, elect.distribution[evil]);
 
         delete elect.distribution[evil];
-        saveObj(rewardKey, elect.distribution);
+        distributed = true;
     }
 
     let candidates = roleType === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
@@ -546,7 +554,7 @@ function withdraw(roleType){
         else{
             elect.distribution[sender] = int64Add(elect.distribution[sender], applicant.pledge);
         }
-        saveObj(rewardKey, elect.distribution);
+        distributed = true;
     }
 
     storageDel(applicantKey);
@@ -712,6 +720,10 @@ function main(input_str){
     }
     else{
         throw '<undidentified operation type>';
+    }
+
+    if(distributed) {
+        saveObj(rewardKey, elect.distribution);
     }
 }
 
