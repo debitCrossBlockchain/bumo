@@ -392,8 +392,9 @@ function approve(operate, item, address){
     }
 }
 
-function voterKey(roleType, address){
-    return  'voter_' + sender + '_' + roleType + '_' + address;
+function voterKey(roleType, candidate, voter){
+    let addr = voter || sender;
+    return  'voter_' + addr + '_' + roleType + '_' + candidate;
 }
 
 function vote(roleType, address){
@@ -442,8 +443,12 @@ function unVote(roleType, address, amount){
     }
 
     electInit();
+    let candidates = roleType === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
+    let node       = candidates.find(function(x){ return x[0] === address; });
+
+    assert(node !== undefined, address + ' is not validator candidate or KOL candidate.');
     let formalSize = roleType === role.VALIDATOR ? cfg.validator_size : cfg.kol_size;
-    updateStake(roleType, address, formalSize, -amount);
+    updateStake(roleType, node, formalSize, -amount);
 }
 
 function abolitionProposal(proof){
@@ -581,13 +586,19 @@ function query(input_str){
     let params = input.params;
 
     let result = {};
-    if(input.method === 'getValidators') {
+    if(input.method === 'getProposal') {
+        let pKey = proposalKey(params.operate, params.item, params.address);
+        result.proposal = loadObj(pKey);
+    }
+    else if(input.method === 'getVoteInfo'){
+        let vKey = voterKey(params.role, params.candidate, params.voter);
+        result.voterInfo = loadObj(vKey);
+    }
+    else if(input.method === 'getValidators') {
         result.validators = getValidators();
     }
     else if(input.method === 'getValidatorCandidates') {
         result.validator_candidates = loadObj(validatorCandsKey);
-    }
-    else if(input.method === 'getVoteInfo'){
     }
     else if(input.method === 'getKols') {
         let kolCands = loadObj(kolCandsKey);
@@ -601,15 +612,13 @@ function query(input_str){
     else if(input.method === 'getCommittee') {
         result.committee = loadObj(committeeKey);
     }
-    else if(input.method === 'queryReward') {
-        result.reward = loadObj(rewardKey);
+    else if(input.method === 'getRewardDistribute') {
+        electInit();
+        rewardDistribution();
+        result.reward = elect.distribution;
     }
     else if(input.method === 'getConfiguration') {
         result.configuration = loadObj(configKey);
-    }
-    else if(input.method === 'getProposal') {
-        let key = proposalKey(params.operate, params.item, params.address);
-        result.proposal = loadObj(key);
     }
     else{
        	throw '<unidentified operation type>';
