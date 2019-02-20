@@ -521,14 +521,14 @@ Chain.issueAsset("CNY", 10000);
 - ### 输出日志
 
     `Utils.log(info);`
-     info: 日志内容
+    - info: 日志内容
 
     例如
     ```javascript
-    let ret = Utils.log('buQsZNDpqHJZ4g5hz47CqVMk5154w1bHKsHY');
+    let ret = Utils.log('hello');
     /*
       权限：只读
-      返回：成功无返回值，失败返回 false
+      返回：成功无返回值，会在对应的合约执行进程里，输出一段Trace级别的日志，如 V8contract log[buQsZNDpqHJZ4g5hz47CqVMk5154w1bHKsHY:hello]；失败返回 false。
     */
     ```
 - ### 字符串数字合法性检查
