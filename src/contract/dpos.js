@@ -1,13 +1,13 @@
 'use strict';
 
-const committeeKey      = 'committee';
-const validatorCandsKey = 'validator_candidates';
-const kolCandsKey       = 'kol_candidates';
 const stakeKey          = 'all_stake';
 const rewardKey         = 'reward_distribute';
 const configKey         = 'dpos_config';
+const kolCandsKey       = 'kol_candidates';
+const committeeKey      = 'committee';
+const validatorCandsKey = 'validator_candidates';
 
-const role  = {
+const role = {
     'COMMITTEE' : 'committee',
     'VALIDATOR' : 'validator',
     'KOL'       : 'kol'
@@ -306,7 +306,6 @@ function penalty(evil, roleType){
     let allAsset = applicant.pledge;
     if(elect.distribution[evil] !== undefined){
         allAsset = int64Add(applicant.pledge, elect.distribution[evil]);
-
         delete elect.distribution[evil];
         distributed = true;
     }
