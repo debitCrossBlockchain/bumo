@@ -144,6 +144,7 @@ namespace bumo {
 		int64_t apply_start_time_;
 		int64_t apply_use_time_;
 		int32_t processing_operation_;
+		protocol::FeeIncentive incentive_;
 	};
 };
 
