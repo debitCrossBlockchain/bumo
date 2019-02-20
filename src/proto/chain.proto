@@ -198,7 +198,14 @@ message TransactionEnv {
 	Trigger trigger = 3;
 }
 
-message TransactionEnvStore{
+message FeeIncentive {
+	int64 dapp_reward = 1;
+	int64 block_reward = 2;
+	int64 creator_reward = 3;
+	string creator_address = 4;
+}
+
+message TransactionEnvStore {
 	TransactionEnv transaction_env = 1;
 	int32 error_code = 2;
 	string error_desc = 3;
@@ -208,6 +215,7 @@ message TransactionEnvStore{
 	bytes hash = 6;
 	int64 actual_fee = 7;
 	repeated bytes contract_tx_hashes = 8;
+	FeeIncentive incentive = 9;
 }
 
 message TransactionEnvSet{

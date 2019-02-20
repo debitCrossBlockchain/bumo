@@ -48,6 +48,7 @@ class AssetStore;
 class ConsensusValue;
 class ConsensusValueValidation;
 class Contract;
+class FeeIncentive;
 class Ledger;
 class LedgerHeader;
 class Operation;
@@ -2957,6 +2958,114 @@ class TransactionEnv : public ::google::protobuf::Message /* @@protoc_insertion_
 };
 // -------------------------------------------------------------------
 
+class FeeIncentive : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:protocol.FeeIncentive) */ {
+ public:
+  FeeIncentive();
+  virtual ~FeeIncentive();
+
+  FeeIncentive(const FeeIncentive& from);
+
+  inline FeeIncentive& operator=(const FeeIncentive& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const FeeIncentive& default_instance();
+
+  void Swap(FeeIncentive* other);
+
+  // implements Message ----------------------------------------------
+
+  inline FeeIncentive* New() const { return New(NULL); }
+
+  FeeIncentive* New(::google::protobuf::Arena* arena) const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const FeeIncentive& from);
+  void MergeFrom(const FeeIncentive& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
+      bool deterministic, ::google::protobuf::uint8* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const {
+    return InternalSerializeWithCachedSizesToArray(false, output);
+  }
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  void InternalSwap(FeeIncentive* other);
+  private:
+  inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
+    return _internal_metadata_.arena();
+  }
+  inline void* MaybeArenaPtr() const {
+    return _internal_metadata_.raw_arena_ptr();
+  }
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional int64 dapp_reward = 1;
+  void clear_dapp_reward();
+  static const int kDappRewardFieldNumber = 1;
+  ::google::protobuf::int64 dapp_reward() const;
+  void set_dapp_reward(::google::protobuf::int64 value);
+
+  // optional int64 block_reward = 2;
+  void clear_block_reward();
+  static const int kBlockRewardFieldNumber = 2;
+  ::google::protobuf::int64 block_reward() const;
+  void set_block_reward(::google::protobuf::int64 value);
+
+  // optional int64 creator_reward = 3;
+  void clear_creator_reward();
+  static const int kCreatorRewardFieldNumber = 3;
+  ::google::protobuf::int64 creator_reward() const;
+  void set_creator_reward(::google::protobuf::int64 value);
+
+  // optional string creator_address = 4;
+  void clear_creator_address();
+  static const int kCreatorAddressFieldNumber = 4;
+  const ::std::string& creator_address() const;
+  void set_creator_address(const ::std::string& value);
+  void set_creator_address(const char* value);
+  void set_creator_address(const char* value, size_t size);
+  ::std::string* mutable_creator_address();
+  ::std::string* release_creator_address();
+  void set_allocated_creator_address(::std::string* creator_address);
+
+  // @@protoc_insertion_point(class_scope:protocol.FeeIncentive)
+ private:
+
+  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  bool _is_default_instance_;
+  ::google::protobuf::int64 dapp_reward_;
+  ::google::protobuf::int64 block_reward_;
+  ::google::protobuf::int64 creator_reward_;
+  ::google::protobuf::internal::ArenaStringPtr creator_address_;
+  mutable int _cached_size_;
+  friend void  protobuf_AddDesc_chain_2eproto();
+  friend void protobuf_AssignDesc_chain_2eproto();
+  friend void protobuf_ShutdownFile_chain_2eproto();
+
+  void InitAsDefaultInstance();
+  static FeeIncentive* default_instance_;
+};
+// -------------------------------------------------------------------
+
 class TransactionEnvStore : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:protocol.TransactionEnvStore) */ {
  public:
   TransactionEnvStore();
@@ -3088,6 +3197,15 @@ class TransactionEnvStore : public ::google::protobuf::Message /* @@protoc_inser
   const ::google::protobuf::RepeatedPtrField< ::std::string>& contract_tx_hashes() const;
   ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_contract_tx_hashes();
 
+  // optional .protocol.FeeIncentive incentive = 9;
+  bool has_incentive() const;
+  void clear_incentive();
+  static const int kIncentiveFieldNumber = 9;
+  const ::protocol::FeeIncentive& incentive() const;
+  ::protocol::FeeIncentive* mutable_incentive();
+  ::protocol::FeeIncentive* release_incentive();
+  void set_allocated_incentive(::protocol::FeeIncentive* incentive);
+
   // @@protoc_insertion_point(class_scope:protocol.TransactionEnvStore)
  private:
 
@@ -3100,6 +3218,7 @@ class TransactionEnvStore : public ::google::protobuf::Message /* @@protoc_inser
   ::google::protobuf::internal::ArenaStringPtr hash_;
   ::google::protobuf::int64 actual_fee_;
   ::google::protobuf::RepeatedPtrField< ::std::string> contract_tx_hashes_;
+  ::protocol::FeeIncentive* incentive_;
   ::google::protobuf::int32 error_code_;
   mutable int _cached_size_;
   friend void  protobuf_AddDesc_chain_2eproto();
@@ -6720,6 +6839,96 @@ inline void TransactionEnv::set_allocated_trigger(::protocol::Trigger* trigger) 
 
 // -------------------------------------------------------------------
 
+// FeeIncentive
+
+// optional int64 dapp_reward = 1;
+inline void FeeIncentive::clear_dapp_reward() {
+  dapp_reward_ = GOOGLE_LONGLONG(0);
+}
+inline ::google::protobuf::int64 FeeIncentive::dapp_reward() const {
+  // @@protoc_insertion_point(field_get:protocol.FeeIncentive.dapp_reward)
+  return dapp_reward_;
+}
+inline void FeeIncentive::set_dapp_reward(::google::protobuf::int64 value) {
+  
+  dapp_reward_ = value;
+  // @@protoc_insertion_point(field_set:protocol.FeeIncentive.dapp_reward)
+}
+
+// optional int64 block_reward = 2;
+inline void FeeIncentive::clear_block_reward() {
+  block_reward_ = GOOGLE_LONGLONG(0);
+}
+inline ::google::protobuf::int64 FeeIncentive::block_reward() const {
+  // @@protoc_insertion_point(field_get:protocol.FeeIncentive.block_reward)
+  return block_reward_;
+}
+inline void FeeIncentive::set_block_reward(::google::protobuf::int64 value) {
+  
+  block_reward_ = value;
+  // @@protoc_insertion_point(field_set:protocol.FeeIncentive.block_reward)
+}
+
+// optional int64 creator_reward = 3;
+inline void FeeIncentive::clear_creator_reward() {
+  creator_reward_ = GOOGLE_LONGLONG(0);
+}
+inline ::google::protobuf::int64 FeeIncentive::creator_reward() const {
+  // @@protoc_insertion_point(field_get:protocol.FeeIncentive.creator_reward)
+  return creator_reward_;
+}
+inline void FeeIncentive::set_creator_reward(::google::protobuf::int64 value) {
+  
+  creator_reward_ = value;
+  // @@protoc_insertion_point(field_set:protocol.FeeIncentive.creator_reward)
+}
+
+// optional string creator_address = 4;
+inline void FeeIncentive::clear_creator_address() {
+  creator_address_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline const ::std::string& FeeIncentive::creator_address() const {
+  // @@protoc_insertion_point(field_get:protocol.FeeIncentive.creator_address)
+  return creator_address_.GetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline void FeeIncentive::set_creator_address(const ::std::string& value) {
+  
+  creator_address_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:protocol.FeeIncentive.creator_address)
+}
+inline void FeeIncentive::set_creator_address(const char* value) {
+  
+  creator_address_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:protocol.FeeIncentive.creator_address)
+}
+inline void FeeIncentive::set_creator_address(const char* value, size_t size) {
+  
+  creator_address_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:protocol.FeeIncentive.creator_address)
+}
+inline ::std::string* FeeIncentive::mutable_creator_address() {
+  
+  // @@protoc_insertion_point(field_mutable:protocol.FeeIncentive.creator_address)
+  return creator_address_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline ::std::string* FeeIncentive::release_creator_address() {
+  // @@protoc_insertion_point(field_release:protocol.FeeIncentive.creator_address)
+  
+  return creator_address_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline void FeeIncentive::set_allocated_creator_address(::std::string* creator_address) {
+  if (creator_address != NULL) {
+    
+  } else {
+    
+  }
+  creator_address_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), creator_address);
+  // @@protoc_insertion_point(field_set_allocated:protocol.FeeIncentive.creator_address)
+}
+
+// -------------------------------------------------------------------
+
 // TransactionEnvStore
 
 // optional .protocol.TransactionEnv transaction_env = 1;
@@ -6957,6 +7166,44 @@ inline ::google::protobuf::RepeatedPtrField< ::std::string>*
 TransactionEnvStore::mutable_contract_tx_hashes() {
   // @@protoc_insertion_point(field_mutable_list:protocol.TransactionEnvStore.contract_tx_hashes)
   return &contract_tx_hashes_;
+}
+
+// optional .protocol.FeeIncentive incentive = 9;
+inline bool TransactionEnvStore::has_incentive() const {
+  return !_is_default_instance_ && incentive_ != NULL;
+}
+inline void TransactionEnvStore::clear_incentive() {
+  if (GetArenaNoVirtual() == NULL && incentive_ != NULL) delete incentive_;
+  incentive_ = NULL;
+}
+inline const ::protocol::FeeIncentive& TransactionEnvStore::incentive() const {
+  // @@protoc_insertion_point(field_get:protocol.TransactionEnvStore.incentive)
+  return incentive_ != NULL ? *incentive_ : *default_instance_->incentive_;
+}
+inline ::protocol::FeeIncentive* TransactionEnvStore::mutable_incentive() {
+  
+  if (incentive_ == NULL) {
+    incentive_ = new ::protocol::FeeIncentive;
+  }
+  // @@protoc_insertion_point(field_mutable:protocol.TransactionEnvStore.incentive)
+  return incentive_;
+}
+inline ::protocol::FeeIncentive* TransactionEnvStore::release_incentive() {
+  // @@protoc_insertion_point(field_release:protocol.TransactionEnvStore.incentive)
+  
+  ::protocol::FeeIncentive* temp = incentive_;
+  incentive_ = NULL;
+  return temp;
+}
+inline void TransactionEnvStore::set_allocated_incentive(::protocol::FeeIncentive* incentive) {
+  delete incentive_;
+  incentive_ = incentive;
+  if (incentive) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_set_allocated:protocol.TransactionEnvStore.incentive)
 }
 
 // -------------------------------------------------------------------
@@ -7686,6 +7933,8 @@ inline void OperationSetMetadata::set_delete_flag(bool value) {
 }
 
 #endif  // !PROTOBUF_INLINE_NOT_IN_HEADERS
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

@@ -82,6 +82,7 @@ namespace bumo {
 		result["actual_fee"] = actual_gas_for_query_;
 		result["hash"] = utils::String::BinToHexString(hash_);
 		result["tx_size"] = transaction_env_.ByteSize();
+		result["fee_incentive"] = Proto2Json(incentive_);
 
 		for (auto const &i : contract_tx_hashes_){
 			Json::Value &array_json = result["contract_tx_hashes"];
@@ -795,6 +796,7 @@ namespace bumo {
 			contract_tx_hashes_.push_back(envstor.contract_tx_hashes(i));
 		}
 
+		incentive_ = envstor.incentive();
 		ledger_seq_ = envstor.ledger_seq();
 		Initialize();
 		result_.set_code(envstor.error_code());

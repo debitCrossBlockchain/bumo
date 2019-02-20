@@ -101,6 +101,7 @@ namespace bumo {
 
 		bool AllocateReward();
 		bool AllocateRewardDirectly(int64_t total_reward);
+		bool CalculateReward(int64_t actual_fee, const TransactionFrm::pointer ptr, protocol::FeeIncentive* incentive);
 
 		void SetTestMode(bool test_mode);
 		bool IsTestMode();
