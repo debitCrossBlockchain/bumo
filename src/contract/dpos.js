@@ -128,10 +128,8 @@ function rewardDistribution(){
     let left = reward % 10;
     elect.distribution[elect.validators[0][0]] = int64Add(elect.distribution[elect.validators[0][0]], left);
 
-    let balance = getBalance(thisAddress);
-    assert(balance !== false, 'Failed to getBalance.');
-
-    saveObj(stakeKey, balance);
+    elect.allStake = elect.balance;
+    saveObj(stakeKey, elect.allStake);
     distributed = true;
 }
 
@@ -142,7 +140,8 @@ function extract(){
     let income = elect.distribution[sender];
     transferCoin(sender, income);
 
-    if(elect.validatorCands[sender] === undefined && elect.kols[sender] === undefined){
+    if(elect.validatorCands.find(function(x){ return x[0] === sender; }) === undefined &&
+       elect.kols.find(function(x){ return x[0] === sender; }) === undefined){
         delete elect.distribution[sender];
         distributed = true;
     }
@@ -682,7 +681,7 @@ function initialization(params){
 
     let candidates = validators.sort(doubleSort);
     saveObj(validatorCandsKey, candidates);
-    saveObj(stakeKey, 100000000); /* 0.1BU */
+    saveObj(stakeKey, 10000000); /* 0.1BU */
     saveObj(kolCandsKey, []);
     saveObj(rewardKey, {});
 
