@@ -138,6 +138,7 @@ function extract(){
     rewardDistribution();
 
     let income = elect.distribution[sender];
+    elect.distribution[sender] = '0';
     transferCoin(sender, income);
 
     if(elect.validatorCands.find(function(x){ return x[0] === sender; }) === undefined &&
