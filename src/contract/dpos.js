@@ -301,18 +301,24 @@ function apply(roleType){
 function penalty(evil, roleType){
     let applicantKey  = proposalKey(motion.APPLY, roleType, evil);
     let applicant     = loadObj(applicantKey);
-    assert(applicant !== false, 'Failed to get ' + applicantKey + ' from metadata.');
+    let allAsset      = 0;
 
-    let allAsset = applicant.pledge;
-    if(elect.distribution[evil] !== undefined){
-        allAsset = int64Add(applicant.pledge, elect.distribution[evil]);
-        delete elect.distribution[evil];
-        distributed = true;
+    if(applicant !== false){
+        allAsset = applicant.pledge;
+        storageDel(applicantKey);
+
+        if(elect.distribution[evil] !== undefined){
+            allAsset = int64Add(applicant.pledge, elect.distribution[evil]);
+            delete elect.distribution[evil];
+            distributed = true;
+        }
     }
 
-    let candidates = roleType === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
-    distribute(candidates, allAsset);
-    storageDel(applicantKey);
+    if(allAsset !== 0){
+        let candidates = roleType === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
+        distribute(candidates, allAsset);
+        distributed = true;
+    }
 }
 
 function updateCfg(key, proposal, item){
