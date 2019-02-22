@@ -315,6 +315,8 @@ function penalty(evil, roleType){
         distribute(candidates, allAsset);
         distributed = true;
     }
+
+    storageDel(applicantKey);
 }
 
 function updateCfg(key, proposal, item){
