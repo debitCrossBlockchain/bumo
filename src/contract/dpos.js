@@ -301,20 +301,16 @@ function apply(roleType){
 function penalty(evil, roleType){
     let applicantKey  = proposalKey(motion.APPLY, roleType, evil);
     let applicant     = loadObj(applicantKey);
-    let allAsset      = 0;
+    assert(applicant !== false, 'Failed to get ' + applicantKey + ' from metadata.');
 
-    if(applicant !== false){
-        allAsset = applicant.pledge;
-        storageDel(applicantKey);
-
-        if(elect.distribution[evil] !== undefined){
-            allAsset = int64Add(applicant.pledge, elect.distribution[evil]);
-            delete elect.distribution[evil];
-            distributed = true;
-        }
+    let allAsset = applicant.pledge;
+    if(elect.distribution[evil] !== undefined){
+        allAsset = int64Add(applicant.pledge, elect.distribution[evil]);
+        delete elect.distribution[evil];
+        distributed = true;
     }
 
-    if(allAsset !== 0){
+    if(allAsset !== '0'){
         let candidates = roleType === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
         distribute(candidates, allAsset);
         distributed = true;
@@ -652,6 +648,18 @@ function prepare(){
     saveObj(stakeKey, elect.allStake);
 }
 
+function foundingProposal(){
+    let proposal = {
+        'pledge': '0',
+        'expiration':blockTimestamp,
+        'passTime' : blockTimestamp,
+        'ballot':['foundings']
+    };
+
+    return proposal;
+
+}
+
 function initialization(params){
     cfg = {
         'committee_size'           : 100,
@@ -674,14 +682,19 @@ function initialization(params){
     let i = 0;
     for(i = 0; i < params.committee.length; i += 1){
         assert(addressCheck(params.committee[i]), 'Committee member(' + params.committee[i] + ') is not valid adress.');
+        saveObj(proposalKey(motion.APPLY, role.COMMITTEE, params.committee[i]), foundingProposal());
     }
     saveObj(committeeKey, params.committee);
 
     let validators = getValidators();
     assert(validators !== false, 'Get validators failed.');
 
-    let candidates = validators.sort(doubleSort);
-    saveObj(validatorCandsKey, candidates);
+    let j = 0;
+    for(j = 0; j < validators.length; j += 1){
+        saveObj(proposalKey(motion.APPLY, role.VALIDATOR, validators[j][0]), foundingProposal());
+    }
+    saveObj(validatorCandsKey, validators.sort(doubleSort));
+
     saveObj(stakeKey, 10000000); /* 0.1BU */
     saveObj(kolCandsKey, []);
     saveObj(rewardKey, {});
