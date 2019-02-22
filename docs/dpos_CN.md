@@ -138,9 +138,11 @@ role = [
   'kol'
 ];
 ```
+
 `role`字段内列出的角色字符串，主要用于DPOS合约在执行申请(`apply`接口)、退出(`withdraw`接口)、废止(`abolish`接口)和审核(`approve`接口)操作时(详见[用户接口](#用户接口))，为接口的`role`参数提供可选参数值，以区别不同的角色类型。
 
 ### 提案动作
+
 DPOS合约中提案的动作类型：
 
 ```js
@@ -183,6 +185,7 @@ motion = [
 |getConfiguration       |无                            |查询选举配置接口。可获得所有可修改的选举配置项及其当前值。|
 
 ### 角色权职
+
 不同角色以特定参数调用不同接口时，可以完成不同的操作。在DPOS合约中，不同角色可以执行的操作如下所示。
 
 - user是账户的基础角色，每个账户都被视为user。用户可执行的操作如下：
@@ -214,8 +217,10 @@ motion = [
   注：用户向DPOS合约提交参选KOL申请，经委员会投票审核通过后，只能成为候选KOL。只有股东权益（质押金和得票数之和）排名在限定名次（kol_size）内的，才可以成为正式的KOL。
 
 ## 验证者节点选举
+
 也被称为超级节点，是区块链共识系统的主要参与者。主要负责将一定时间段内的全网交易打包成提案，并就该提案达成一致，生成新的区块。验证节点由BuChain内所有账户投票选出。
 验证节点的主要选举步骤如下：
+
 - 任意节点向DPOS合约提交参选验证节点申请，并质押一定的BU用于防止作恶。
 - [委员会](#委员会)对申请审核并投票，审核通过后，申请节点被加入候选验证节点集合。
 - 用户对候选验证节点投票，得票达到一定名次的，成为验证节点，参与BuChain区块链的共识，并获得区块奖励。
@@ -245,6 +250,7 @@ motion = [
     }"
   }
 ```
+
 - role 参数为申请的角色，参数值必须为[用户角色](#用户角色)章节列出的值之一，此处为验证节点角色。
 
 申请成功后可以通过[验证节点查询](#验证节点查询)，查询候选节点信息。
@@ -277,6 +283,7 @@ motion = [
     }"
   }
 ```
+
 - role 参数为被投票者的角色，参数值必须为[用户角色](#用户角色)章节列出的值之一，此处为验证节点角色。
 - address 参数为被投票者的地址。
 
@@ -303,6 +310,7 @@ motion = [
     }"
   }
 ```
+
 - role 参数为被投票者的角色，参数值必须为[用户角色](#用户角色)章节列出的值之一，此处为验证节点角色。
 - address 参数为被投票者的地址。
 - amount 参数为减少的投票BU额。
@@ -333,6 +341,7 @@ motion = [
     }"
   }
 ```
+
 - role 参数为退出者的角色，参数值必须为[用户角色](#用户角色)章节列出的值之一，此处为验证节点角色。
 
 ### 废止恶意验证节点提案
@@ -361,6 +370,7 @@ motion = [
     }"
   }
 ```
+
 - role 参数为被废止者的角色，参数值必须为[用户角色](#用户角色)章节列出的值之一，此处为验证节点角色。
 - address 参数为被废止者的地址。
 - proof 参数为废止的原因。
@@ -385,6 +395,18 @@ motion = [
   }
 ```
 
+> 查询结果
+
+```json
+{
+  "result": {
+      "type": "string",
+      "value": "{\"validators\":[
+        [\"buQWT7vkMth2y9RHgSdqqw77sCybgWRsB7jM\",\"500000000000000\"],[\"buQBwe7LZYCYHfxiEGb1RE9XC9kN2qrGXWCY\",\"500000000000000\"],[\"buQWBgAWSqiES7TNh1mq2VQwonvWtESz8Z2Z\",\"500000000000000\"],[\"buQWQ4rwVW8RCzatR8XnRnhMCaCeMkE46qLR\",\"500000000000000\"],[\"buQrVDKPCVE6LfCf8TyZEaiZ8R99NrSn4Fuz\",\"500000000000000\"]]}"
+  }
+}
+```
+
 #### 查询候选节点集合信息
 
 >例
@@ -397,6 +419,18 @@ motion = [
     "opt_type" : 2,
     "source_address" : ""
   }
+```
+
+> 查询结果
+
+```json
+{
+  "result": {
+      "type": "string",
+      "value": "{\"validator_candidates\":[
+        [\"buQWT7vkMth2y9RHgSdqqw77sCybgWRsB7jM\",\"502500000000000\"],[\"buQBwe7LZYCYHfxiEGb1RE9XC9kN2qrGXWCY\",\"501500000000000\"],[\"buQWBgAWSqiES7TNh1mq2VQwonvWtESz8Z2Z\",\"500500000000000\"],[\"buQWQ4rwVW8RCzatR8XnRnhMCaCeMkE46qLR\",\"500000000000000\"],[\"buQrVDKPCVE6LfCf8TyZEaiZ8R99NrSn4Fuz\",\"500000000000000\"]]}"
+  }
+}
 ```
 
 #### 查询用户的验证节点投票信息
@@ -421,9 +455,21 @@ motion = [
     "source_address" : ""
   }
 ```
+
 - voter 参数为投票者地址，如果用户查询自己的投票信息，可以省略。
 - role 参数为被投票者的角色，参数值必须为[用户角色](#用户角色)章节列出的值之一，此处为验证节点。
 - candidate 参数为被投票者的地址。
+
+> 查询结果
+
+```json
+  {
+    "result": {
+        "type": "string",
+        "value": "{\"voterInfo\":500000000000}"
+    }
+  }
+```
 
 #### 查询验证节点申请信息
 
@@ -455,6 +501,17 @@ input 中的 address 字段填入申请者地址。
 - item 参数为提案的项目，参数值必须为[用户角色](#用户角色)章节或[选举配置](#选举配置)章节列出的值之一，此处为验证节点角色。
 - address 参数为申请者的地址。
 
+>查询结果
+
+```json
+{
+  "result": {
+      "type": "string",
+      "value": "{\"proposal\":{\"pledge\":\"500000000000000\",\"expiration\":1552098925001842,\"ballot\":[\"buQmKmaeCyGcPk9KbvnkhpLzQa34tQ9MaWwt\",\"buQYKj4TTJPVDPXCLWeBZMoCr1JPhq9Z2tJm\",\"buQZoJk8bq6A1AtsmfRw3rYJ79eMHUyct9i2\"],\"passTime\":1550802935024539}}"
+  }
+}
+```
+
 #### 查询指定的废止恶意节点提案的信息
 
 input 中的 address 字段填入指定的恶意节点地址。
@@ -480,9 +537,21 @@ input 中的 address 字段填入指定的恶意节点地址。
     "source_address" : ""
   }
 ```
+
 - operate 参数为提案动作，参数值必须为[提案动作](#提案动作)章节列出的值之一，此处废止动作。
 - item 参数为提案的项目，参数值必须为[用户角色](#用户角色)章节或[选举配置](#选举配置)章节列出的值之一，此处为验证节点角色。
 - address 参数为被废止者的地址。
+
+>查询结果
+
+```json
+{
+  "result": {
+      "type": "string",
+      "value": "{\"proposal\":{\"Informer\":\"buQWQ4rwVW8RCzatR8XnRnhMCaCeMkE46qLR\",\"reason\":\"see abnormal record\",\"expiration\":1550815129920811,\"ballot\":[\"buQWQ4rwVW8RCzatR8XnRnhMCaCeMkE46qLR\"]}}"
+  }
+}
+```
 
 ## 委员会
 
@@ -523,6 +592,7 @@ input 中的 address 字段填入指定的恶意节点地址。
     }"
   }
 ```
+
 - role 参数为申请的角色，参数值必须为[用户角色](#用户角色)章节列出的值之一，此处为委员会委员。
 
 申请成功后可以通过[委员会查询](#委员会查询)，查询候选节点信息。
@@ -550,6 +620,7 @@ input 中的 address 字段填入指定的恶意节点地址。
     }"
   }
 ```
+
 - operate 参数为提案动作，参数值必须为[提案动作](#提案动作)章节列出的值之一，此处为申请动作。
 - item 参数为提案的项目，参数值必须为[用户角色](#用户角色)章节或[选举配置](#选举配置)章节列出的值之一，此处为委员会委员角色。
 - address 参数为申请者的地址。
@@ -577,6 +648,7 @@ input 中的 address 字段填入指定的恶意节点地址。
     }"
   }
 ```
+
 - role 参数为退出者的角色，参数值必须为[用户角色](#用户角色)章节列出的值之一，此处为委员会委员。
 
 #### 委员会查询
@@ -593,6 +665,17 @@ input 中的 address 字段填入指定的恶意节点地址。
     "opt_type" : 2,
     "source_address" : ""
   }
+```
+
+>查询结果
+
+```json
+{
+  "result": {
+      "type": "string",
+      "value": "{\"committee\":[\"buQZoJk8bq6A1AtsmfRw3rYJ79eMHUyct9i2\",\"buQYKj4TTJPVDPXCLWeBZMoCr1JPhq9Z2tJm\",\"buQcYkkoZFMwDNQgCD7DoykNZjtax4FjVSzy\",\"buQmKmaeCyGcPk9KbvnkhpLzQa34tQ9MaWwt\"]}"
+  }
+}
 ```
 
 ### 选举配置更新
@@ -627,6 +710,7 @@ input 中的 address 字段填入指定的恶意节点地址。
     }"
   }
 ```
+
 - item 参数为提案的配置项，参数值必须为[选举配置](#选举配置)章节列出的值之一，此处为KOL最小质押额。
 - value 参数为待修改配置项的值。
 
@@ -646,6 +730,17 @@ input 中的 address 字段填入指定的恶意节点地址。
     "opt_type" : 2,
     "source_address" : ""
   }
+```
+
+>查询 结果
+
+```json
+{
+  "result": {
+      "type": "string",
+      "value": "{\"configuration\":{\"committee_size\":100,\"kol_size\":30,\"kol_candidate_size\":300,\"kol_min_pledge\":5000000000000,\"validator_size\":30,\"validator_candidate_size\":300,\"validator_min_pledge\":500000000000000,\"pass_rate\":0.5,\"valid_period\":30000000,\"fee_allocation_share\":\"70:20:10\",\"reward_allocation_share\":\"50:40:10\",\"logic_contract\":\"buQWBw4tMKhj1sPsGmsLmmzXLJUcEy1WjZ2p\"}}"
+  }
+}
 ```
 
 ## 社区激励
@@ -674,6 +769,7 @@ input 中的 address 字段填入指定的恶意节点地址。
     }"
   }
 ```
+
 - role 参数为申请的角色，参数值必须为[用户角色](#用户角色)章节列出的值之一，此处为KOL。
 
 申请成功后可以通过[查询当前KOL集合信息](#查询当前KOL集合信息)接口，查询候选KOL信息。
@@ -702,6 +798,7 @@ input 中的 address 字段填入指定的恶意节点地址。
     }"
   }
 ```
+
 - role 参数为退出者的角色，参数值必须为[用户角色](#用户角色)章节列出的值之一，此处为KOL。
 
 ### KOL投票和取消投票
@@ -727,6 +824,7 @@ input 中的 address 字段填入指定的恶意节点地址。
     }"
   }
 ```
+
 - role 参数为被投票者的角色，参数值必须为[用户角色](#用户角色)章节列出的值之一，此处为KOL角色。
 - address 参数为被投票者的地址。
 
@@ -747,6 +845,7 @@ input 中的 address 字段填入指定的恶意节点地址。
     }"
   }
 ```
+
 - role 参数为被投票者的角色，参数值必须为[用户角色](#用户角色)章节列出的值之一，此处为KOL角色。
 - address 参数为被投票者的地址。
 - amount 参数为减少的投票BU额。
@@ -774,9 +873,20 @@ input 中的 address 字段填入指定的恶意节点地址。
     "source_address" : ""
   }
 ```
+
 - operate 参数为提案动作，参数值必须为[提案动作](#提案动作)章节列出的值之一，此处为申请动作。
 - item 参数为提案的项目，参数值必须为[用户角色](#用户角色)章节或[选举配置](#选举配置)章节列出的值之一，此处为KOL角色。
 - address 参数为申请者的地址。
+
+>查询结果
+
+```json
+{
+  "result": {
+    "type": "string",
+    "value": "{\"proposal\":{\"pledge\":\"5000000000000\",\"expiration\":1550816576664577,\"ballot\":[\"buQmKmaeCyGcPk9KbvnkhpLzQa34tQ9MaWwt\",\"buQYKj4TTJPVDPXCLWeBZMoCr1JPhq9Z2tJm\",\"buQZoJk8bq6A1AtsmfRw3rYJ79eMHUyct9i2\"],\"passTime\":1550816546664577}}"
+}
+```
 
 ### 查询用户的KOL投票信息
 
@@ -807,6 +917,17 @@ input 中的 address 字段填入指定的恶意节点地址。
 - role 参数为被投票者的角色，参数值必须为[用户角色](#用户角色)章节列出的值之一，此处为KOL。
 - candidate 参数为被投票者的地址。
 
+>查询结果
+
+```json
+{
+  "result": {
+      "type": "string",
+      "value": "{\"voterInfo\":500000000000}"
+  }
+}
+```
+
 ### 查询当前KOL集合信息
 
 用户通过向查询接口（即 query 接口）提供指定参数，可以查看相关信息, 调用查询接口当前只能通过 callContract, contract_address 字段填入DPOS合约账户地址。
@@ -823,6 +944,18 @@ input 中的 address 字段填入指定的恶意节点地址。
   }
 ```
 
+>查询结果
+
+```json
+{
+  "result": {
+      "type": "string",
+      "value": "{\"kols\":[
+        [\"buQB3LtCXfLjtSJKfpaHpykEwDLf43nPxB6z\",\"6000000000000\"],[\"buQZayH6gcAFh5XdgS4tnn8Axrqo1NdutS3p\",\"5500000000000\"],[\"buQaUqDotGNM7htvPR6iHKHBxLGzVpSFkmBM\",\"5500000000000\"]]}"
+  }
+}
+```
+
 ### 查询候选KOL集合信息
 
 >例
@@ -835,6 +968,18 @@ input 中的 address 字段填入指定的恶意节点地址。
     "opt_type" : 2,
     "source_address" : ""
   }
+```
+
+>查询结果
+
+```json
+{
+  "result": {
+      "type": "string",
+      "value": "{\"kols\":[
+        [\"buQB3LtCXfLjtSJKfpaHpykEwDLf43nPxB6z\",\"6000000000000\"],[\"buQZayH6gcAFh5XdgS4tnn8Axrqo1NdutS3p\",\"5500000000000\"],[\"buQaUqDotGNM7htvPR6iHKHBxLGzVpSFkmBM\",\"5500000000000\"]]}"
+  }
+}
 ```
 
 ### 奖励和质押金提取

@@ -19,14 +19,14 @@ function query(input_str){
     if(input.method !== undefined){
         let cfg = loadObj(configKey);
     	assert(cfg !== false, 'Failed to load configuration.');
-		result = Chain.delegateQuery(cfg.logic_contract, input_str);
+		Chain.delegateQuery(cfg.logic_contract, input_str);
     }
     else{
        	throw '<unidentified operation type>';
     }
 
     log(result);
-    return JSON.stringify(result);
+    return true;
 }
 
 function main(input_str){
