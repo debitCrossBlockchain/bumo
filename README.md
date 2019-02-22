@@ -8,7 +8,7 @@ Bumo is focusing on next generation platform of public Blockchain infrastructure
 
 ## __Features__
 - Flexible multi-asset and multi-operator structure of accounts and transactions.
-- An improved two-stage and two-layer consensus protocol based on DPoS+BFT, called “Firework”.
+- An improved two-stage and two-layer consensus protocol based on DPoS+BFT, called "Firework".
 - A novel two-layer polymorphic architecture of multi-child Blockchain will be supported, called "Orbits".
 - An Inter-Chain of routing value among Blockchains will be supported, called "Canal".
 - Turing-perfect smart contract, with programming language of Javascript and WASM.
