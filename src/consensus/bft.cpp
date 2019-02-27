@@ -1554,6 +1554,7 @@ namespace bumo {
 		data["view_active"] = view_active_;
 		data["is_leader"] = (replica_id_ == view_number_ % validators_.size());
 		data["validator_address"] = replica_id_ >= 0 ? private_key_.GetEncAddress() : "none";
+		data["leader"] = CurrentLeader();
 		Json::Value &instances = data["instances"];
 		for (PbftInstanceMap::const_iterator iter = instances_.begin(); iter != instances_.end(); iter++) {
 			const PbftInstance &instance = iter->second;
@@ -1646,6 +1647,19 @@ namespace bumo {
 				iter_inst++;
 			}
 		}
+	}
+
+	std::string Pbft::CurrentLeader(){
+		std::string leader;
+		int64_t leaderId = view_number_ % validators_.size();
+
+		for (auto validator : validators_){
+			if (validator.second == leaderId){
+				leader = validator.first;
+			}
+		}
+
+		return leader;
 	}
 
 	//update

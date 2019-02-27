@@ -82,6 +82,7 @@ namespace bumo {
 		void TryDoTraceOut(const PbftInstanceIndex &index, const PbftInstance &instance);
 		static size_t GetQuorumSize(size_t size);
 		void ClearNotCommitedInstance();
+		std::string CurrentLeader();
 
 		void LoadValues();
 		int32_t LoadVcInstance();
