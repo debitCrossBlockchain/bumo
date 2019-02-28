@@ -410,7 +410,7 @@ Chain.issueAsset("CNY", 10000);
     
     例如
     ```javascript
-    let ret = Chain.contractCreate(toBaseUnit("10"), 0, 'use strict';function init(input){return input;} function main(input){return input;} function query(input){return input;} ", "");
+    let ret = Chain.contractCreate(toBaseUnit("10"), 0, "'use strict';function init(input){return input;} function main(input){return input;} function query(input){return input;} ", "");
     /*
       权限：可写
       返回：创建成功返回合约地址，失败则抛出异常
