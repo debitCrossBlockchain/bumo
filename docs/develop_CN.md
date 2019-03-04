@@ -1835,7 +1835,7 @@ function query(input)
 - ##### 获取区块信息
 
     `getBlockHash(offset_seq);`
-    - offset_seq: 距离最后一个区块的偏移量，最大1024
+    - offset_seq: 距离最后一个区块的偏移量，范围：[0,1024)
 
     例如
     ```javascript
