@@ -443,7 +443,7 @@ Chain.issueAsset("CNY", 10000);
     例如某账号发起了一笔交易，该交易中有个操作是调用合约Y（该操作的source_address是x），那么合约Y执行过程中，sender的值就是x账号的地址。
     
     ```javascript
-    let bar = Chain.msg.sender;
+    let bar = Chain.tx.sender;
     /*
     那么bar的值是x的账号地址。
     */
