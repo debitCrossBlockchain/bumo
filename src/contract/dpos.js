@@ -273,6 +273,7 @@ function apply(roleType){
         return saveObj(key, proposal);
     }
 
+    assert(int64Mod(thisPayCoinAmount, cfg.vote_unit) === '0', 'The number of additional pledge must be an integer multiple of ' + cfg.vote_unit);
     proposal.pledge = int64Add(proposal.pledge, thisPayCoinAmount);
     if(proposal.passTime === undefined){ 
         /* Additional deposit, not yet approved */
@@ -411,6 +412,7 @@ function voterKey(roleType, candidate, voter){
 function vote(roleType, address){
     assert(roleType === role.VALIDATOR || roleType === role.KOL, 'Can only vote for validator or KOL.');
     assert(addressCheck(address), address + ' is not valid adress.');
+    assert(int64Mod(thisPayCoinAmount, cfg.vote_unit) === '0', 'The number of votes must be an integer multiple of ' + cfg.vote_unit);
 
     let key        = voterKey(roleType, address);
     let voteAmount = storageLoad(key);
@@ -433,25 +435,16 @@ function vote(roleType, address){
     updateStake(roleType, node, formalSize, thisPayCoinAmount);
 }
 
-function unVote(roleType, address, amount){
+function unVote(roleType, address){
     assert(roleType === role.VALIDATOR || roleType === role.KOL, 'Can only vote for validator or KOL.');
     assert(addressCheck(address), address + ' is not valid adress.');
-    assert(int64Compare(amount, 0) > 0, 'Unvote amount <= 0.');
 
-    let key         = voterKey(roleType, address);
-    let votedAmount = storageLoad(key);
-    assert(votedAmount !== false, 'The account did not vote for: ' + address);
-
-    let com = int64Compare(amount, votedAmount);
-    assert(com <= 0, 'Unvote number > voted number.');
+    let key    = voterKey(roleType, address);
+    let amount = storageLoad(key);
+    assert(amount !== false, 'The account did not vote for: ' + address);
 
     transferCoin(sender, amount);
-    if(com === 0){
-        storageDel(key);
-    }
-    else{
-        storageStore(key, int64Sub(votedAmount, amount));
-    }
+    storageDel(key);
 
     electInit();
     let candidates = roleType === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
@@ -673,8 +666,9 @@ function initialization(params){
         'validator_min_pledge'     : 500000000000000,/* 500 0000 0000 0000 */
         'pass_rate'                : 0.5,
         'valid_period'             : 1296000000000,  /* 15 * 24 * 60 * 60 * 1000 * 1000 */
+        'vote_unit'                : 10000000000,    /* 100 0000 0000 */
         'fee_allocation_share'     : '70:20:10',     /* DAPP_70% : blockReward_20% : creator_10% */
-        'reward_allocation_share'  : '50:40:10',      /* validator_50% : validatorCandidate_40% : kol_10% */
+        'reward_allocation_share'  : '50:40:10',     /* validator_50% : validatorCandidate_40% : kol_10% */
         'logic_contract'           : params.logic_contract
     };
     saveObj(configKey, cfg);
