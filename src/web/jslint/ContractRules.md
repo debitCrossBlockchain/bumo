@@ -148,7 +148,7 @@ function main(input)
 
 - Use '+=' and '-=' to substitute '++' and '--'
 
-- Prohibit to use keywords like 'eval', 'void' and 'this'
+- Prohibit to use keywords like 'eval', 'void'
 
 - Prohibit to use 'new' to create 'Number', 'String' and 'Boolean' objects, which objects can be obtained by calling their constructors
 
