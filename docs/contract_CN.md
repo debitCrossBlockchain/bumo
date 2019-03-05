@@ -42,7 +42,7 @@
             - [Chain.msg.coinAmount](#本次支付操作的-bu-coin)
             - [Chain.msg.asset](#本次支付操作的资产)
             - [Chain.msg.nonce](#本次交易里的发起者的nonce值)
-            - [Chain.msg.triggerIndex](#触发本次合约调用的操作的序号)
+            - [Chain.msg.operationIndex](#触发本次合约调用的操作的序号)
         - [Chain.thisAddress](#当前合约账号的地址)
     - [Utils 对象方法](#utils-对象方法)
         - [Utils.log](#输出日志)
@@ -491,14 +491,14 @@ Chain.issueAsset("CNY", 10000);
     `Chain.msg.nonce`。即`Chain.msg.initiator`账号的 nonce值。
 
 - #### 触发本次合约调用的操作的序号
-    `Chain.msg.triggerIndex`
+    `Chain.msg.operationIndex`
 
     该值等于触发本次合约的操作的序号。
 
-    例如某账号A发起了一笔交易tx0，tx0中第0（从0开始计数）个操作是给某个合约账户转移资产(调用合约), 那么`Chain.msg.triggerIndex`的值就是0。
+    例如某账号A发起了一笔交易tx0，tx0中第0（从0开始计数）个操作是给某个合约账户转移资产(调用合约), 那么`Chain.msg.operationIndex`的值就是0。
 
     ```javascript
-    let bar = Chain.msg.triggerIndex;
+    let bar = Chain.msg.operationIndex;
     /* bar 是一个非负整数*/
     ```
 
