@@ -18,7 +18,7 @@
 #include <common/storage.h>
 #include <main/configure.h>
 #include <ledger/ledger_manager.h>
-#include <ledger/contract_manager.h>
+#include <contract/contract_manager.h>
 #include <consensus/consensus_manager.h>
 #include <glue/glue_manager.h>
 #include "web_server.h"

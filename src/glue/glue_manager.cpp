@@ -73,15 +73,6 @@ namespace bumo {
 		});
 	}
 
-	std::string GlueManager::CalculateTxTreeHash(const std::vector<TransactionFrm::pointer> &tx_array) {
-		HashWrapper hash_func;
-		for (std::size_t i = 0; i < tx_array.size(); i++) {
-			TransactionFrm::pointer env = tx_array[i];
-			hash_func.Update(env->GetFullHash());
-		}
-		return hash_func.Final();
-	}
-
 	bool GlueManager::Exit() {
 		return true;
 	}
@@ -93,9 +84,8 @@ namespace bumo {
 			LOG_INFO("The current node is not a leader node and does not do any processing.");
 			return true;
 		} 
-		else {
-			LOG_INFO("The current node is the leader node and starting consensus processing.");
-		}
+
+		LOG_INFO("The current node is the leader node and starting consensus processing.");
 
 		protocol::LedgerHeader lcl = LedgerManager::Instance().GetLastClosedLedger();
 		protocol::TransactionEnvSet txset_raw = tx_pool_->TopTransaction(Configure::Instance().ledger_configure_.max_trans_per_ledger_);
@@ -105,14 +95,10 @@ namespace bumo {
 			next_close_time = lcl.close_time() + Configure::Instance().ledger_configure_.close_interval_;
 		}
 
-		//Get previous block proof
-		std::string proof;
-		Storage::Instance().account_db()->Get(General::LAST_PROOF, proof);
-
 		if (!last_consavlue.empty()) {
 			LOG_INFO("The last PREPARED message value is not empty. Value digest(%s)", 
 				utils::String::BinToHexString(HashWrapper::Crypto(last_consavlue)).c_str());
-			//protocol::TransactionEnvSet txset_raw = tx_pool_->top.GetRaw();
+
 			if (CheckValue(last_consavlue) == Consensus::CHECK_VALUE_VALID) {
 				protocol::ConsensusValue propose_value;
 				propose_value.ParseFromString(last_consavlue);
@@ -123,6 +109,9 @@ namespace bumo {
 			}
 		}
 
+		// Get previous block proof
+		std::string proof;
+		Storage::Instance().account_db()->Get(General::LAST_PROOF, proof);
 
 		protocol::ConsensusValue propose_value;
 		do {
@@ -151,8 +140,7 @@ namespace bumo {
 
 			if (propose_result.block_timeout_) {
 				LOG_ERROR("Block pre-execution timeout, the number of transactions in consensus value is: (" FMT_I64 "), and block number is : (" FMT_I64 ")", txset_raw.txs_size(), propose_value.ledger_seq());
-				//Remove the timeout tx
-				//reduct to 1/2
+				//Remove the timeout tx, and reduct to 1/2
 				protocol::TransactionEnvSet tmp_raw;
 				for (int32_t i = 0; i < txset_raw.txs_size() / 2; i ++) {
 					*tmp_raw.add_txs() = txset_raw.txs(i);
@@ -281,10 +269,6 @@ namespace bumo {
 	}
 
 	std::string GlueManager::OnValueCommited(int64_t request_seq, const std::string &value, const std::string &proof, bool calculate_total) {
-		protocol::ConsensusValue request;
-		request.ParseFromString(value);
-
-		
 		//Write to db
 		int64_t time_start = utils::Timestamp::HighResolution();
 		
@@ -296,13 +280,13 @@ namespace bumo {
 		int64_t time_use = utils::Timestamp::HighResolution() - time_start;
 
 		//Delete the cache 
-		//size_t ret1 = RemoveTxset(txset_frm);
-		tx_pool_->RemoveTxs(request.txset(),true);
+		tx_pool_->RemoveTxs(req.txset(),true);
 
 		//Start calculating the time to start the next block.
-		int64_t next_interval = GetIntervalTime(request.txset().txs_size() == 0);
+		int64_t next_interval = GetIntervalTime(req.txset().txs_size() == 0);
 		int64_t next_timestamp = next_interval + req.close_time();
 		int64_t seq = req.ledger_seq();
+
 		Global::Instance().GetIoService().post([next_timestamp, time_use, seq, this]() {
 			int64_t waiting_time = next_timestamp - utils::Timestamp::Now().timestamp();
 			if (waiting_time <= 0)  waiting_time = 1;

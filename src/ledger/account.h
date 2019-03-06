@@ -20,9 +20,9 @@
 #include <utils/crypto.h>
 #include <utils/logger.h>
 #include <proto/cpp/chain.pb.h>
-#include <utils/entry_cache.h>
 #include "proto/cpp/merkeltrie.pb.h"
 #include <common/storage.h>
+#include "utils/atom_map.h"
 #include "kv_trie.h"
 namespace bumo {
 
@@ -113,7 +113,7 @@ namespace bumo {
 
 		template <class T>
 		struct DataCache{
-			utils::ChangeAction action_;
+			utils::actType action_;
 			T data_;
 		};
 

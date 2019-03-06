@@ -22,10 +22,5 @@ int TestEd25519(){
 
 	LOG_INFO("signature: %s", utils::String::BinToHexString(str_sign).c_str());
 
-	//std::string a, b;
-	//a.append((char *)priv_key, 32);
-	//b.append((char *)pub_key, 32);
-	//LOG_INFO("%s - %s", utils::String::BinToHexString(a).c_str(), utils::String::BinToHexString(b).c_str());
-
 	return true;
 }

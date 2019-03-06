@@ -1,18 +1,13 @@
-
 #include "http_client.h"
 
-bumo::HttpClient::HttpClient()
-{
+bumo::HttpClient::HttpClient(){
 }
 
-bumo::HttpClient::~HttpClient()
-{
+bumo::HttpClient::~HttpClient(){
 }
 
-bumo::HttpClient::RecvMessage bumo::HttpClient::http_request(HTTP_REQUEST sendtype,std::string path, std::string content)
-{
-	try
-	{
+bumo::HttpClient::RecvMessage bumo::HttpClient::http_request(HTTP_REQUEST sendtype,std::string path, std::string content){
+	try{
 		RecvMessage rec;
 		rec.status_code = 1;
 		std::ostringstream retSS;
@@ -30,8 +25,7 @@ bumo::HttpClient::RecvMessage bumo::HttpClient::http_request(HTTP_REQUEST sendty
 		asio::streambuf request;
 		std::ostream request_stream(&request);
 
-		if (sendtype == HTTP_POST)
-		{
+		if (sendtype == HTTP_POST){
 			request_stream << "POST " << path << " HTTP/1.1\r\n";
 			request_stream << "Host: " << ip_ << "\r\n";
 			request_stream << "Accept: " << "*/*" << "\r\n";
@@ -41,16 +35,12 @@ bumo::HttpClient::RecvMessage bumo::HttpClient::http_request(HTTP_REQUEST sendty
 			request_stream << "Connection: close\r\n";
 			request_stream << "\r\n";
 			request_stream << content;
-		}
-		else if (sendtype == HTTP_GET)
-		{
+		}else if (sendtype == HTTP_GET){
 			request_stream << "GET " << path << " HTTP/1.0\r\n";
 			request_stream << "Host: " << ip_ << "\r\n";
 			request_stream << "Accept: */*\r\n";
 			request_stream << "Connection: close\r\n\r\n";
-		}
-		else
-		{
+		}else{
 			return rec;
 		}
 		//Send the request.
@@ -70,13 +60,11 @@ bumo::HttpClient::RecvMessage bumo::HttpClient::http_request(HTTP_REQUEST sendty
 		response_stream >> rec.status_code;
 		std::string status_message;
 		std::getline(response_stream, status_message);
-		if (!response_stream || rec.http_version.substr(0, 5) != "HTTP/")
-		{
+		if (!response_stream || rec.http_version.substr(0, 5) != "HTTP/"){
 			 std::cout << "Invalid response ";
 			return rec;
 		}
-		if (rec.status_code != 200)
-		{
+		if (rec.status_code != 200){
 			std::cout << "Response returned with status code "<<rec.status_code;
 			return rec;
 		}
@@ -103,8 +91,7 @@ bumo::HttpClient::RecvMessage bumo::HttpClient::http_request(HTTP_REQUEST sendty
 		rec.context = retSS.str();
 		return rec;
 	}
-	catch (std::exception& e)
-	{
+	catch (std::exception& e){
 		std::cout << "\nException " << e.what()<<std::endl;
 		RecvMessage rec;
 		rec.status_code = 1;
@@ -113,8 +100,7 @@ bumo::HttpClient::RecvMessage bumo::HttpClient::http_request(HTTP_REQUEST sendty
 }
 
 bool bumo::HttpClient::Initialize(std::string address){
-	do
-	{
+	do{
 		if (address.empty())break;
 
 		utils::StringVector ip_array = utils::String::Strtok(address, ':');

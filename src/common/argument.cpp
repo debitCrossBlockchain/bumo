@@ -141,10 +141,11 @@ namespace bumo {
 				create_hardfork_ = true;
 			}
 			else if (s == "--version") {
+				std::string sk_hash = utils::String::BinToHexString(bumo::HashWrapper::Crypto(bumo::GetDataSecuretKey())).substr(0, 2);
 #ifdef SVNVERSION
-				printf("%s,%u; " SVNVERSION "\n", General::BUMO_VERSION, General::LEDGER_VERSION);
+				printf("%s;%u;secure:%s;git:" SVNVERSION "\n", General::BUMO_VERSION, General::LEDGER_VERSION, sk_hash.c_str());
 #else
-				printf("%s,%u\n", General::BUMO_VERSION, General::LEDGER_VERSION);
+				printf("%s;%u;secure:%s\n", General::BUMO_VERSION, General::LEDGER_VERSION, sk_hash.c_str());
 #endif 
 				return true;
 			}
@@ -486,12 +487,12 @@ namespace bumo {
 				std::string ledger_db_seq;
 				std::string account_db_seq;
 				if (!ledger_db->Get(General::KEY_LEDGER_SEQ, ledger_db_seq)) {
-					printf("Failed to get ledger seq from ledger-db\n");
+					printf("Failed to get ledger seq from ledger-db(%s)\n", ledger_db_path.c_str());
 					return true;
 				}
 
 				if (!account_db->Get(General::KEY_LEDGER_SEQ, account_db_seq)) {
-					printf("Failed to get ledger seq from account-db\n");
+					printf("Failed to get ledger seq from account-db(%s)\n", account_db_path.c_str());
 					return true;
 				}
 

@@ -1,20 +1,45 @@
-# BUMO ATP1.0协议 标准
+# BUMO ATP 10 协议
+
+
+
+- [Bumo ATP 10 协议 ](#bumo-atp-10-协议)
+  - [简介](#简介)
+  - [目标](#目标)
+  - [Token 属性](#token-属性)
+  - [功能函数](#功能函数)
+    - [transfer](#transfer)
+    - [approve](#approve)
+    - [transferFrom](#transferfrom)
+    - [tokenInfo](#tokeninfo)
+    - [allowance](#allowance)
+  - [合约入口](#合约入口)
+    - [init](#init)
+    - [main](#main)
+    - [query](#query)
+
+# 
+
+
 
 ## 简介
 
-ATP1.0(Account based Tokenization Protocol) 指基于 BuChain的账号结构对资产进行发行、转移和增发Token的标准协议，Token在此文代表账号资产。   
+ATP 10(Account based Tokenization Protocol) 指基于 BuChain的账号结构对资产进行发行、转移和增发Token的标准协议，Token在此文代表账号资产。   
 **登记Token**：设置Token metadata参数。  
 **发行Token**：账户发行一笔数字Token，执行成功后账户的Token余额中会出现这一笔Token。  
 **转移Token**：账户将一笔Token转给目标账户。  
 **增发Token**：账户继续在原Token代码上发行一定数量的Token，执行成功后账户的Token余额会增加。  
 **查询Token**：查询源账户的Token信息。
 
+
+
 ## 目标
 
 标准协议可以让其它应用程序方便地调用接口在 BUMO 上进行Token的发行、转移和增发操作。
 
 
-## Token属性参数
+
+
+## Token 属性
 发行的Token需要通过设置Token源账户的metadata来记录Token的相关属性。用于应用程序方便去管理和查询Token数据信息。  
 
 | 变量        | 描述                    |
@@ -30,7 +55,7 @@ ATP1.0(Account based Tokenization Protocol) 指基于 BuChain的账号结构对�
 注意：
 - code-推荐使用大写简拼
 - decimals-小数位在0~8的范围，0表示无小数位
-- totalSupply-范围是0~2^63-1。0表示不固定Token的上限。**假如发行一笔数量是10000, 精度为8的ATP1.0 Token，此时totalSupply = 10 ^ 8 * 10000, 结果是1000000000000**。
+- totalSupply-范围是0~2^63-1。0表示不固定Token的上限。**假如发行一笔数量是10000, 精度为8的ATP 10 Token，此时totalSupply = 10 ^ 8 * 10000, 结果是1000000000000**。
 - icon-base64位编码，图标文件大小是32k以内,推荐200*200像素。
 
 
@@ -194,8 +219,6 @@ HTTP GET /getAccountMetaData?address=buQhzVyca8tQhnqKoW5XY1hix2mCt5KTYzcD&key=as
    "result" : null
 }
 ```
-
-
 
 
 

@@ -21,7 +21,6 @@
 #include <openssl/ecdsa.h>
 #include <openssl/ecdh.h>
 #include <openssl/evp.h>
-#include <openssl/err.h>
 #include <openssl/obj_mac.h>
 #include <openssl/x509.h>
 #include "ecc_sm2.h"
@@ -248,7 +247,7 @@ namespace utils {
 
 		BIGNUM *xA = BN_CTX_get(ctx);
 		BIGNUM* yA = BN_CTX_get(ctx);
-		unsigned char bin[MAX_BITS];
+		//unsigned char bin[MAX_BITS];
 		int len = 0;
 		if (EC_METHOD_get_field_type(EC_GROUP_method_of(group)) == NID_X9_62_prime_field) {
 			EC_POINT_get_affine_coordinates_GFp(group, pkey, xA, yA, NULL);
@@ -699,7 +698,7 @@ namespace utils {
 		else
 			EC_POINT_get_affine_coordinates_GF2m(group_, pkey_, bn_x, bn_y, NULL);
 
-		unsigned char xx[MAX_BITS];
+		//unsigned char xx[MAX_BITS];
 		BIGNUM* order = BN_CTX_get(ctx);
 		EC_GROUP_get_order(group_, order, ctx);
 

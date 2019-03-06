@@ -92,8 +92,8 @@ bool test_v8(const char *path) {
 
 	v8::Context::Scope context_scope(context);
 
-	//std::string code = "    var start=new Date().getTime(); \
-		while (true) if (new Date().getTime() - start>3000) break; ";
+	/*std::string code = "    var start=new Date().getTime(); \
+		while (true) if (new Date().getTime() - start>3000) break; ";*/
 
 	std::string code = "callBackLog();";
 	v8::Local<v8::String> v8src = v8::String::NewFromUtf8(isolate_, code.c_str());

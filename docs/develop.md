@@ -153,14 +153,17 @@ return,
 
 ```json
 {
-  "error_code" : 0,
-  "result" : {
-          "address": "buQd4TBqSbHw3EoLMnSmH4SJFMkHUtEQbUvz",        //address of the account
-          "private_key": "privbzYwbUSCwQZq7eXgu4C9cpqrQD4enXY49V7qUrifc6fCtiPmBhWA",  //private key
-          "public_key": "b0016558bd75fe20d6f7953cef0a95509d11d73652b70f183c72ede25711778dfc0039ea73f3",  //public key
-          "public_key_raw": "6558bd75fe20d6f7953cef0a95509d11d73652b70f183c72ede25711778dfc00"       //public key without prefixes and suffixes
-  }
+   "error_code" : 0,
+   "result" : {
+      "address" : "buQqRgkmtckz3U4kX91F2NmZzJ9rkadjYaa2",  //address of the account
+      "private_key" : "privbtnSGRQ46FF3MaqiGiDNytz2soFw4iNHKahTqszR6mRrmq7qhVYh",  //private key
+      "private_key_aes" : "7594a97bc5e6432704cc5f58ff60727ee9bda10a6117915d025553afec7f81527cb857b882b7c775391fe1fe3f7f3ec198ea69ada138b19cbe169a1a3fa2dec8",  //Encrypt the data after the account private key with AES
+      "public_key" : "b00101da11713eaad86ad8ededfc28e86b8cd619ca2d593a21d8b82da34320a7e63b09c279bc", //public key
+      "public_key_raw" : "01da11713eaad86ad8ededfc28e86b8cd619ca2d593a21d8b82da34320a7e63b",  //public key without prefixes and suffixes
+      "sign_type" : "ed25519"  //encryption type
+   }
 }
+
 
 ```
 
@@ -1874,7 +1877,7 @@ Referenced Documents: [Smart Contract Rules](../src/web/jslint/ContractRules.md)
 - ##### Get block information
 
     `getBlockHash(offset_seq);`
-    - offset_seq: offset from the latest block. The maximun is 1024.
+    - offset_seq: offset from the latest block,range [0,1024)
 
     example
     ```javascript

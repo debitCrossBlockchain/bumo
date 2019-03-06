@@ -18,9 +18,13 @@
     <ClCompile Include="..\..\src\api\web_server_helper.cpp" />
     <ClCompile Include="..\..\src\api\web_server_query.cpp" />
     <ClCompile Include="..\..\src\api\web_server_update.cpp" />
+    <ClCompile Include="..\..\src\contract\contract.cpp" />
+    <ClCompile Include="..\..\src\contract\contract_manager.cpp" />
+    <ClCompile Include="..\..\src\contract\v8_contract.cpp" />
+    <ClCompile Include="..\..\src\contract\v8_contract_read.cpp" />
+    <ClCompile Include="..\..\src\contract\v8_contract_write.cpp" />
     <ClCompile Include="..\..\src\glue\ledger_upgrade.cpp" />
     <ClCompile Include="..\..\src\glue\transaction_queue.cpp" />
-    <ClCompile Include="..\..\src\ledger\contract_manager.cpp" />
     <ClCompile Include="..\..\src\ledger\environment.cpp" />
     <ClCompile Include="..\..\src\ledger\fee_calculate.cpp" />
     <ClCompile Include="..\..\src\ledger\kv_trie.cpp" />
@@ -52,9 +56,11 @@
     <ClInclude Include="..\..\src\api\console.h" />
     <ClInclude Include="..\..\src\api\websocket_server.h" />
     <ClInclude Include="..\..\src\api\web_server.h" />
+    <ClInclude Include="..\..\src\contract\contract.h" />
+    <ClInclude Include="..\..\src\contract\contract_manager.h" />
+    <ClInclude Include="..\..\src\contract\v8_contract.h" />
     <ClInclude Include="..\..\src\glue\ledger_upgrade.h" />
     <ClInclude Include="..\..\src\glue\transaction_queue.h" />
-    <ClInclude Include="..\..\src\ledger\contract_manager.h" />
     <ClInclude Include="..\..\src\ledger\environment.h" />
     <ClInclude Include="..\..\src\ledger\fee_calculate.h" />
     <ClInclude Include="..\..\src\ledger\kv_trie.h" />

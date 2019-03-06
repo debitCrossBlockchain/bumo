@@ -3,8 +3,7 @@
 #include <utils/Timestamp.h>
 #include "test.h"
 
-void WriteDb(leveldb::DB* db)
-{
+void WriteDb(leveldb::DB* db){
 	const char* Content = "We now decided that after three years it might"
 		" be a good idea to re-assess our current situation by another,"
 		" more extensive survey. It is similar to the original one "
@@ -22,8 +21,7 @@ void WriteDb(leveldb::DB* db)
 	}
 }
 
-void ReadDb(leveldb::DB* db)
-{
+void ReadDb(leveldb::DB* db){
 	leveldb::ReadOptions ro;
 	char Buff[10];
 	memset(Buff, 0, sizeof(Buff));
@@ -34,8 +32,7 @@ void ReadDb(leveldb::DB* db)
 	}
 }
 
-void tt()
-{
+void tt(){
 	leveldb::DB* db = NULL;
 	leveldb::Options options;
 	options.create_if_missing = true;
@@ -43,7 +40,7 @@ void tt()
 	leveldb::Status status = leveldb::DB::Open(options, "c:/tmp/testdb", &db);
 	assert(status.ok());
 
-	//
+	
 	char buffer_1[] = {0x00,0x00,0x11,0x12};
 	char key[] = "key1";
 
@@ -67,8 +64,7 @@ void tt()
 	delete db;
 }
 
-int TestLevelDbWin()
-{
+int TestLevelDbWin(){
 	int repeat = 100;
 	for (int i = 0; i < repeat; i++){
 		tt();

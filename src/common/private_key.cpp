@@ -114,8 +114,6 @@ namespace bumo {
 			return false;
 		}     
 		
-	   
-
 		bool ret = true;
 		if (prefix_tmp == ADDRESS_PREFIX) {
 			uint8_t a = (uint8_t)buff.at(2); 
@@ -201,12 +199,12 @@ namespace bumo {
 	PublicKey::~PublicKey() {}
 
 	PublicKey::PublicKey(const std::string &encode_pub_key) {
-		do {
-			PrivateKeyPrefix prefix;
-			if (GetPublicKeyElement(encode_pub_key, prefix, type_, raw_pub_key_)){
-				valid_ = (prefix == PUBLICKEY_PREFIX);
-			}
-		} while (false);
+		valid_ = false;
+		type_ = SIGNTYPE_ED25519;
+		PrivateKeyPrefix prefix;
+		if (GetPublicKeyElement(encode_pub_key, prefix, type_, raw_pub_key_)){
+			valid_ = (prefix == PUBLICKEY_PREFIX);
+		}
 	}
 
 	void PublicKey::Init(std::string rawpkey) {
@@ -372,7 +370,6 @@ namespace bumo {
 	PrivateKey::PrivateKey(const std::string &encode_private_key) {
 		From(encode_private_key );
 	}
-
 	
 	//not modify
 	std::string PrivateKey::Sign(const std::string &input) const {
@@ -414,7 +411,7 @@ namespace bumo {
 		//Append 0X00 to str_result
 		str_result.push_back(0X00);
 
-		//Like Bitcoin, we use 4 byte hash check.
+		//We use 4 byte hash check like Bitcoin.
 		std::string hash1, hash2;
 		hash1 = CalcHash(str_result, type_);
 		hash2 = CalcHash(hash1, type_);

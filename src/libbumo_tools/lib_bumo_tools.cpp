@@ -1,6 +1,7 @@
-#include <string>
 #include <stdio.h>
+#include <string>
 #include <json/json.h>
+
 #include "lib_bumo_tools.h"
 #include "common/private_key.h"
 #include "common/key_store.h"
@@ -8,8 +9,7 @@
 #include "common/general.h"
 #include "utils/logger.h"
 
-BUMO_TOOLS_API int InitBumoTools()
-{
+BUMO_TOOLS_API int InitBumoTools(){
 	utils::Logger::InitInstance();
 	utils::Logger &logger = utils::Logger::Instance();
 	logger.SetExpireDays(1);
@@ -21,8 +21,7 @@ BUMO_TOOLS_API int InitBumoTools()
 	return 0;
 }
 
-BUMO_TOOLS_API void UnInitBumoTools()
-{
+BUMO_TOOLS_API void UnInitBumoTools(){
 	utils::Logger::Instance().Exit();
 	utils::Logger::ExitInstance();
 }

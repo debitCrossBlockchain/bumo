@@ -213,9 +213,6 @@ namespace bumo {
 			std::pair<bool, TransactionFrm::pointer> result = Remove(source_address, nonce);
 			if (result.first)
 				++ret;
-			
-			//LOG_TRACE("RemoveTxs close_ledger_flag(%d) (%d) removed(%d) addr(%s) nonce(" FMT_I64 ") fee(" FMT_I64 ") last seq(" FMT_I64 ")",
-			//	(int)close_ledger, i, (int)result.first, source_address.c_str(), nonce, (int64_t)txproto.transaction().fee(), last_seq);
 
 			//Update system account nonce
 			auto it = account_nonce_.find(source_address);

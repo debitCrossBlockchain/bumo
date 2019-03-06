@@ -2,28 +2,25 @@
 #include "common/general.h"
 
 /*
-total reward is five hundred million, decreasing 1/4 each year.
-the reward for first periord: 1.25 hundred million£¬ 125,000,000 BU COIN
+Total reward is 500 million, decreasing 1/4 each year.
+the reward for first period: 1.25 hundred million 125,000,000 BU COIN
 a block per 10 seconds, 3153600 blocks per year, five years: 3153600 * 5 = 15768000 block
 
 reward per block: 125,000,000  / 15768000 = 7.927447995941147
 
-the process of inferencing for the reward of first periord:
+the process of inferencing for the reward of first period:
 8 bu per block, 8 * 3153600 * 5  = 126144000
 */
-class decrement_value_utest : public testing::Test
-{
+
+class decrement_value_utest : public testing::Test{
 protected:
 
     // Sets up the test fixture.
-    virtual void SetUp()
-    {
+    virtual void SetUp(){
     }
 
     // Tears down the test fixture.
-    virtual void TearDown()
-    {
-
+    virtual void TearDown(){
     }
 
 protected:
@@ -31,9 +28,8 @@ protected:
 };
 
 TEST_F(decrement_value_utest, UT_Calc_Block_Decrement_Vaule){ UT_Calc_Block_Decrement_Vaule(); }
-void decrement_value_utest::UT_Calc_Block_Decrement_Vaule()
-{
-	//±ê×¼ÓÃÀý
+void decrement_value_utest::UT_Calc_Block_Decrement_Vaule(){
+
 	EXPECT_EQ(bumo::GetBlockReward(0 * bumo::General::REWARD_PERIOD), 800000000);
 	EXPECT_EQ(bumo::GetBlockReward(1 * bumo::General::REWARD_PERIOD - 1), 800000000);
 	EXPECT_EQ(bumo::GetBlockReward(1 * bumo::General::REWARD_PERIOD), 600000000);

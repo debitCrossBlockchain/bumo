@@ -104,14 +104,13 @@ function init(input_str){
     assert(stoI64Check(params.totalSupply) === true && params.totalSupply > 0 &&
            typeof params.name === 'string' && params.name.length > 0 &&
            typeof params.symbol === 'string' && params.symbol.length > 0 &&
-           typeof params.version === 'string' && params.version.length > 0 &&
            typeof params.decimals === 'number' && params.decimals >= 0, 
            'Failed to check args');
        
     globalAttribute.totalSupply = params.totalSupply;
     globalAttribute.name = params.name;
     globalAttribute.symbol = params.symbol;
-    globalAttribute.version = params.version;
+    globalAttribute.version = 'ATP20';
     globalAttribute.decimals = params.decimals;
     
     storageStore(globalAttributeKey, JSON.stringify(globalAttribute));

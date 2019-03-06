@@ -68,7 +68,7 @@ void test_sm3(){
 #include <stdio.h>
 
 /*
-* 32-bit integer manipulation macros (big endian)  �ж����ݵĴ�С��.
+* 32-bit integer manipulation macros (big endian)  ÅÐ¶ÏÊý¾ÝµÄ´óÐ¡¶Ë.
 */
 #ifndef GET_ULONG_BE
 #define GET_ULONG_BE(n,b,i)                             \
@@ -93,8 +93,7 @@ void test_sm3(){
 /*
 * SM3 context setup
 */
-void sm3_starts(sm3_context *ctx)
-{
+void sm3_starts(sm3_context *ctx){
 	ctx->total[0] = 0;
 	ctx->total[1] = 0;
 
@@ -109,8 +108,7 @@ void sm3_starts(sm3_context *ctx)
 
 }
 
-static void sm3_process(sm3_context *ctx, unsigned char data[64])
-{
+static void sm3_process(sm3_context *ctx, unsigned char data[64]){
 	unsigned long SS1, SS2, TT1, TT2, W[68], W1[64];
 	unsigned long A, B, C, D, E, F, G, H;
 	unsigned long T[64];
@@ -120,10 +118,6 @@ static void sm3_process(sm3_context *ctx, unsigned char data[64])
 	int i;
 #endif
 
-	//  for(j=0; j < 68; j++)
-	//      W[j] = 0;
-	//  for(j=0; j < 64; j++)
-	//      W1[j] = 0;
 
 	for (j = 0; j < 16; j++)
 		T[j] = 0x79CC4519;
@@ -277,8 +271,7 @@ static void sm3_process(sm3_context *ctx, unsigned char data[64])
 /*
 * SM3 process buffer
 */
-void sm3_update(sm3_context *ctx, unsigned char *input, int ilen)
-{
+void sm3_update(sm3_context *ctx, unsigned char *input, int ilen){
 	int fill;
 	unsigned long left;
 
@@ -329,8 +322,7 @@ static const unsigned char sm3_padding[64] =
 /*
 * SM3 final digest
 */
-void sm3_finish(sm3_context *ctx, unsigned char output[32])
-{
+void sm3_finish(sm3_context *ctx, unsigned char output[32]){
 	unsigned long last, padn;
 	unsigned long high, low;
 	unsigned char msglen[8];
@@ -362,8 +354,7 @@ void sm3_finish(sm3_context *ctx, unsigned char output[32])
 * output = SM3( input buffer )
 */
 void sm3(unsigned char *input, int ilen,
-	unsigned char output[32])
-{
+	unsigned char output[32]){
 	sm3_context ctx;
 
 	sm3_starts(&ctx);
@@ -376,8 +367,7 @@ void sm3(unsigned char *input, int ilen,
 /*
 * output = SM3( file contents )
 */
-int sm3_file(char *path, unsigned char output[32])
-{
+int sm3_file(char *path, unsigned char output[32]){
 	FILE *f;
 	size_t n;
 	sm3_context ctx;
@@ -408,8 +398,7 @@ int sm3_file(char *path, unsigned char output[32])
 /*
 * SM3 HMAC context setup
 */
-void sm3_hmac_starts(sm3_context *ctx, unsigned char *key, int keylen)
-{
+void sm3_hmac_starts(sm3_context *ctx, unsigned char *key, int keylen){
 	int i;
 	unsigned char sum[32];
 
@@ -439,16 +428,14 @@ void sm3_hmac_starts(sm3_context *ctx, unsigned char *key, int keylen)
 /*
 * SM3 HMAC process buffer
 */
-void sm3_hmac_update(sm3_context *ctx, unsigned char *input, int ilen)
-{
+void sm3_hmac_update(sm3_context *ctx, unsigned char *input, int ilen){
 	sm3_update(ctx, input, ilen);
 }
 
 /*
 * SM3 HMAC final digest
 */
-void sm3_hmac_finish(sm3_context *ctx, unsigned char output[32])
-{
+void sm3_hmac_finish(sm3_context *ctx, unsigned char output[32]){
 	int hlen;
 	unsigned char tmpbuf[32];
 
@@ -469,8 +456,7 @@ void sm3_hmac_finish(sm3_context *ctx, unsigned char output[32])
 */
 void sm3_hmac(unsigned char *key, int keylen,
 	unsigned char *input, int ilen,
-	unsigned char output[32])
-{
+	unsigned char output[32]){
 	sm3_context ctx;
 
 	sm3_hmac_starts(&ctx, key, keylen);

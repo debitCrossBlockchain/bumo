@@ -17,7 +17,6 @@
 #define LEDGER_MANAGER_H_
 
 #include <utils/headers.h>
-#include <utils/entry_cache.h>
 #include <common/general.h>
 #include <common/storage.h>
 #include <common/private_key.h>
@@ -77,6 +76,8 @@ namespace bumo {
 
 		static void CreateHardforkLedger();
 		utils::ReadWriteLock& GetTreeMutex();
+	private:
+		bool CheckAndRepairLedgerSeq();
 	public:
 		utils::Mutex gmutex_;
 		Json::Value statistics_;

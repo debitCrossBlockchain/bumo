@@ -19,86 +19,35 @@
 
 namespace bumo{
 
-	Environment::Environment(mapKV* data, settingKV* settings) :
-		AtomMap<std::string, AccountFrm>(data), settings_(settings)
-	{
-		useAtomMap_ = Configure::Instance().ledger_configure_.use_atom_map_;
-		parent_ = nullptr;
-	}
-
-	Environment::Environment(Environment* parent){
-
-		useAtomMap_ = Configure::Instance().ledger_configure_.use_atom_map_;
-		if (useAtomMap_)
-		{
-			parent_ = nullptr;
-			return;
-		}
-
-		parent_ = parent;
-		if (parent_){
-			for (auto it = parent_->entries_.begin(); it != parent_->entries_.end(); it++){
-				entries_[it->first] = std::make_shared<AccountFrm>(it->second);
-			}
-			settings_ = parent->settings_;
-		}
-	}
+	Environment::Environment(Map* data, settingKV* settings) :
+		utils::AtomMap<std::string, AccountFrm>(data), settings_(settings){}
 
 	bool Environment::GetEntry(const std::string &key, AccountFrm::pointer &frm){
-		if (useAtomMap_)
-			return Get(key, frm);
-
-		if (entries_.find(key) == entries_.end()){
-			if (AccountFromDB(key, frm)){
-				entries_[key] = frm;
-				return true;
-			}
-			else{
-				return false;
-			}
-		}
-		else{
-			frm = entries_[key];
-			return true;
-		}
+		return Get(key, frm);
 	}
 
 	bool Environment::Commit(){
-		if (useAtomMap_){
-			return settings_.Commit() && AtomMap<std::string, AccountFrm>::Commit();
-		}
-
-		parent_->entries_ = entries_;
-		parent_->settings_ = settings_;
-		return true;
+		return settings_.Commit() && AtomMap<std::string, AccountFrm>::Commit();
 	}
 
-	void Environment::ClearChangeBuf()
-	{
-		if (useAtomMap_){
-			settings_.ClearChangeBuf();
-			AtomMap<std::string, AccountFrm>::ClearChangeBuf();
-		}
+	void Environment::ClearChangeBuf(){
+		settings_.ClearChangeBuf();
+		AtomMap<std::string, AccountFrm>::ClearChangeBuf();
 	}
 
 	bool Environment::AddEntry(const std::string& key, AccountFrm::pointer frm){
-		if (useAtomMap_ == true)
-			return Set(key, frm);
-
-		entries_[key] = frm;
-		return true;
+		return Set(key, frm);
 	}
 
-	bool Environment::GetFromDB(const std::string &address, AccountFrm::pointer &account_ptr)
-	{
+	bool Environment::GetFromDB(const std::string &address, AccountFrm::pointer &account_ptr){
 		return AccountFromDB(address, account_ptr);
 	}
 
 	bool Environment::AccountFromDB(const std::string &address, AccountFrm::pointer &account_ptr){
-
 		auto db = Storage::Instance().account_db();
 		std::string index = DecodeAddress(address);
 		std::string buff;
+
 		{
 			utils::WriteLockGuard guard(LedgerManager::Instance().GetTreeMutex());
 			if (!LedgerManager::Instance().tree_->Get(index, buff)){
@@ -110,15 +59,14 @@ namespace bumo{
 		if (!account.ParseFromString(buff)){
 			PROCESS_EXIT("Failed to parse account(%s) from string, fatal error", address.c_str());
 		}
+
 		account_ptr = std::make_shared<AccountFrm>(account);
 		return true;
-
 	}
 
-	std::shared_ptr<Environment> Environment::NewStackFrameEnv()
-	{
-		mapKV& data	= GetActionBuf();
-		settingKV& settings = settings_.GetActionBuf();
+	std::shared_ptr<Environment> Environment::NewStackFrameEnv(){
+		Map& data	= GetChangeBuf();
+		settingKV& settings = settings_.GetChangeBuf();
 		std::shared_ptr<Environment> next = std::make_shared<Environment>(&data, &settings);
 
 		return next;
@@ -173,7 +121,6 @@ namespace bumo{
 				LOG_ERROR("Fee config type(%d) error", fee_type);
 				break;
 			}
-
 		}
 
 		return change;
@@ -194,6 +141,7 @@ namespace bumo{
 				value.append(utils::String::ToString(validator->pledge_coin_amount()));
 				validators->append(value);
 			}
+
 			settings_.Set(validatorsKey, validators);
 		}
 

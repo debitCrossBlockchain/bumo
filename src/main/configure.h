@@ -70,6 +70,7 @@ namespace bumo {
 		uint32_t multiquery_limit_;
 		SSLConfigure ssl_configure_;
 		uint32_t thread_count_;
+		std::string allow_origin_;
 		bool Load(const Json::Value &value);
 	};
 
@@ -107,6 +108,8 @@ namespace bumo {
 
 		std::string account_;
 		utils::StringList validators_;
+
+		int64_t chain_id_;
 		bool Load(const Json::Value &value);
 	};
 

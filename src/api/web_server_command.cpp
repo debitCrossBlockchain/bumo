@@ -18,7 +18,7 @@ limitations under the License.
 #include <overlay/peer_manager.h>
 #include <glue/glue_manager.h>
 #include <ledger/ledger_manager.h>
-#include <ledger/contract_manager.h>
+#include <contract/contract_manager.h>
 #include <ledger/fee_calculate.h>
 #include "web_server.h"
 

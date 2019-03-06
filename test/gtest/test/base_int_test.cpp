@@ -1,18 +1,15 @@
 #include "gtest/gtest.h"
 #include "utils/base_int.h"
 
-class SafeIntegerOpeTest : public testing::Test
-{
+class SafeIntegerOpeTest : public testing::Test{
 protected:
 
 	// Sets up the test fixture.
-	virtual void SetUp()
-	{
+	virtual void SetUp(){
 	}
 
 	// Tears down the test fixture.
-	virtual void TearDown()
-	{
+	virtual void TearDown(){
 
 	}
 
@@ -38,8 +35,7 @@ void SafeIntegerOpeTest::resetArgs(int64_t x, int64_t y, int64_t z){
 	result_ = z;
 }
 
-void SafeIntegerOpeTest::UT_SafeIntAdd()
-{
+void SafeIntegerOpeTest::UT_SafeIntAdd(){
 	resetArgs(9223372036854775806, 1, 0);
 	EXPECT_EQ(utils::SafeIntAdd(argLeft_, argRight_, result_), true);
 	printf("a = %lld, b = %lld, r = %lld\n", argLeft_, argRight_, result_);
@@ -69,8 +65,7 @@ void SafeIntegerOpeTest::UT_SafeIntAdd()
 	printf("a = %lld, b = %lld, r = %lld\n", argLeft_, argRight_, result_);
 }
 
-void SafeIntegerOpeTest::UT_SafeIntSub()
-{
+void SafeIntegerOpeTest::UT_SafeIntSub(){
 	resetArgs(9223372036854775807, 1, 0);
 	EXPECT_EQ(utils::SafeIntSub(argLeft_, argRight_, result_), true);
 	printf("a = %lld, b = %lld, r = %lld\n", argLeft_, argRight_, result_);
@@ -96,8 +91,7 @@ void SafeIntegerOpeTest::UT_SafeIntSub()
 	printf("a = %lld, b = %lld, r = %lld\n", argLeft_, argRight_, result_);
 }
 
-void SafeIntegerOpeTest::UT_SafeIntMul()
-{
+void SafeIntegerOpeTest::UT_SafeIntMul(){
 	resetArgs(6854775, 2, 0);
 	EXPECT_EQ(utils::SafeIntMul(argLeft_, argRight_, result_), true);
 	printf("a = %lld, b = %lld, r = %lld\n", argLeft_, argRight_, result_);

@@ -15,7 +15,7 @@
 
 #include "ledgercontext_manager.h"
 #include "ledger_manager.h"
-#include "contract_manager.h"
+#include <contract/contract_manager.h>
 
 namespace bumo {
 	//For synchronizing blocks.
@@ -97,7 +97,7 @@ namespace bumo {
 		header->set_close_time(consensus_value_.close_time());
 		header->set_previous_hash(consensus_value_.previous_ledger_hash());
 		header->set_consensus_value_hash(hash_);
-		//LOG_INFO("set_consensus_value_hash:%s,%s", utils::String::BinToHexString(con_str).c_str(), utils::String::BinToHexString(chash).c_str());
+		header->set_chain_id(General::GetSelfChainId());
 		header->set_version(LedgerManager::Instance().GetLastClosedLedger().version());
 		LedgerManager::Instance().tree_->time_ = 0;
 		if (apply_mode_ == LedgerFrm::APPLY_MODE_PROPOSE) {
@@ -124,7 +124,7 @@ namespace bumo {
 
 	bool LedgerContext::TestV8() {
 		//If the source address for starting the contract does not exist, a temporary account will be created.
-		std::shared_ptr<Environment> environment = std::make_shared<Environment>(nullptr);
+		std::shared_ptr<Environment> environment = std::make_shared<Environment>();
 		if (parameter_.contract_address_.empty()) {
 			//Create a temporary account
 			PrivateKey priv_key(SIGNTYPE_ED25519);
@@ -217,7 +217,6 @@ namespace bumo {
 			payAsset->set_input(parameter_.input_);
 
 			TransactionFrm::pointer tx_frm = std::make_shared<TransactionFrm>(env);
-			//tx_frm->SetMaxEndTime(utils::Timestamp::HighResolution() + utils::MICRO_UNITS_PER_SEC);
 			tx_frm->environment_ = environment;
 			int64_t time_now = utils::Timestamp::HighResolution();
 			tx_frm->SetApplyStartTime(time_now);
@@ -235,42 +234,34 @@ namespace bumo {
 			return ret;
 		}
 		else if(ContractTestParameter::QUERY == parameter_.opt_type_){
-			do {
-				if (parameter_.code_.empty()) {
-					break;
-				}
-				bumo::AccountFrm::pointer account_frm = nullptr;
-				if (!Environment::AccountFromDB(parameter_.contract_address_, account_frm)) {
-					LOG_ERROR("not found account");
-					break;
-				}
-				if (!account_frm->GetProtoAccount().has_contract()) {
-					LOG_ERROR("the called address not contract");
-					break;
-				}
-
-				protocol::Contract contract = account_frm->GetProtoAccount().contract();
-				if (contract.payload().size() == 0) {
-					LOG_ERROR("the called address not contract");
-					break;
-				}
-				parameter_.code_ = contract.payload();
-			} while (false);
-
 			if (parameter_.code_.empty() ){
+				LOG_ERROR("Failed to check contract code.");
 				return false;
 			} 
 
 			ContractParameter parameter;
+			//contract
 			parameter.code_ = parameter_.code_;
-			parameter.sender_ = parameter_.source_address_;
-			parameter.this_address_ = parameter_.contract_address_;
+			parameter.init_ = false;
 			parameter.input_ = parameter_.input_;
-			parameter.ope_index_ = 0;
-			parameter.consensus_value_ = Proto2Json(consensus_value_).toFastString();
 			parameter.ledger_context_ = this;
-			parameter.timestamp_ = consensus_value_.close_time();
-			parameter.blocknumber_ = consensus_value_.ledger_seq();
+			parameter.this_address_ = parameter_.contract_address_;
+
+			//blcok
+			parameter.block_.number_ = consensus_value_.ledger_seq();
+			parameter.block_.timestamp_ = consensus_value_.close_time();
+
+			//tx
+			parameter.tx_.Reset();
+			parameter.tx_.initiator_ = parameter_.source_address_;
+			parameter.tx_.sender_ = parameter_.source_address_;
+			parameter.tx_.gas_price_ = parameter_.gas_price_;
+			parameter.tx_.fee_limit_ = parameter_.fee_limit_;
+
+			//for msg
+			parameter.msg_.Reset();
+			parameter.msg_.initiator_ = parameter_.source_address_;
+			parameter.msg_.sender_ = parameter_.source_address_;
 
 			//Query
 			TransactionFrm::pointer tx_frm = std::make_shared<TransactionFrm>();
@@ -412,7 +403,7 @@ namespace bumo {
 			}
 		} while (false);
 
-		LOG_TRACE("Syn processing the consensus value, ledger seq(" FMT_I64 ")", consensus_value.ledger_seq());
+		LOG_TRACE("Sync processing the consensus value, ledger seq(" FMT_I64 ")", consensus_value.ledger_seq());
 		LedgerContext ledger_context(chash, consensus_value);
 		ledger_context.Do();
 		if (ledger_context.propose_result_.exec_result_) {

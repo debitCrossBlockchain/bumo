@@ -60,7 +60,7 @@ namespace bumo {
 		std::string OnValueCommited(int64_t request_seq, const std::string &value, const std::string &proof, bool calculate_total);
 		void OnViewChanged(const std::string &last_consvalue);
 		
-		//only called by drived class
+		//only called by derived class
 		bool UpdateValidators(const protocol::ValidatorSet &validators);
 	public:
 		Consensus();

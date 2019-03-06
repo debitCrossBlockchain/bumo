@@ -49,7 +49,7 @@
 #define SETCONFG						BIT(7)		//set to 1 if setconfg request is under test
 
 //general case for every request
-//attaension£ºthese conditions are for responses, not request itself
+//attaensionÂ£Âºthese conditions are for responses, not request itself
 #define GENERAL_CASE_RESPONSE_ERRCODE_MAX	BIT(1)
 #define GENERAL_CASE_RESPONSE_ERRCODE_MINUS	BIT(2)
 #define GENERAL_CASE_RESPONSE_ERRCODE_UNDEF	BIT(3)
@@ -149,7 +149,6 @@
 
 #define random(x) (rand()%x)
 
-
 using websocketpp::connection_hdl;
 namespace bumo{
 	typedef websocketpp::server<websocketpp::config::asio> server;
@@ -178,7 +177,7 @@ namespace bumo{
 		
 		uint32_t GetTestWarning(){ return test_warning; };
 		void SetTestOutput(uint32_t output_init){ test_output_ = output_init; };
-		
+
 		void ResetTestWarning(){ test_warning = 0xff; };
 		void SendRequestMessage(const std::string& method, const bool& request, const Json::Value& parameter);
 		void SendResponseMessage(const std::string& method, const bool& request, const int& error_code, const Json::Value& result);
@@ -217,7 +216,6 @@ namespace bumo{
 		std::string current_monitor_id_;
 		bool request_test_result_;
 
-		
 #ifdef WIN32
 		const std::string monitor_id_ = "123123123123123";
 		
@@ -228,9 +226,7 @@ namespace bumo{
 #endif
 		std::string random_key_;
 		std::string generateRandom();
-
-		
-
+	
 		bool CheckHello(const std::string& msg);
 		bool CheckReg(const std::string& msg);
 		bool CheckHB(const std::string& msg);
@@ -249,12 +245,8 @@ namespace bumo{
 
 	};//end gya
 
-
-	
 	class WebSocketServer :	public utils::Thread{
-
-		
-
+	
 	public:
 		WebSocketServer();
 		~WebSocketServer();
@@ -266,7 +258,6 @@ namespace bumo{
 		virtual void Run();
 
 		void Send(std::string &data);
-
 
 		//test interface
 		void NormalResponseTest1();
@@ -286,7 +277,6 @@ namespace bumo{
 		void WarningTest();
 
 		MsgProcessor msg_processor_;
-
 
 	private:
 		void on_open(connection_hdl hdl);
@@ -320,11 +310,7 @@ namespace bumo{
 		fpos_t pos_of_end_of_err_log;
 
 		
-		
-		
 	};
-
 }
-
 
 #endif

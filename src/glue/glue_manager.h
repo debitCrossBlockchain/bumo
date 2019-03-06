@@ -43,10 +43,6 @@ namespace bumo {
 		//For getting module status
 		time_t process_uptime_;
 
-		//For temp validation storage, need implementation by ledger
-		//validations
-		protocol::ValidatorSet validations;
-
 		//Hardfork point
 		std::set<std::string> hardfork_points_;
 
@@ -64,9 +60,6 @@ namespace bumo {
 		bool Exit();
 
 		bool StartConsensus(const std::string &last_consavlue); //Start to trigger consensus
-		bool CreateTableIfNotExist(); //Create the db.
-		std::string CalculateTxTreeHash(const std::vector<TransactionFrm::pointer> &tx_array);
-		//const LedgerHeaderLiteFrmPtr GetLastLedger() const { return last_ledger_; };
 		int64_t GetIntervalTime(bool empty_block);
 
 		bool OnTransaction(TransactionFrm::pointer tx, Result &err);

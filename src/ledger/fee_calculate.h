@@ -21,7 +21,6 @@ namespace bumo{
 
     class FeeCalculate {
 	public:
-		static int64_t CaculateFee(const int64_t& price, const int64_t& gas);
 		static int64_t GetOperationTypeGas(const protocol::Operation& op);
 	};
 }

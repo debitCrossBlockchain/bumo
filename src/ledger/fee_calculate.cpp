@@ -13,10 +13,6 @@ namespace bumo{
 	const int64_t OperationGasConfigure::create_contract = 1000000;
 	const int64_t OperationGasConfigure::set_privilege = 0;
 
-    int64_t FeeCalculate::CaculateFee(const int64_t& price, const int64_t& gas){
-		return price*gas;
-	}
-
     int64_t FeeCalculate::GetOperationTypeGas(const protocol::Operation& op){
 		const protocol::Operation_Type& op_type = op.type();
 		switch (op_type) {

@@ -122,7 +122,7 @@ namespace bumo {
 		bool Initialize(const DbConfigure &db_config, bool bdropdb);
 		bool Exit();
 
-		KeyValueDb *keyvalue_db();   //Store other data except account, legder and transaction.
+		KeyValueDb *keyvalue_db();   //Store other data except account, ledger and transaction.
 		KeyValueDb *account_db();   //Store account tree.
 		KeyValueDb *ledger_db();    //Store transactions and ledgers.
 

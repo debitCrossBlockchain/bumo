@@ -14,7 +14,9 @@
         }
     },
     "webserver": {
-        "listen_addresses": "0.0.0.0:36002"
+        "listen_addresses": "0.0.0.0:36002",
+	"allow_origin" : ""
+	
     },
     "wsserver": {
         "listen_address": "0.0.0.0:36003"

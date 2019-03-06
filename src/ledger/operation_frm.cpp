@@ -17,7 +17,7 @@
 #include <ledger/ledger_manager.h>
 #include "transaction_frm.h"
 #include "operation_frm.h"
-#include "contract_manager.h"
+#include <contract/contract_manager.h>
 #include "fee_calculate.h"
 
 
@@ -556,25 +556,48 @@ namespace bumo {
 			environment->AddEntry(dest_account->GetAccountAddress(), dest_account);
 
 			if (!create_account.contract().payload().empty()) {
+				TransactionFrm::pointer bottom_tx = transaction_->ledger_->lpledger_context_->GetBottomTx();
+
 				ContractParameter parameter;
 				parameter.code_ = dest_account->GetProtoAccount().contract().payload();
 				parameter.input_ = create_account.init_input();
 				parameter.this_address_ = dest_address;
-				parameter.sender_ = source_account_->GetAccountAddress();
-				parameter.ope_index_ = index_;
-				parameter.timestamp_ = transaction_->ledger_->value_->close_time();
-				parameter.blocknumber_ = transaction_->ledger_->value_->ledger_seq();
 				parameter.ledger_context_ = transaction_->ledger_->lpledger_context_;
-				parameter.pay_coin_amount_ = 0;
+				parameter.init_ = true;
+				
+				//for block
+				parameter.block_.number_ = transaction_->ledger_->value_->ledger_seq();
+				parameter.block_.timestamp_ = transaction_->ledger_->value_->close_time();
+
+				//for tx
+				parameter.tx_.sender_ = bottom_tx->GetOperatingSourceAddress();
+				parameter.tx_.initiator_ = bottom_tx->GetSourceAddress();
+				parameter.tx_.fee_limit_ = bottom_tx->GetFeeLimit();
+				parameter.tx_.gas_price_ = bottom_tx->GetGasPrice();
+				parameter.tx_.hash_ = utils::String::BinToHexString(bottom_tx->GetContentHash());
+
+				//for msg
+				parameter.msg_.coin_amount_ = 0;
+				parameter.msg_.asset_.Clear();
+				parameter.msg_.initiator_ = transaction_->GetSourceAddress();
+				parameter.msg_.nonce_ = transaction_->GetNonce();
+				parameter.msg_.operation_index_ = transaction_->GetProcessingOperation();
+				parameter.msg_.sender_ = source_account_->GetAccountAddress();
+				ChangeCreateContractAmount(create_account.init_balance(), parameter.msg_.coin_amount_);
 
 				std::string err_msg;
-				result_ = ContractManager::Instance().Execute(Contract::TYPE_V8, parameter, true);
+				result_ = ContractManager::Instance().Execute(Contract::TYPE_V8, parameter);
 
-				if (CHECK_VERSION_GT_1000 && result_.code() == 0){
+				if (result_.code() == 0){
 					Json::Value contract_result;
 					contract_result["contract_address"] = dest_address;
 					contract_result["operation_index"] = index_;
 					result_.set_desc(contract_result.toFastString());
+
+					Json::Value temp = Json::Value(Json::objectValue);
+					temp["type"] = "address";
+					temp["value"] = dest_address;
+					result_.set_contract_result(temp);
 				}
 			}
 
@@ -674,16 +697,32 @@ namespace bumo {
 			
 			std::string javascript = dest_account->GetProtoAccount().contract().payload();
 			if (!javascript.empty()){
+				TransactionFrm::pointer bottom_tx = transaction_->ledger_->lpledger_context_->GetBottomTx();
 				ContractParameter parameter;
 				parameter.code_ = javascript;
 				parameter.input_ = payAsset.input();
 				parameter.this_address_ = payAsset.dest_address();
-				parameter.sender_ = source_account_->GetAccountAddress();
-				parameter.ope_index_ = index_;
-				parameter.timestamp_ = transaction_->ledger_->value_->close_time();
-				parameter.blocknumber_ = transaction_->ledger_->value_->ledger_seq();
+				parameter.init_ = false;
 				parameter.ledger_context_ = transaction_->ledger_->lpledger_context_;
-				parameter.pay_asset_amount_ = payAsset.asset();
+
+				//for block
+				parameter.block_.number_ = transaction_->ledger_->value_->ledger_seq();
+				parameter.block_.timestamp_ = transaction_->ledger_->value_->close_time();
+
+				//for tx
+				parameter.tx_.fee_limit_ = bottom_tx->GetFeeLimit();
+				parameter.tx_.gas_price_ = bottom_tx->GetGasPrice();
+				parameter.tx_.hash_ = utils::String::BinToHexString(bottom_tx->GetContentHash());
+				parameter.tx_.initiator_ = bottom_tx->GetSourceAddress();
+				parameter.tx_.sender_ = bottom_tx->GetOperatingSourceAddress();
+
+				//for msg
+				parameter.msg_.coin_amount_ = 0;
+				parameter.msg_.asset_ = payAsset.asset();
+				parameter.msg_.initiator_ = transaction_->GetSourceAddress();
+				parameter.msg_.nonce_ = transaction_->GetNonce();
+				parameter.msg_.operation_index_ = transaction_->GetProcessingOperation();
+				parameter.msg_.sender_ = source_account_->GetAccountAddress();
 
 				result_ = ContractManager::Instance().Execute(Contract::TYPE_V8, parameter);
 			}
@@ -854,21 +893,35 @@ namespace bumo {
 
 			std::string javascript = dest_account_ptr->GetProtoAccount().contract().payload();
 			if (!javascript.empty()) {
-
+				TransactionFrm::pointer bottom_tx = transaction_->ledger_->lpledger_context_->GetBottomTx();
 				ContractParameter parameter;
 				parameter.code_ = javascript;
 				parameter.input_ = ope.input();
 				parameter.this_address_ = ope.dest_address();
-				parameter.sender_ = source_account_->GetAccountAddress();
-				parameter.ope_index_ = index_;
-				parameter.timestamp_ = transaction_->ledger_->value_->close_time();
-				parameter.blocknumber_ = transaction_->ledger_->value_->ledger_seq();
 				parameter.ledger_context_ = transaction_->ledger_->lpledger_context_;
-				parameter.pay_coin_amount_ = ope.amount();
+				parameter.init_ = false;
+				
+				//for block
+				parameter.block_.number_ = transaction_->ledger_->value_->ledger_seq();
+				parameter.block_.timestamp_ = transaction_->ledger_->value_->close_time();
 
-				std::string err_msg;
+				//for tx
+				parameter.tx_.sender_ = bottom_tx->GetOperatingSourceAddress();
+				parameter.tx_.initiator_ = bottom_tx->GetSourceAddress();
+				parameter.tx_.fee_limit_ = bottom_tx->GetFeeLimit();
+				parameter.tx_.gas_price_ = bottom_tx->GetGasPrice();
+				parameter.tx_.hash_ = utils::String::BinToHexString(bottom_tx->GetContentHash());
+
+				//for msg
+				parameter.msg_.coin_amount_ = ope.amount();
+				parameter.msg_.initiator_ = transaction_->GetSourceAddress();
+				parameter.msg_.sender_ = source_account_->GetAccountAddress();
+				parameter.msg_.operation_index_ = transaction_->GetProcessingOperation();
+				parameter.msg_.nonce_ = transaction_->GetNonce();
+				
+
 				result_ = ContractManager::Instance().Execute(Contract::TYPE_V8, parameter);
-
+				LOG_TRACE("%s", result_.contract_result().toFastString().c_str());
 			}
 		} while (false);
 	}
@@ -1130,6 +1183,12 @@ namespace bumo {
 		} while (false);
 		
 		return result;
+	}
+
+	void OperationFrm::ChangeCreateContractAmount(const int64_t &init_amount, int64_t &changed_amount){
+		if (CHECK_VERSION_GT_1001){
+			changed_amount = init_amount;
+		}
 	}
 }
 

@@ -22,7 +22,7 @@
 #include "ledger_manager.h"
 #include "ledger_frm.h"
 #include "ledgercontext_manager.h"
-#include "contract_manager.h"
+#include <contract/contract_manager.h>
 
 namespace bumo {
 
@@ -97,22 +97,29 @@ namespace bumo {
 				env_store.set_actual_fee(actual_fee);
 			}
 
-			batch.Put(ComposePrefix(General::TRANSACTION_PREFIX, ptr->GetContentHash()), env_store.SerializeAsString());
 			list.add_entry(ptr->GetContentHash());
 
 			//If a transaction succeeds, the transactions tiggerred by it can be stored in db.
-			if (ptr->GetResult().code() == protocol::ERRCODE_SUCCESS)
+			if (ptr->GetResult().code() == protocol::ERRCODE_SUCCESS) {
 				for (size_t j = 0; j < ptr->instructions_.size(); j++){
 					protocol::TransactionEnvStore &env_sto = ptr->instructions_[j];
 					env_sto.set_ledger_seq(ledger_.header().seq());
 					env_sto.set_close_time(ledger_.header().close_time());
 					std::string hash = HashWrapper::Crypto(env_sto.transaction_env().transaction().SerializeAsString());
 					env_sto.set_hash(hash);
+
+					//save contract txs
 					batch.Put(ComposePrefix(General::TRANSACTION_PREFIX, hash), env_sto.SerializeAsString());
 					list.add_entry(hash);
+					env_store.add_contract_tx_hashes(hash);
 				}
+			}
+
+			//save txs
+			batch.Put(ComposePrefix(General::TRANSACTION_PREFIX, ptr->GetContentHash()), env_store.SerializeAsString());
 		}
 
+		//save tx hash list by ledger seq
 		batch.Put(ComposePrefix(General::LEDGER_TRANSACTION_PREFIX, ledger_.header().seq()), list.SerializeAsString());
 
 		//save the last tx hash
@@ -231,7 +238,7 @@ namespace bumo {
 		value_ = std::make_shared<protocol::ConsensusValue>(request);
 		uint32_t success_count = 0;
 		total_fee_ = 0;
-		environment_ = std::make_shared<Environment>(nullptr);
+		environment_ = std::make_shared<Environment>();
 
 		//init the txs map (transaction map).
 		std::set<int32_t> expire_txs, error_txs;
@@ -261,13 +268,13 @@ namespace bumo {
 
 			ledger_context->transaction_stack_.push_back(tx_frm);
 			tx_frm->NonceIncrease(this, environment_);
-			if (environment_->useAtomMap_) environment_->Commit();
+			environment_->Commit();
 
 			tx_frm->EnableChecked();
 			tx_frm->SetMaxEndTime(utils::Timestamp::HighResolution() + General::TX_EXECUTE_TIME_OUT);
 
 			bool ret = tx_frm->Apply(this, environment_);
-			//Caculate the required mininum fee by calculting the bytes of the transaction. Do not store the transaction when the user-specified fee is less than this fee. 
+			//Calculate the required minimum fee by calculating the bytes of the transaction. Do not store the transaction when the user-specified fee is less than this fee. 
 			std::string error_info;
 			if (tx_frm->IsExpire(error_info)) {
 				LOG_ERROR("Failed to apply transaction(%s): %s, %s",
@@ -315,7 +322,7 @@ namespace bumo {
 		value_ = std::make_shared<protocol::ConsensusValue>(request);
 		uint32_t success_count = 0;
 		total_fee_ = 0;
-		environment_ = std::make_shared<Environment>(nullptr);
+		environment_ = std::make_shared<Environment>();
 
 		//init the txs map (transaction map).
 		std::set<int32_t> expire_txs_check,  error_txs_check;
@@ -343,7 +350,7 @@ namespace bumo {
 
 			ledger_context->transaction_stack_.push_back(tx_frm);
 			tx_frm->NonceIncrease(this, environment_);
-			if (environment_->useAtomMap_) environment_->Commit();
+			environment_->Commit();
 
 			tx_frm->EnableChecked();
 			tx_frm->SetMaxEndTime(utils::Timestamp::HighResolution() + General::TX_EXECUTE_TIME_OUT);
@@ -400,7 +407,7 @@ namespace bumo {
 		value_ = std::make_shared<protocol::ConsensusValue>(request);
 		uint32_t success_count = 0;
 		total_fee_= 0;
-		environment_ = std::make_shared<Environment>(nullptr);
+		environment_ = std::make_shared<Environment>();
 
 		//Init the txs map (transaction map).
 		std::set<int32_t> expire_txs_check, error_txs_check;
@@ -415,11 +422,6 @@ namespace bumo {
 			
 			TransactionFrm::pointer tx_frm = std::make_shared<TransactionFrm>(txproto);
 
-			/*if (!tx_frm->ValidForApply(environment_,!IsTestMode())){
-				LOG_WARN("Should not go hear");
-				continue;
-			}*/
-
 			//Pay fee
 			if (!tx_frm->PayFee(environment_, total_fee_)) {
 				LOG_WARN("Failed to pay fee.");
@@ -428,7 +430,7 @@ namespace bumo {
 
 			ledger_context->transaction_stack_.push_back(tx_frm);
 			tx_frm->NonceIncrease(this, environment_);
-			if (environment_->useAtomMap_) environment_->Commit();
+			environment_->Commit();
 
 
 			if ( expire_txs_check.find(i) != expire_txs_check.end()) {
@@ -462,16 +464,6 @@ namespace bumo {
 				error_txs.size(), error_txs_check.size());
 		}
 		return true;
-
-	//	LOG_INFO("Check validation this size(%d,%d,%d), check size(%d,%d,%d), validation(%d,%d,%d) ",
-	//		expire_txs.size(), droped_txs.size(), error_txs.size(),
-	//		expire_txs_check.size(), droped_txs_check.size(), error_txs_check.size(),
-	//		validation.expire_tx_ids_size(), validation.droped_tx_ids_size(), validation.error_tx_ids_size());
-		//Check
-	}
-
-	bool LedgerFrm::CheckValidation() {
-		return true;
 	}
 
 	Json::Value LedgerFrm::ToJson() {
@@ -484,33 +476,14 @@ namespace bumo {
 
 	bool LedgerFrm::Commit(KVTrie* trie, int64_t& new_count, int64_t& change_count) {
 		auto batch = trie->batch_;
+		auto entries = environment_->GetData();
 
-		if (environment_->useAtomMap_)
-		{
-			auto entries = environment_->GetData();
+		for (auto it = entries.begin(); it != entries.end(); it++){
 
-			for (auto it = entries.begin(); it != entries.end(); it++){
+			if (it->second.type_ == utils::DEL)
+				continue; //There is no delete account function now.
 
-				if (it->second.type_ == Environment::DEL)
-					continue; //There is no delete account function now.
-
-				std::shared_ptr<AccountFrm> account = it->second.value_;
-				account->UpdateHash(batch);
-				std::string ss = account->Serializer();
-				std::string index = DecodeAddress(it->first);
-				bool is_new = trie->Set(index, ss);
-				if (is_new){
-					new_count++;
-				}
-				else{
-					change_count++;
-				}
-			}
-			return true;
-		}
-
-		for (auto it = environment_->entries_.begin(); it != environment_->entries_.end(); it++){
-			std::shared_ptr<AccountFrm> account = it->second;
+			std::shared_ptr<AccountFrm> account = it->second.ptr_;
 			account->UpdateHash(batch);
 			std::string ss = account->Serializer();
 			std::string index = DecodeAddress(it->first);
@@ -578,8 +551,8 @@ namespace bumo {
 			proto_account.set_balance(new_balance);
 			LOG_TRACE("Account(%s) aquired last reward(" FMT_I64 ") of allocation in ledger(" FMT_I64 ")", proto_account.address().c_str(), left_reward, ledger_.header().seq());
 		}
-		if (environment_->useAtomMap_)
-			environment_->Commit();
+
+		environment_->Commit();
 		return true;
 	}
 

@@ -15,7 +15,7 @@ bumo 工具库，以三方库的方式提供，实现钱包控制、账号管理
 | `libbumo_tools` | [lib_bumo_tools.h](./lib_bumo_tools.h) | 以三方库的方式实现钱包控制、账号管理和交易签名等功能。
 ## 接口列表
 
-代码中实现的接口包括但不限于如下
+代码中实现的接口包括但不限于如下：
 ```
 CreateAccountAddress   #创建公私钥对
 CheckAccountAddressValid    #检测账号是否正确

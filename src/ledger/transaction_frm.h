@@ -34,7 +34,6 @@ namespace bumo {
 	public:
 		typedef std::shared_ptr<bumo::TransactionFrm> pointer;
 
-		std::set<std::string> involved_accounts_;
 		std::vector<protocol::TransactionEnvStore> instructions_;
 		std::shared_ptr<Environment> environment_;
 	public:
@@ -48,7 +47,6 @@ namespace bumo {
 
 		std::string GetContentHash() const;
 		std::string GetContentData() const;
-		std::string GetFullHash() const;
 
 		void ToJson(Json::Value &result);
 		void CacheTxToJson(Json::Value &result);
@@ -59,13 +57,10 @@ namespace bumo {
 		const protocol::TransactionEnv &GetTransactionEnv() const;
 
 		bool CheckValid(int64_t last_seq, bool check_priv, int64_t& nonce);
-		bool CheckExpr(const std::string &code, const std::string &log_prefix);
-
 		bool SignerHashPriv(AccountFrm::pointer account_ptr, int32_t type) const;
-
-		const protocol::Transaction &GetTx() const;
-
 		Result GetResult() const;
+
+		std::string GetOperatingSourceAddress() const;
 
 		void Initialize();
 
@@ -74,7 +69,6 @@ namespace bumo {
 		bool CheckTimeout(int64_t expire_time);
 		void NonceIncrease(LedgerFrm* ledger_frm, std::shared_ptr<Environment> env);
 		bool Apply(LedgerFrm* ledger_frm, std::shared_ptr<Environment> env, bool bool_contract = false);
-		bool ApplyExpr(const std::string &code, const std::string &log_prefix);
 
 		protocol::TransactionEnv &GetProtoTxEnv() {
 			return transaction_env_;
@@ -117,17 +111,18 @@ namespace bumo {
 		bool IsExpire(std::string &error_info);
 		void EnableChecked();
 		const int64_t GetInComingTime() const;
+		const int64_t GetProcessingOperation() const;
 
 		uint64_t apply_time_;
 		int64_t ledger_seq_;
 		Result result_;	
-		int32_t processing_operation_;
 		LedgerFrm* ledger_;
-
+		
+		//for query
+		std::list<std::string> contract_tx_hashes_;
 	private:		
 		protocol::TransactionEnv transaction_env_;
 		std::string hash_;
-		std::string full_hash_;
 		std::string data_;
 		std::string full_data_;
 		std::set<std::string> valid_signature_;
@@ -145,6 +140,7 @@ namespace bumo {
 		bool enable_check_;
 		int64_t apply_start_time_;
 		int64_t apply_use_time_;
+		int32_t processing_operation_;
 	};
 };
 

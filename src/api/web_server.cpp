@@ -75,7 +75,7 @@ namespace bumo {
 		
         port_ =server_ptr_->GetServerPort();
 
-
+		server_ptr_->SetAllowOrigin(webserver_config.allow_origin_);
 		server_ptr_->SetHome(utils::File::GetBinHome() + "/" + webserver_config.directory_);
 
 		server_ptr_->add404(std::bind(&WebServer::FileNotFound, this, std::placeholders::_1, std::placeholders::_2));

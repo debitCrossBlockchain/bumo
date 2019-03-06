@@ -1,30 +1,38 @@
-- [Bumo CTP1.0 Token 标准](#bumo-ctp1.0-token-标准)
-    - [简介](#简介)
-    - [目标](#目标)
-    - [规则](#规则)
-    - [Token 属性](#token-属性)
-    - [功能函数](#功能函数)
-         - [transfer](#transfer)
-         - [approve](#approve)
-         - [transferFrom](#transferfrom)
-         - [tokenInfo](#tokeninfo)
-         - [allowance](#allowance)
-         
-    - [合约入口](#合约入口)
-        - [init](#init)
-        - [main](#main)
-        - [query](#query)
+# Bumo ATP 20 协议
 
 
-# Bumo CTP1.0 Token 标准
+
+[Bumo ATP 20 Token 标准](#bumo-atp-20-协议)
+
+- [简介](#简介)
+- [目标](#目标)
+- [规则](#规则)
+- [Token 属性](#token-属性)
+- [事件](#事件)
+- [功能函数](#功能函数)
+  - [transfer](#transfer)
+  - [approve](#approve)
+  - [transferFrom](#transferfrom)
+  - [tokenInfo](#tokeninfo)
+  - [allowance](#allowance)
+- [合约入口](#合约入口)
+  - [init](#init)
+  - [main](#main)
+  - [query](#query)
+
+
 
 ## 简介
 
-CTP 1.0(Contract Token Protocol) 指基于 BUMO 智能合约发行 token 的标准协议。该协议提供了转移 token 的基本功能，并允许 token 授权给第三方使用。
+ATP 20(Contract Token Protocol) 指基于 BUMO 智能合约发行 token 的标准协议。该协议提供了转移 token 的基本功能，并允许 token 授权给第三方使用。
+
+
 
 ## 目标
 
 基于这套标准接口，可以让发行的 token 被其他应用程序和第三方快速对接和使用，比如钱包和交易所。
+
+
 
 
 ## 规则
@@ -32,17 +40,19 @@ CTP 1.0(Contract Token Protocol) 指基于 BUMO 智能合约发行 token 的标�
 Bumo 智能合约由 JavaScript 语言实现, 包含初始化函数 init 和两个入口函数 main、query 。init 函数用于合约创建时初始化; main 函数主要负责数据写入，query 函数负责数据查询。
 
 
+
+
 ## Token 属性
 
 Token 属性可以通过合约的 `tokenInfo` 功能函数查询到，存储在智能合约的账号里。包含以下内容
 
-| 变量         | 描述                     |  
+| 变量         | 描述                     |
 | :----------- | --------------------------- |
 |name          | Token 名称                  |
 |symbol        | Token 符号                  |
 |decimals      | Token 小数位数              |
 |totalSupply   | Token 总量      |
-|version       | Contract Token Protocol版本 |
+|version       | ATP版本 |
 
 注意：
 
@@ -50,7 +60,25 @@ Token 属性可以通过合约的 `tokenInfo` 功能函数查询到，存储在�
 - symbol：推荐使用大写首字母缩写。如 DT
 - decimals：小数位在 0~8 的范围，0 表示无小数位
 - totalSupply：范围是 1~2^63-1
-- version：ctp 的版本。如 1.0
+- version：ATP 的版本。如 ATP20
+
+
+
+## 事件
+
+​       函数transfer，approve，transferFrom会触发事件（详情请见各函数说明），事件是调用tlog接口，在区块链上记录一条交易日志，该日志记录了函数调用详情，方便用户阅读。
+
+​       tlog定义如下:
+
+```
+tlog(topic,args...);
+```
+
+- tlog会产生一笔交易写在区块上
+- topic: 日志主题，必须为字符串类型,参数长度(0,128]
+- args...: 最多可以包含5个参数，参数类型可以是字符串、数值或者布尔类型,每个参数长度(0,1024]
+
+
 
 ## 功能函数
 
@@ -73,7 +101,23 @@ Token 属性可以通过合约的 `tokenInfo` 功能函数查询到，存储在�
 参数：value转移数量（字符串类型）
 
 - 函数：function transfer(to, value)
+
 - 返回值：true或者抛异常
+
+- 事件：
+``` javascript
+  tlog('transfer', sender, to, value);
+```
+
+​          topic: 方法名，这里是'transfer'
+
+​          sender:  合约调用账户地址
+
+​          to: 目标账户地址
+
+​          value: 转移数量(字符串类型)
+
+
 
 ### approve
 
@@ -94,7 +138,24 @@ Token 属性可以通过合约的 `tokenInfo` 功能函数查询到，存储在�
 参数：value 被授权可转移数量（字符串类型）
 
 - 函数：function approve(spender, value)
+
 - 返回值：true 或者抛异常
+
+- 事件：
+
+``` javascript
+  tlog('approve', sender, spender, value);
+```
+
+​           topic: 方法名，这里是'approve'
+
+​           sender:  合约调用账户地址
+
+​           spender: 被授权账户地址
+
+​           value: 被授权可转移数量（字符串类型）
+
+
 
 ### transferFrom
 
@@ -118,6 +179,22 @@ Token 属性可以通过合约的 `tokenInfo` 功能函数查询到，存储在�
 
 - 函数：function transferFrom(from,to,value)
 - 返回值：true或者抛异常
+- 事件：
+``` javascript
+tlog('transferFrom', sender, from, to, value);
+```
+
+​      topic: 方法名，这里是'transferFrom'
+
+​      sender:  合约调用账户地址
+
+​      from: 源账户地址
+
+​      to: 目标账户地址
+
+​      value: 转移数量（字符串类型）
+
+
 
 ### balanceOf
 
@@ -145,6 +222,8 @@ Token 属性可以通过合约的 `tokenInfo` 功能函数查询到，存储在�
 } 
 ```
 
+
+
 ### tokenInfo
 
 - 返回 Token 的基本信息。
@@ -168,12 +247,14 @@ Token 属性可以通过合约的 `tokenInfo` 功能函数查询到，存储在�
                 "symbol": "DT",
                 "decimals": 8,
                 "totalSupply": "5000000000000",
-                "version": "1.0"
+                "version": "ATP20"
             }
         }
     }
 } 
 ```
+
+
 
 ### allowance
 
@@ -204,6 +285,7 @@ Token 属性可以通过合约的 `tokenInfo` 功能函数查询到，存储在�
 ```
 
 
+
 ## 合约入口
 
 ### init
@@ -222,8 +304,7 @@ function init(input_str){
         "name":"DemoToken",
         "symbol":"DT",
         "decimals":8,
-        "totalSupply":"5000000000000",
-        "version": "1.0"
+        "totalSupply":"5000000000000"
     }
 }
 ```
@@ -231,9 +312,9 @@ function init(input_str){
 - symbol: 资产符号
 - decimals: 小数位数
 - totalSupply: 字符串格式，发行Token 总数。例如发行 50000 个 Token，其 totalSupply 总量为 50000 * 100000000
-- version: 版本号
 
 入口函数的返回值：true或者抛异常
+
 
 
 ### main
@@ -256,6 +337,8 @@ function main(input_str){
     }
 }
 ```
+
+
 
 ### query
 

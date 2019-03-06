@@ -10,18 +10,15 @@
 #include <utils/crypto.h>
 #include <utils/strings.h>
 #include <json/json.h>
-class ApiTest :public testing::Test
-{
+class ApiTest :public testing::Test{
 protected:
-	virtual void SetUp()
-	{
+	virtual void SetUp(){
 		http_ = new bubi::HttpClient();
 		http_->Initialize("192.168.10.92:19333");
 		//address:bubiV8i2MLZd5ahDGay6oAZHiMyYNUkJfSiTAmJy
 		priv_key_ = new bubi::PrivateKey("privC1CCDoFh9kfbKRHf9PZMPzH1N5vkBZWdbJxnkiZji7UfZsSXvUxU");
 	}
-	virtual void TearDown()
-	{
+	virtual void TearDown(){
 		delete priv_key_;
 		delete http_;
 		priv_key_ = NULL;
@@ -96,13 +93,12 @@ static std::list<std::string >  hashs;
 static utils::ReadWriteLock hashs_mutex;
 
 class  ApiTestWorker :
-	public utils::Runnable
-{
+	public utils::Runnable{
 public:
 	ApiTestWorker(){}
 	~ApiTestWorker(){}
 	ApiTestWorker(const ApiTestWorker& s) = delete;
-	//消息处理
+	
 	virtual void Run(utils::Thread *thread) override;
 };
 
@@ -116,8 +112,7 @@ void ApiTestWorker::Run(utils::Thread *thread){
 	Json::Value resq_tx = GetTransactionJson(priv_key);
 	http.Initialize("192.168.10.92:19333");
 
-	while (thread->enabled())
-	{
+	while (thread->enabled()){
 		int64_t start_time = utils::Timestamp::HighResolution();
 		{
 			utils::WriteLockGuard guardw(num_mutex);
@@ -155,13 +150,12 @@ void ApiTestWorker::Run(utils::Thread *thread){
 }
 
 class  CheckTxWorker :
-	public utils::Runnable
-{
+	public utils::Runnable{
 public:
 	CheckTxWorker(int64_t tx_start_count){  tx_start_count_ = tx_start_count; count = 0; }
 	~CheckTxWorker(){}
 	CheckTxWorker(const CheckTxWorker& s) = delete;
-	//消息处理
+	
 	virtual void Run(utils::Thread *thread) override;
 
 private:
@@ -178,8 +172,7 @@ void CheckTxWorker::Run(utils::Thread *thread){
 	bubi::HttpClient http;
 	http.Initialize("192.168.10.92:19333");
 
-	while (thread->enabled())
-	{
+	while (thread->enabled()){
 			std::string hash;
 			{
 				utils::WriteLockGuard guardw(hashs_mutex);
@@ -228,8 +221,7 @@ TEST_F(ApiTest, ApiGetTransactionBlob){
 	worker_thread->Start(utils::String::Format("checkTx"));
 	threads.push_back(worker_thread);
 
-	for (int32_t i = 0; i < 1;i++)
-	{
+	for (int32_t i = 0; i < 1;i++){
 		utils::Thread* worker_thread = new utils::Thread(new ApiTestWorker());
 		std::string work_name = "-work-" + utils::String::ToString(i);
 		if (!worker_thread->Start(utils::String::Format(work_name.c_str())))
@@ -238,8 +230,7 @@ TEST_F(ApiTest, ApiGetTransactionBlob){
 		threads.push_back(worker_thread);
 	}
 
-	while (true)
-	{
+	while (true){
 	  utils::Sleep(1);
 	}
 };

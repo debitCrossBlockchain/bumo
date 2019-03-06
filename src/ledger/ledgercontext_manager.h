@@ -20,7 +20,7 @@
 #include <common/general.h>
 #include <proto/cpp/chain.pb.h>
 #include "ledger_frm.h"
-#include "contract_manager.h"
+#include <contract/contract_manager.h>
 
 namespace bumo {
 

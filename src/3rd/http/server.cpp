@@ -409,6 +409,8 @@ server::handle_request(const request& req, reply& rep)
 	se_mutex_.unlock();
 	int64_t start_time = utils::Timestamp::HighResolution();
 
+	bool req_origin = !req.GetHeaderValue("origin").empty();
+
 	std::string command = req.command;
     if (mRoutes.find(command) != mRoutes.end())
     {
@@ -583,6 +585,13 @@ server::handle_request(const request& req, reply& rep)
 		}
     }
 
+	if (req_origin && !allow_origin_.empty()) {
+		struct header allow_temp;
+		allow_temp.name = "Access-Control-Allow-Origin";
+		allow_temp.value = allow_origin_;
+		rep.headers.push_back(allow_temp);
+	}
+
 	int64_t use_time = (utils::Timestamp::HighResolution() - start_time);
 	if (use_time > utils::MICRO_UNITS_PER_SEC) {
 		LOG_WARN("Execute request(uri:%s, body:%s) from ip(%s), use time(" FMT_I64 "ms) is too long, request(start:" FMT_I64 "|end:" FMT_I64 ")",
@@ -605,6 +614,10 @@ void server::SetHome(const std::string &home){
 
 void server::SetIndexName(const std::string &index_name){
 	index_file_ = index_name;
+}
+
+void server::SetAllowOrigin(const std::string &allow_origin) {
+	allow_origin_ = allow_origin;
 }
 
 bool

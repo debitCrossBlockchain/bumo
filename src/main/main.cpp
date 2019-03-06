@@ -26,7 +26,7 @@
 #include <api/web_server.h>
 #include <api/websocket_server.h>
 #include <api/console.h>
-#include <ledger/contract_manager.h>
+#include <contract/contract_manager.h>
 #include <monitor/monitor_manager.h>
 #include "configure.h"
 

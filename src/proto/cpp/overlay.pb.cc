@@ -68,6 +68,9 @@ const ::google::protobuf::Descriptor* ChainTxStatus_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   ChainTxStatus_reflection_ = NULL;
 const ::google::protobuf::EnumDescriptor* ChainTxStatus_TxStatus_descriptor_ = NULL;
+const ::google::protobuf::Descriptor* ChainInfoMessage_descriptor_ = NULL;
+const ::google::protobuf::internal::GeneratedMessageReflection*
+  ChainInfoMessage_reflection_ = NULL;
 const ::google::protobuf::EnumDescriptor* OVERLAY_MESSAGE_TYPE_descriptor_ = NULL;
 const ::google::protobuf::EnumDescriptor* ChainMessageType_descriptor_ = NULL;
 
@@ -154,10 +157,11 @@ void protobuf_AssignDesc_overlay_2eproto() {
       GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Peers, _internal_metadata_),
       GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Peers, _is_default_instance_));
   GetLedgers_descriptor_ = file->message_type(4);
-  static const int GetLedgers_offsets_[3] = {
+  static const int GetLedgers_offsets_[4] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GetLedgers, begin_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GetLedgers, end_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GetLedgers, timestamp_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GetLedgers, chain_id_),
   };
   GetLedgers_reflection_ =
     ::google::protobuf::internal::GeneratedMessageReflection::NewGeneratedMessageReflection(
@@ -171,11 +175,12 @@ void protobuf_AssignDesc_overlay_2eproto() {
       GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GetLedgers, _internal_metadata_),
       GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GetLedgers, _is_default_instance_));
   Ledgers_descriptor_ = file->message_type(5);
-  static const int Ledgers_offsets_[4] = {
+  static const int Ledgers_offsets_[5] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Ledgers, values_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Ledgers, sync_code_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Ledgers, max_seq_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Ledgers, proof_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Ledgers, chain_id_),
   };
   Ledgers_reflection_ =
     ::google::protobuf::internal::GeneratedMessageReflection::NewGeneratedMessageReflection(
@@ -344,6 +349,22 @@ void protobuf_AssignDesc_overlay_2eproto() {
       GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ChainTxStatus, _internal_metadata_),
       GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ChainTxStatus, _is_default_instance_));
   ChainTxStatus_TxStatus_descriptor_ = ChainTxStatus_descriptor_->enum_type(0);
+  ChainInfoMessage_descriptor_ = file->message_type(15);
+  static const int ChainInfoMessage_offsets_[2] = {
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ChainInfoMessage, seq_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ChainInfoMessage, address_),
+  };
+  ChainInfoMessage_reflection_ =
+    ::google::protobuf::internal::GeneratedMessageReflection::NewGeneratedMessageReflection(
+      ChainInfoMessage_descriptor_,
+      ChainInfoMessage::default_instance_,
+      ChainInfoMessage_offsets_,
+      -1,
+      -1,
+      -1,
+      sizeof(ChainInfoMessage),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ChainInfoMessage, _internal_metadata_),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ChainInfoMessage, _is_default_instance_));
   OVERLAY_MESSAGE_TYPE_descriptor_ = file->enum_type(0);
   ChainMessageType_descriptor_ = file->enum_type(1);
 }
@@ -389,6 +410,8 @@ void protobuf_RegisterTypes(const ::std::string&) {
       ChainResponse_descriptor_, &ChainResponse::default_instance());
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
       ChainTxStatus_descriptor_, &ChainTxStatus::default_instance());
+  ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
+      ChainInfoMessage_descriptor_, &ChainInfoMessage::default_instance());
 }
 
 }  // namespace
@@ -424,6 +447,8 @@ void protobuf_ShutdownFile_overlay_2eproto() {
   delete ChainResponse_reflection_;
   delete ChainTxStatus::default_instance_;
   delete ChainTxStatus_reflection_;
+  delete ChainInfoMessage::default_instance_;
+  delete ChainInfoMessage_reflection_;
 }
 
 void protobuf_AddDesc_overlay_2eproto() GOOGLE_ATTRIBUTE_COLD;
@@ -447,51 +472,53 @@ void protobuf_AddDesc_overlay_2eproto() {
     "port\030\002 \001(\003\022\024\n\014num_failures\030\003 \001(\003\022\031\n\021next"
     "_attempt_time\030\004 \001(\003\022\023\n\013active_time\030\005 \001(\003"
     "\022\025\n\rconnection_id\030\006 \001(\003\"&\n\005Peers\022\035\n\005peer"
-    "s\030\001 \003(\0132\016.protocol.Peer\";\n\nGetLedgers\022\r\n"
+    "s\030\001 \003(\0132\016.protocol.Peer\"M\n\nGetLedgers\022\r\n"
     "\005begin\030\001 \001(\003\022\013\n\003end\030\002 \001(\003\022\021\n\ttimestamp\030\003"
-    " \001(\003\"\337\001\n\007Ledgers\022(\n\006values\030\001 \003(\0132\030.proto"
-    "col.ConsensusValue\022-\n\tsync_code\030\002 \001(\0162\032."
-    "protocol.Ledgers.SyncCode\022\017\n\007max_seq\030\003 \001"
-    "(\003\022\r\n\005proof\030\004 \001(\014\"[\n\010SyncCode\022\006\n\002OK\020\000\022\017\n"
-    "\013OUT_OF_SYNC\020\001\022\022\n\016OUT_OF_LEDGERS\020\002\022\010\n\004BU"
-    "SY\020\003\022\n\n\006REFUSE\020\004\022\014\n\010INTERNAL\020\005\"&\n\010DontHa"
-    "ve\022\014\n\004type\030\001 \001(\003\022\014\n\004hash\030\002 \001(\014\"v\n\023Ledger"
-    "UpgradeNotify\022\r\n\005nonce\030\001 \001(\003\022(\n\007upgrade\030"
-    "\002 \001(\0132\027.protocol.LedgerUpgrade\022&\n\tsignat"
-    "ure\030\003 \001(\0132\023.protocol.Signature\"\032\n\tEntryL"
-    "ist\022\r\n\005entry\030\001 \003(\014\"M\n\nChainHello\022,\n\010api_"
-    "list\030\001 \003(\0162\032.protocol.ChainMessageType\022\021"
-    "\n\ttimestamp\030\002 \001(\003\"z\n\013ChainStatus\022\021\n\tself"
-    "_addr\030\001 \001(\t\022\026\n\016ledger_version\030\002 \001(\003\022\027\n\017m"
-    "onitor_version\030\003 \001(\003\022\024\n\014bumo_version\030\004 \001"
-    "(\t\022\021\n\ttimestamp\030\005 \001(\003\"O\n\020ChainPeerMessag"
-    "e\022\025\n\rsrc_peer_addr\030\001 \001(\t\022\026\n\016des_peer_add"
-    "rs\030\002 \003(\t\022\014\n\004data\030\003 \001(\014\"#\n\020ChainSubscribe"
-    "Tx\022\017\n\007address\030\001 \003(\t\"7\n\rChainResponse\022\022\n\n"
-    "error_code\030\001 \001(\005\022\022\n\nerror_desc\030\002 \001(\t\"\325\002\n"
-    "\rChainTxStatus\0220\n\006status\030\001 \001(\0162 .protoco"
-    "l.ChainTxStatus.TxStatus\022\017\n\007tx_hash\030\002 \001("
-    "\t\022\026\n\016source_address\030\003 \001(\t\022\032\n\022source_acco"
-    "unt_seq\030\004 \001(\003\022\022\n\nledger_seq\030\005 \001(\003\022\027\n\017new"
-    "_account_seq\030\006 \001(\003\022\'\n\nerror_code\030\007 \001(\0162\023"
-    ".protocol.ERRORCODE\022\022\n\nerror_desc\030\010 \001(\t\022"
-    "\021\n\ttimestamp\030\t \001(\003\"P\n\010TxStatus\022\r\n\tUNDEFI"
-    "NED\020\000\022\r\n\tCONFIRMED\020\001\022\013\n\007PENDING\020\002\022\014\n\010COM"
-    "PLETE\020\003\022\013\n\007FAILURE\020\004*\203\002\n\024OVERLAY_MESSAGE"
-    "_TYPE\022\030\n\024OVERLAY_MSGTYPE_NONE\020\000\022\030\n\024OVERL"
-    "AY_MSGTYPE_PING\020\001\022\031\n\025OVERLAY_MSGTYPE_HEL"
-    "LO\020\002\022\031\n\025OVERLAY_MSGTYPE_PEERS\020\003\022\037\n\033OVERL"
-    "AY_MSGTYPE_TRANSACTION\020\004\022\033\n\027OVERLAY_MSGT"
-    "YPE_LEDGERS\020\005\022\030\n\024OVERLAY_MSGTYPE_PBFT\020\006\022"
-    ")\n%OVERLAY_MSGTYPE_LEDGER_UPGRADE_NOTIFY"
-    "\020\007*\372\001\n\020ChainMessageType\022\023\n\017CHAIN_TYPE_NO"
-    "NE\020\000\022\017\n\013CHAIN_HELLO\020\n\022\023\n\017CHAIN_TX_STATUS"
-    "\020\013\022\025\n\021CHAIN_PEER_ONLINE\020\014\022\026\n\022CHAIN_PEER_"
-    "OFFLINE\020\r\022\026\n\022CHAIN_PEER_MESSAGE\020\016\022\033\n\027CHA"
-    "IN_SUBMITTRANSACTION\020\017\022\027\n\023CHAIN_LEDGER_H"
-    "EADER\020\020\022\026\n\022CHAIN_SUBSCRIBE_TX\020\021\022\026\n\022CHAIN"
-    "_TX_ENV_STORE\020\022B\"\n io.bumo.sdk.core.exte"
-    "nd.protobufb\006proto3", 2219);
+    " \001(\003\022\020\n\010chain_id\030\004 \001(\003\"\361\001\n\007Ledgers\022(\n\006va"
+    "lues\030\001 \003(\0132\030.protocol.ConsensusValue\022-\n\t"
+    "sync_code\030\002 \001(\0162\032.protocol.Ledgers.SyncC"
+    "ode\022\017\n\007max_seq\030\003 \001(\003\022\r\n\005proof\030\004 \001(\014\022\020\n\010c"
+    "hain_id\030\005 \001(\003\"[\n\010SyncCode\022\006\n\002OK\020\000\022\017\n\013OUT"
+    "_OF_SYNC\020\001\022\022\n\016OUT_OF_LEDGERS\020\002\022\010\n\004BUSY\020\003"
+    "\022\n\n\006REFUSE\020\004\022\014\n\010INTERNAL\020\005\"&\n\010DontHave\022\014"
+    "\n\004type\030\001 \001(\003\022\014\n\004hash\030\002 \001(\014\"v\n\023LedgerUpgr"
+    "adeNotify\022\r\n\005nonce\030\001 \001(\003\022(\n\007upgrade\030\002 \001("
+    "\0132\027.protocol.LedgerUpgrade\022&\n\tsignature\030"
+    "\003 \001(\0132\023.protocol.Signature\"\032\n\tEntryList\022"
+    "\r\n\005entry\030\001 \003(\014\"M\n\nChainHello\022,\n\010api_list"
+    "\030\001 \003(\0162\032.protocol.ChainMessageType\022\021\n\tti"
+    "mestamp\030\002 \001(\003\"z\n\013ChainStatus\022\021\n\tself_add"
+    "r\030\001 \001(\t\022\026\n\016ledger_version\030\002 \001(\003\022\027\n\017monit"
+    "or_version\030\003 \001(\003\022\024\n\014bumo_version\030\004 \001(\t\022\021"
+    "\n\ttimestamp\030\005 \001(\003\"O\n\020ChainPeerMessage\022\025\n"
+    "\rsrc_peer_addr\030\001 \001(\t\022\026\n\016des_peer_addrs\030\002"
+    " \003(\t\022\014\n\004data\030\003 \001(\014\"#\n\020ChainSubscribeTx\022\017"
+    "\n\007address\030\001 \003(\t\"7\n\rChainResponse\022\022\n\nerro"
+    "r_code\030\001 \001(\005\022\022\n\nerror_desc\030\002 \001(\t\"\325\002\n\rCha"
+    "inTxStatus\0220\n\006status\030\001 \001(\0162 .protocol.Ch"
+    "ainTxStatus.TxStatus\022\017\n\007tx_hash\030\002 \001(\t\022\026\n"
+    "\016source_address\030\003 \001(\t\022\032\n\022source_account_"
+    "seq\030\004 \001(\003\022\022\n\nledger_seq\030\005 \001(\003\022\027\n\017new_acc"
+    "ount_seq\030\006 \001(\003\022\'\n\nerror_code\030\007 \001(\0162\023.pro"
+    "tocol.ERRORCODE\022\022\n\nerror_desc\030\010 \001(\t\022\021\n\tt"
+    "imestamp\030\t \001(\003\"P\n\010TxStatus\022\r\n\tUNDEFINED\020"
+    "\000\022\r\n\tCONFIRMED\020\001\022\013\n\007PENDING\020\002\022\014\n\010COMPLET"
+    "E\020\003\022\013\n\007FAILURE\020\004\"0\n\020ChainInfoMessage\022\013\n\003"
+    "seq\030\001 \001(\003\022\017\n\007address\030\002 \001(\t*\203\002\n\024OVERLAY_M"
+    "ESSAGE_TYPE\022\030\n\024OVERLAY_MSGTYPE_NONE\020\000\022\030\n"
+    "\024OVERLAY_MSGTYPE_PING\020\001\022\031\n\025OVERLAY_MSGTY"
+    "PE_HELLO\020\002\022\031\n\025OVERLAY_MSGTYPE_PEERS\020\003\022\037\n"
+    "\033OVERLAY_MSGTYPE_TRANSACTION\020\004\022\033\n\027OVERLA"
+    "Y_MSGTYPE_LEDGERS\020\005\022\030\n\024OVERLAY_MSGTYPE_P"
+    "BFT\020\006\022)\n%OVERLAY_MSGTYPE_LEDGER_UPGRADE_"
+    "NOTIFY\020\007*\372\001\n\020ChainMessageType\022\023\n\017CHAIN_T"
+    "YPE_NONE\020\000\022\017\n\013CHAIN_HELLO\020\n\022\023\n\017CHAIN_TX_"
+    "STATUS\020\013\022\025\n\021CHAIN_PEER_ONLINE\020\014\022\026\n\022CHAIN"
+    "_PEER_OFFLINE\020\r\022\026\n\022CHAIN_PEER_MESSAGE\020\016\022"
+    "\033\n\027CHAIN_SUBMITTRANSACTION\020\017\022\027\n\023CHAIN_LE"
+    "DGER_HEADER\020\020\022\026\n\022CHAIN_SUBSCRIBE_TX\020\021\022\026\n"
+    "\022CHAIN_TX_ENV_STORE\020\022B\"\n io.bumo.sdk.cor"
+    "e.extend.protobufb\006proto3", 2305);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "overlay.proto", &protobuf_RegisterTypes);
   Hello::default_instance_ = new Hello();
@@ -509,6 +536,7 @@ void protobuf_AddDesc_overlay_2eproto() {
   ChainSubscribeTx::default_instance_ = new ChainSubscribeTx();
   ChainResponse::default_instance_ = new ChainResponse();
   ChainTxStatus::default_instance_ = new ChainTxStatus();
+  ChainInfoMessage::default_instance_ = new ChainInfoMessage();
   Hello::default_instance_->InitAsDefaultInstance();
   HelloResponse::default_instance_->InitAsDefaultInstance();
   Peer::default_instance_->InitAsDefaultInstance();
@@ -524,6 +552,7 @@ void protobuf_AddDesc_overlay_2eproto() {
   ChainSubscribeTx::default_instance_->InitAsDefaultInstance();
   ChainResponse::default_instance_->InitAsDefaultInstance();
   ChainTxStatus::default_instance_->InitAsDefaultInstance();
+  ChainInfoMessage::default_instance_->InitAsDefaultInstance();
   ::google::protobuf::internal::OnShutdown(&protobuf_ShutdownFile_overlay_2eproto);
 }
 
@@ -2453,6 +2482,7 @@ Peers::peers() const {
 const int GetLedgers::kBeginFieldNumber;
 const int GetLedgers::kEndFieldNumber;
 const int GetLedgers::kTimestampFieldNumber;
+const int GetLedgers::kChainIdFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 GetLedgers::GetLedgers()
@@ -2479,6 +2509,7 @@ void GetLedgers::SharedCtor() {
   begin_ = GOOGLE_LONGLONG(0);
   end_ = GOOGLE_LONGLONG(0);
   timestamp_ = GOOGLE_LONGLONG(0);
+  chain_id_ = GOOGLE_LONGLONG(0);
 }
 
 GetLedgers::~GetLedgers() {
@@ -2534,7 +2565,7 @@ void GetLedgers::Clear() {
            ZR_HELPER_(last) - ZR_HELPER_(first) + sizeof(last));\
 } while (0)
 
-  ZR_(begin_, timestamp_);
+  ZR_(begin_, chain_id_);
 
 #undef ZR_HELPER_
 #undef ZR_
@@ -2591,6 +2622,21 @@ bool GetLedgers::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
+        if (input->ExpectTag(32)) goto parse_chain_id;
+        break;
+      }
+
+      // optional int64 chain_id = 4;
+      case 4: {
+        if (tag == 32) {
+         parse_chain_id:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int64, ::google::protobuf::internal::WireFormatLite::TYPE_INT64>(
+                 input, &chain_id_)));
+
+        } else {
+          goto handle_unusual;
+        }
         if (input->ExpectAtEnd()) goto success;
         break;
       }
@@ -2634,6 +2680,11 @@ void GetLedgers::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteInt64(3, this->timestamp(), output);
   }
 
+  // optional int64 chain_id = 4;
+  if (this->chain_id() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt64(4, this->chain_id(), output);
+  }
+
   // @@protoc_insertion_point(serialize_end:protocol.GetLedgers)
 }
 
@@ -2653,6 +2704,11 @@ void GetLedgers::SerializeWithCachedSizes(
   // optional int64 timestamp = 3;
   if (this->timestamp() != 0) {
     target = ::google::protobuf::internal::WireFormatLite::WriteInt64ToArray(3, this->timestamp(), target);
+  }
+
+  // optional int64 chain_id = 4;
+  if (this->chain_id() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt64ToArray(4, this->chain_id(), target);
   }
 
   // @@protoc_insertion_point(serialize_to_array_end:protocol.GetLedgers)
@@ -2682,6 +2738,13 @@ int GetLedgers::ByteSize() const {
     total_size += 1 +
       ::google::protobuf::internal::WireFormatLite::Int64Size(
         this->timestamp());
+  }
+
+  // optional int64 chain_id = 4;
+  if (this->chain_id() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::Int64Size(
+        this->chain_id());
   }
 
   GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
@@ -2721,6 +2784,9 @@ void GetLedgers::MergeFrom(const GetLedgers& from) {
   if (from.timestamp() != 0) {
     set_timestamp(from.timestamp());
   }
+  if (from.chain_id() != 0) {
+    set_chain_id(from.chain_id());
+  }
 }
 
 void GetLedgers::CopyFrom(const ::google::protobuf::Message& from) {
@@ -2750,6 +2816,7 @@ void GetLedgers::InternalSwap(GetLedgers* other) {
   std::swap(begin_, other->begin_);
   std::swap(end_, other->end_);
   std::swap(timestamp_, other->timestamp_);
+  std::swap(chain_id_, other->chain_id_);
   _internal_metadata_.Swap(&other->_internal_metadata_);
   std::swap(_cached_size_, other->_cached_size_);
 }
@@ -2807,6 +2874,20 @@ void GetLedgers::clear_timestamp() {
   // @@protoc_insertion_point(field_set:protocol.GetLedgers.timestamp)
 }
 
+// optional int64 chain_id = 4;
+void GetLedgers::clear_chain_id() {
+  chain_id_ = GOOGLE_LONGLONG(0);
+}
+ ::google::protobuf::int64 GetLedgers::chain_id() const {
+  // @@protoc_insertion_point(field_get:protocol.GetLedgers.chain_id)
+  return chain_id_;
+}
+ void GetLedgers::set_chain_id(::google::protobuf::int64 value) {
+  
+  chain_id_ = value;
+  // @@protoc_insertion_point(field_set:protocol.GetLedgers.chain_id)
+}
+
 #endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
 
 // ===================================================================
@@ -2845,6 +2926,7 @@ const int Ledgers::kValuesFieldNumber;
 const int Ledgers::kSyncCodeFieldNumber;
 const int Ledgers::kMaxSeqFieldNumber;
 const int Ledgers::kProofFieldNumber;
+const int Ledgers::kChainIdFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 Ledgers::Ledgers()
@@ -2872,6 +2954,7 @@ void Ledgers::SharedCtor() {
   sync_code_ = 0;
   max_seq_ = GOOGLE_LONGLONG(0);
   proof_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  chain_id_ = GOOGLE_LONGLONG(0);
 }
 
 Ledgers::~Ledgers() {
@@ -2912,9 +2995,29 @@ Ledgers* Ledgers::New(::google::protobuf::Arena* arena) const {
 
 void Ledgers::Clear() {
 // @@protoc_insertion_point(message_clear_start:protocol.Ledgers)
-  sync_code_ = 0;
+#if defined(__clang__)
+#define ZR_HELPER_(f) \
+  _Pragma("clang diagnostic push") \
+  _Pragma("clang diagnostic ignored \"-Winvalid-offsetof\"") \
+  __builtin_offsetof(Ledgers, f) \
+  _Pragma("clang diagnostic pop")
+#else
+#define ZR_HELPER_(f) reinterpret_cast<char*>(\
+  &reinterpret_cast<Ledgers*>(16)->f)
+#endif
+
+#define ZR_(first, last) do {\
+  ::memset(&first, 0,\
+           ZR_HELPER_(last) - ZR_HELPER_(first) + sizeof(last));\
+} while (0)
+
+  ZR_(chain_id_, sync_code_);
   max_seq_ = GOOGLE_LONGLONG(0);
   proof_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+
+#undef ZR_HELPER_
+#undef ZR_
+
   values_.Clear();
 }
 
@@ -2984,6 +3087,21 @@ bool Ledgers::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
+        if (input->ExpectTag(40)) goto parse_chain_id;
+        break;
+      }
+
+      // optional int64 chain_id = 5;
+      case 5: {
+        if (tag == 40) {
+         parse_chain_id:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int64, ::google::protobuf::internal::WireFormatLite::TYPE_INT64>(
+                 input, &chain_id_)));
+
+        } else {
+          goto handle_unusual;
+        }
         if (input->ExpectAtEnd()) goto success;
         break;
       }
@@ -3035,6 +3153,11 @@ void Ledgers::SerializeWithCachedSizes(
       4, this->proof(), output);
   }
 
+  // optional int64 chain_id = 5;
+  if (this->chain_id() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt64(5, this->chain_id(), output);
+  }
+
   // @@protoc_insertion_point(serialize_end:protocol.Ledgers)
 }
 
@@ -3066,6 +3189,11 @@ void Ledgers::SerializeWithCachedSizes(
         4, this->proof(), target);
   }
 
+  // optional int64 chain_id = 5;
+  if (this->chain_id() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt64ToArray(5, this->chain_id(), target);
+  }
+
   // @@protoc_insertion_point(serialize_to_array_end:protocol.Ledgers)
   return target;
 }
@@ -3092,6 +3220,13 @@ int Ledgers::ByteSize() const {
     total_size += 1 +
       ::google::protobuf::internal::WireFormatLite::BytesSize(
         this->proof());
+  }
+
+  // optional int64 chain_id = 5;
+  if (this->chain_id() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::Int64Size(
+        this->chain_id());
   }
 
   // repeated .protocol.ConsensusValue values = 1;
@@ -3141,6 +3276,9 @@ void Ledgers::MergeFrom(const Ledgers& from) {
 
     proof_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.proof_);
   }
+  if (from.chain_id() != 0) {
+    set_chain_id(from.chain_id());
+  }
 }
 
 void Ledgers::CopyFrom(const ::google::protobuf::Message& from) {
@@ -3171,6 +3309,7 @@ void Ledgers::InternalSwap(Ledgers* other) {
   std::swap(sync_code_, other->sync_code_);
   std::swap(max_seq_, other->max_seq_);
   proof_.Swap(&other->proof_);
+  std::swap(chain_id_, other->chain_id_);
   _internal_metadata_.Swap(&other->_internal_metadata_);
   std::swap(_cached_size_, other->_cached_size_);
 }
@@ -3286,6 +3425,20 @@ void Ledgers::clear_proof() {
   }
   proof_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), proof);
   // @@protoc_insertion_point(field_set_allocated:protocol.Ledgers.proof)
+}
+
+// optional int64 chain_id = 5;
+void Ledgers::clear_chain_id() {
+  chain_id_ = GOOGLE_LONGLONG(0);
+}
+ ::google::protobuf::int64 Ledgers::chain_id() const {
+  // @@protoc_insertion_point(field_get:protocol.Ledgers.chain_id)
+  return chain_id_;
+}
+ void Ledgers::set_chain_id(::google::protobuf::int64 value) {
+  
+  chain_id_ = value;
+  // @@protoc_insertion_point(field_set:protocol.Ledgers.chain_id)
 }
 
 #endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
@@ -7142,6 +7295,343 @@ void ChainTxStatus::clear_timestamp() {
   
   timestamp_ = value;
   // @@protoc_insertion_point(field_set:protocol.ChainTxStatus.timestamp)
+}
+
+#endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
+
+// ===================================================================
+
+#if !defined(_MSC_VER) || _MSC_VER >= 1900
+const int ChainInfoMessage::kSeqFieldNumber;
+const int ChainInfoMessage::kAddressFieldNumber;
+#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
+
+ChainInfoMessage::ChainInfoMessage()
+  : ::google::protobuf::Message(), _internal_metadata_(NULL) {
+  SharedCtor();
+  // @@protoc_insertion_point(constructor:protocol.ChainInfoMessage)
+}
+
+void ChainInfoMessage::InitAsDefaultInstance() {
+  _is_default_instance_ = true;
+}
+
+ChainInfoMessage::ChainInfoMessage(const ChainInfoMessage& from)
+  : ::google::protobuf::Message(),
+    _internal_metadata_(NULL) {
+  SharedCtor();
+  MergeFrom(from);
+  // @@protoc_insertion_point(copy_constructor:protocol.ChainInfoMessage)
+}
+
+void ChainInfoMessage::SharedCtor() {
+    _is_default_instance_ = false;
+  ::google::protobuf::internal::GetEmptyString();
+  _cached_size_ = 0;
+  seq_ = GOOGLE_LONGLONG(0);
+  address_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+
+ChainInfoMessage::~ChainInfoMessage() {
+  // @@protoc_insertion_point(destructor:protocol.ChainInfoMessage)
+  SharedDtor();
+}
+
+void ChainInfoMessage::SharedDtor() {
+  address_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  if (this != default_instance_) {
+  }
+}
+
+void ChainInfoMessage::SetCachedSize(int size) const {
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+}
+const ::google::protobuf::Descriptor* ChainInfoMessage::descriptor() {
+  protobuf_AssignDescriptorsOnce();
+  return ChainInfoMessage_descriptor_;
+}
+
+const ChainInfoMessage& ChainInfoMessage::default_instance() {
+  if (default_instance_ == NULL) protobuf_AddDesc_overlay_2eproto();
+  return *default_instance_;
+}
+
+ChainInfoMessage* ChainInfoMessage::default_instance_ = NULL;
+
+ChainInfoMessage* ChainInfoMessage::New(::google::protobuf::Arena* arena) const {
+  ChainInfoMessage* n = new ChainInfoMessage;
+  if (arena != NULL) {
+    arena->Own(n);
+  }
+  return n;
+}
+
+void ChainInfoMessage::Clear() {
+// @@protoc_insertion_point(message_clear_start:protocol.ChainInfoMessage)
+  seq_ = GOOGLE_LONGLONG(0);
+  address_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+
+bool ChainInfoMessage::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
+  ::google::protobuf::uint32 tag;
+  // @@protoc_insertion_point(parse_start:protocol.ChainInfoMessage)
+  for (;;) {
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // optional int64 seq = 1;
+      case 1: {
+        if (tag == 8) {
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int64, ::google::protobuf::internal::WireFormatLite::TYPE_INT64>(
+                 input, &seq_)));
+
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(18)) goto parse_address;
+        break;
+      }
+
+      // optional string address = 2;
+      case 2: {
+        if (tag == 18) {
+         parse_address:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_address()));
+          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+            this->address().data(), this->address().length(),
+            ::google::protobuf::internal::WireFormatLite::PARSE,
+            "protocol.ChainInfoMessage.address"));
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectAtEnd()) goto success;
+        break;
+      }
+
+      default: {
+      handle_unusual:
+        if (tag == 0 ||
+            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
+          goto success;
+        }
+        DO_(::google::protobuf::internal::WireFormatLite::SkipField(input, tag));
+        break;
+      }
+    }
+  }
+success:
+  // @@protoc_insertion_point(parse_success:protocol.ChainInfoMessage)
+  return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:protocol.ChainInfoMessage)
+  return false;
+#undef DO_
+}
+
+void ChainInfoMessage::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:protocol.ChainInfoMessage)
+  // optional int64 seq = 1;
+  if (this->seq() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt64(1, this->seq(), output);
+  }
+
+  // optional string address = 2;
+  if (this->address().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->address().data(), this->address().length(),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+      "protocol.ChainInfoMessage.address");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      2, this->address(), output);
+  }
+
+  // @@protoc_insertion_point(serialize_end:protocol.ChainInfoMessage)
+}
+
+::google::protobuf::uint8* ChainInfoMessage::InternalSerializeWithCachedSizesToArray(
+    bool deterministic, ::google::protobuf::uint8* target) const {
+  // @@protoc_insertion_point(serialize_to_array_start:protocol.ChainInfoMessage)
+  // optional int64 seq = 1;
+  if (this->seq() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt64ToArray(1, this->seq(), target);
+  }
+
+  // optional string address = 2;
+  if (this->address().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->address().data(), this->address().length(),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+      "protocol.ChainInfoMessage.address");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        2, this->address(), target);
+  }
+
+  // @@protoc_insertion_point(serialize_to_array_end:protocol.ChainInfoMessage)
+  return target;
+}
+
+int ChainInfoMessage::ByteSize() const {
+// @@protoc_insertion_point(message_byte_size_start:protocol.ChainInfoMessage)
+  int total_size = 0;
+
+  // optional int64 seq = 1;
+  if (this->seq() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::Int64Size(
+        this->seq());
+  }
+
+  // optional string address = 2;
+  if (this->address().size() > 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::StringSize(
+        this->address());
+  }
+
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = total_size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+  return total_size;
+}
+
+void ChainInfoMessage::MergeFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_merge_from_start:protocol.ChainInfoMessage)
+  if (GOOGLE_PREDICT_FALSE(&from == this)) {
+    ::google::protobuf::internal::MergeFromFail(__FILE__, __LINE__);
+  }
+  const ChainInfoMessage* source = 
+      ::google::protobuf::internal::DynamicCastToGenerated<const ChainInfoMessage>(
+          &from);
+  if (source == NULL) {
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:protocol.ChainInfoMessage)
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
+  } else {
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:protocol.ChainInfoMessage)
+    MergeFrom(*source);
+  }
+}
+
+void ChainInfoMessage::MergeFrom(const ChainInfoMessage& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:protocol.ChainInfoMessage)
+  if (GOOGLE_PREDICT_FALSE(&from == this)) {
+    ::google::protobuf::internal::MergeFromFail(__FILE__, __LINE__);
+  }
+  if (from.seq() != 0) {
+    set_seq(from.seq());
+  }
+  if (from.address().size() > 0) {
+
+    address_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.address_);
+  }
+}
+
+void ChainInfoMessage::CopyFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_copy_from_start:protocol.ChainInfoMessage)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void ChainInfoMessage::CopyFrom(const ChainInfoMessage& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:protocol.ChainInfoMessage)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool ChainInfoMessage::IsInitialized() const {
+
+  return true;
+}
+
+void ChainInfoMessage::Swap(ChainInfoMessage* other) {
+  if (other == this) return;
+  InternalSwap(other);
+}
+void ChainInfoMessage::InternalSwap(ChainInfoMessage* other) {
+  std::swap(seq_, other->seq_);
+  address_.Swap(&other->address_);
+  _internal_metadata_.Swap(&other->_internal_metadata_);
+  std::swap(_cached_size_, other->_cached_size_);
+}
+
+::google::protobuf::Metadata ChainInfoMessage::GetMetadata() const {
+  protobuf_AssignDescriptorsOnce();
+  ::google::protobuf::Metadata metadata;
+  metadata.descriptor = ChainInfoMessage_descriptor_;
+  metadata.reflection = ChainInfoMessage_reflection_;
+  return metadata;
+}
+
+#if PROTOBUF_INLINE_NOT_IN_HEADERS
+// ChainInfoMessage
+
+// optional int64 seq = 1;
+void ChainInfoMessage::clear_seq() {
+  seq_ = GOOGLE_LONGLONG(0);
+}
+ ::google::protobuf::int64 ChainInfoMessage::seq() const {
+  // @@protoc_insertion_point(field_get:protocol.ChainInfoMessage.seq)
+  return seq_;
+}
+ void ChainInfoMessage::set_seq(::google::protobuf::int64 value) {
+  
+  seq_ = value;
+  // @@protoc_insertion_point(field_set:protocol.ChainInfoMessage.seq)
+}
+
+// optional string address = 2;
+void ChainInfoMessage::clear_address() {
+  address_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+ const ::std::string& ChainInfoMessage::address() const {
+  // @@protoc_insertion_point(field_get:protocol.ChainInfoMessage.address)
+  return address_.GetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+ void ChainInfoMessage::set_address(const ::std::string& value) {
+  
+  address_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:protocol.ChainInfoMessage.address)
+}
+ void ChainInfoMessage::set_address(const char* value) {
+  
+  address_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:protocol.ChainInfoMessage.address)
+}
+ void ChainInfoMessage::set_address(const char* value, size_t size) {
+  
+  address_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:protocol.ChainInfoMessage.address)
+}
+ ::std::string* ChainInfoMessage::mutable_address() {
+  
+  // @@protoc_insertion_point(field_mutable:protocol.ChainInfoMessage.address)
+  return address_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+ ::std::string* ChainInfoMessage::release_address() {
+  // @@protoc_insertion_point(field_release:protocol.ChainInfoMessage.address)
+  
+  return address_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+ void ChainInfoMessage::set_allocated_address(::std::string* address) {
+  if (address != NULL) {
+    
+  } else {
+    
+  }
+  address_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), address);
+  // @@protoc_insertion_point(field_set_allocated:protocol.ChainInfoMessage.address)
 }
 
 #endif  // PROTOBUF_INLINE_NOT_IN_HEADERS

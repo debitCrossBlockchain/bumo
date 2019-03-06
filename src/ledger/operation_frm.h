@@ -57,12 +57,11 @@ namespace bumo{
 		void Log(std::shared_ptr<Environment> environment);
 		void SetPrivilege(std::shared_ptr<Environment> environment);
 		void Exit(std::shared_ptr<Environment> environment);
-		//void OperationDeployContract(Environment *environment);
-		//void InvokeContract(Environment *environment);
 
 	private:
 		static Result CheckCreateAccountGt1000(const protocol::OperationCreateAccount& create_account);
 		static Result CheckSetPrivilege(const protocol::OperationSetPrivilege &set_privilege, const std::string &source_address);
+		void ChangeCreateContractAmount(const int64_t &init_amount, int64_t &changed_amount);
 	};
 };
 #endif

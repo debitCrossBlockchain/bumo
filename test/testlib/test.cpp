@@ -130,6 +130,7 @@ void TestAsio(){
 }
 
 void TestThread(){
+	//start thread
 	MyThread nThread;
 	utils::Thread thread1(&nThread);
 	utils::Thread thread2(&nThread);
@@ -158,7 +159,7 @@ void TestStringUtils(){
 	printf("%s\n", upper_string.c_str());
 
 
-	char a[100];
+	//char a[100];
 	//sprintf_s(a, 100, "%s the world", "hello");
 
 	std::string c = "hello";
@@ -166,7 +167,7 @@ void TestStringUtils(){
 }
 
 void OnTimer(){
-	LOG_INFO("Time is up ");
+	LOG_INFO("Time is up !");
 }
 
 void TestTimer(){
@@ -594,8 +595,8 @@ int main(int32_t argc, char *argv[]){
 // 	ret = key_store.From(keyss, "bumo#071", pk);
 // 	ret = key_store.From(keyss, "bumo#0715092", pk);
 // 	ret = key_store.From(keyss, "bumo#07150926", pk);
-
-	//TestSignature();
+	TestBase64();
+	TestSignature();
 	ParseFromProto();
 
 	std::string data = "123456789";

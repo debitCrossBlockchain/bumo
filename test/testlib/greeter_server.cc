@@ -81,6 +81,7 @@ void RunServer() {
 }
 
 int main2(int argc, char** argv) {
+  //start server
   RunServer();
 
   return 0;

@@ -2,16 +2,13 @@
 #include "common/general.h"
 #include "lib_bumo_tools.h"
 
-class bumo_tools_utest : public testing::Test
-{
+class bumo_tools_utest : public testing::Test{
 protected:
-    virtual void SetUp()
-    {
+    virtual void SetUp(){
 		InitBumoTools();
     }
 
-    virtual void TearDown()
-    {
+    virtual void TearDown(){
 		UnInitBumoTools();
     }
 
@@ -29,8 +26,7 @@ protected:
 };
 
 TEST_F(bumo_tools_utest, UT_CreateAccountAddress){ UT_CreateAccountAddress(); }
-void bumo_tools_utest::UT_CreateAccountAddress()
-{
+void bumo_tools_utest::UT_CreateAccountAddress(){
 	{
 		char input_signtype[1024] = "ed25519";
 		char output_result[1024] = { 0 };
@@ -39,7 +35,6 @@ void bumo_tools_utest::UT_CreateAccountAddress()
 
 		Json::Value result;
 		result.fromString(output_result);
-		//printf("%s\n", result.toFastString().c_str());
 		EXPECT_EQ(result["sign_type"].asString(), "ed25519");
 	}
 
@@ -52,7 +47,6 @@ void bumo_tools_utest::UT_CreateAccountAddress()
 
 		Json::Value result;
 		result.fromString(output_result);
-		//printf("%s\n", result.toFastString().c_str());
 		EXPECT_EQ(result["sign_type"].asString(), "sm2");
 	}
 
@@ -64,7 +58,7 @@ void bumo_tools_utest::UT_CreateAccountAddress()
 
 		Json::Value result;
 		result.fromString(output_result);
-		//printf("%s\n", result.toFastString().c_str());
+
 		EXPECT_EQ(result["sign_type"].asString(), "");
 	}
 
@@ -78,29 +72,25 @@ void bumo_tools_utest::UT_CreateAccountAddress()
 }
 
 TEST_F(bumo_tools_utest, UT_CheckAccountAddressValid){ UT_CheckAccountAddressValid(); }
-void bumo_tools_utest::UT_CheckAccountAddressValid()
-{
+void bumo_tools_utest::UT_CheckAccountAddressValid(){
 	{
 		char input_encode_address[1024] = "dfafdads";
 		EXPECT_EQ(CheckAccountAddressValid(input_encode_address), -2);
 	}
 
 	{
-		//ed25519
 		char input_encode_address[1024] = "buQY2pK5tdBkwP7z51Q5yy8WdgychHoRV6He";
 		EXPECT_EQ(CheckAccountAddressValid(input_encode_address), 0);
 	}
 
 	{
-		//sm2
 		char input_encode_address[1024] = "buR8BgyAe6JjBRFF4uGh9TW7jCJi7NTo4imU";
 		EXPECT_EQ(CheckAccountAddressValid(input_encode_address), 0);
 	}
 }
 
 TEST_F(bumo_tools_utest, UT_CreateKeystore){ UT_CreateKeystore(); }
-void bumo_tools_utest::UT_CreateKeystore()
-{
+void bumo_tools_utest::UT_CreateKeystore(){
 	{
 		char input_password[1024] = { 0 };
 		char output_keystore[1024] = { 0 };
@@ -124,8 +114,7 @@ void bumo_tools_utest::UT_CreateKeystore()
 }
 
 TEST_F(bumo_tools_utest, UT_CheckKeystoreValid){ UT_CheckKeystoreValid(); }
-void bumo_tools_utest::UT_CheckKeystoreValid()
-{
+void bumo_tools_utest::UT_CheckKeystoreValid(){
 	{
 		char output_keystore[1024] = { 0 };
 		int output_len = 1024;
@@ -162,8 +151,7 @@ void bumo_tools_utest::UT_CheckKeystoreValid()
 }
 
 TEST_F(bumo_tools_utest, UT_SignData){ UT_SignData(); }
-void bumo_tools_utest::UT_SignData()
-{
+void bumo_tools_utest::UT_SignData(){
 	{
 		char input_privkey[1024] = "privbsx8X6wzxmPyDTNNCsGgLXuFmtfuwnQzyeGQkSEHfAzcrvTEy7ex";
 		char input_rawdata[1024] = "aaaaaaaaaaaaaaaaaaaaaa";
@@ -190,8 +178,7 @@ void bumo_tools_utest::UT_SignData()
 }
 
 TEST_F(bumo_tools_utest, UT_SignDataWithKeystore){ UT_SignDataWithKeystore(); }
-void bumo_tools_utest::UT_SignDataWithKeystore()
-{
+void bumo_tools_utest::UT_SignDataWithKeystore(){
 	{
 		char input_keystore[1024] = { 0 };
 		char input_password[1024] = { 0 };
@@ -232,8 +219,7 @@ void bumo_tools_utest::UT_SignDataWithKeystore()
 }
 
 TEST_F(bumo_tools_utest, UT_CheckSignedData){ UT_CheckSignedData(); }
-void bumo_tools_utest::UT_CheckSignedData()
-{
+void bumo_tools_utest::UT_CheckSignedData(){
 	{
 		char input_blob[1024] = { 0 };
 		char input_signeddata[1024] = { 0 };
@@ -275,7 +261,6 @@ void bumo_tools_utest::UT_CheckSignedData()
 
 		Json::Value result;
 		result.fromString(output_result);
-		//printf("%s\n", result.toFastString().c_str());
 		EXPECT_EQ(result["sign_type"].asString(), "ed25519");
 
 		char input_privkey[1024] = { 0 };
@@ -297,8 +282,7 @@ void bumo_tools_utest::UT_CheckSignedData()
 }
 
 TEST_F(bumo_tools_utest, UT_CreateKeystoreFromPrivkey){ UT_CreateKeystoreFromPrivkey(); }
-void bumo_tools_utest::UT_CreateKeystoreFromPrivkey()
-{
+void bumo_tools_utest::UT_CreateKeystoreFromPrivkey(){
 	{
 		char input_privkey[1024] = "privbsreTFEgnQ3eBEuzBMo8NgCht8XA1CxXnBHpVzpVfX23Bw2kWGJM";
 		char input_password[1024] = "123456";
@@ -324,8 +308,7 @@ void bumo_tools_utest::UT_CreateKeystoreFromPrivkey()
 }
 
 TEST_F(bumo_tools_utest, UT_GetAddressFromPubkey){ UT_GetAddressFromPubkey(); }
-void bumo_tools_utest::UT_GetAddressFromPubkey()
-{
+void bumo_tools_utest::UT_GetAddressFromPubkey(){
 	{
 		char input_pubkey[1024] = "b001976695b47cc14c5e80f855a33f8516f9950032d8523a0a3cc43903b73ce32383fe725f79";
 		char output_data[1024];
@@ -349,8 +332,7 @@ void bumo_tools_utest::UT_GetAddressFromPubkey()
 }
 
 TEST_F(bumo_tools_utest, UT_GetPrivatekeyFromKeystore){ UT_GetPrivatekeyFromKeystore(); }
-void bumo_tools_utest::UT_GetPrivatekeyFromKeystore()
-{
+void bumo_tools_utest::UT_GetPrivatekeyFromKeystore(){
 	{
 		char output_keystore[1024] = { 0 };
 		int output_len = 1024;

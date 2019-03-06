@@ -1,7 +1,7 @@
 English | [中文](README_CN.md) 
 
 ## Introduction
-The definition module for serialized message of `BUMO`. Serialization and deserialization of data are used in the internal communication, node communication, and permanent storage of the blockchain program. `BUMO` uses `protobuf` as the serialization tool. When using this module, first define the `message` structure according to the syntax standard defined by `protobuf`, then call the `protobuf` compilation tool to compile the file defining the `message` structure into the `C++` source file. Then, other source files of `BUMO` can directly call the `message` source file compiled by `protobuf`.
+The definition module for serialized message of `BUMO`. Serialization and deserialization of data are used in the internal communication, node communication, and permanent storage of the blockchain program. `BUMO` uses `protobuf` as the serialization tool. When using this module, first define the `message` structure according to the syntax standard defined by `protobuf`, then call the `protobuf` compilation tool to compile the file defining the `message` structure into such as `C++`,`php` source file. Then, other source files of `BUMO` can directly call the `message` source file compiled by `protobuf`.
 
 ## Module Structure
 File | Function

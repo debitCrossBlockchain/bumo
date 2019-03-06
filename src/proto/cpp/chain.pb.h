@@ -925,6 +925,12 @@ class LedgerHeader : public ::google::protobuf::Message /* @@protoc_insertion_po
   ::std::string* release_reserve();
   void set_allocated_reserve(::std::string* reserve);
 
+  // optional int64 chain_id = 12;
+  void clear_chain_id();
+  static const int kChainIdFieldNumber = 12;
+  ::google::protobuf::int64 chain_id() const;
+  void set_chain_id(::google::protobuf::int64 value);
+
   // @@protoc_insertion_point(class_scope:protocol.LedgerHeader)
  private:
 
@@ -941,6 +947,7 @@ class LedgerHeader : public ::google::protobuf::Message /* @@protoc_insertion_po
   ::google::protobuf::internal::ArenaStringPtr validators_hash_;
   ::google::protobuf::internal::ArenaStringPtr fees_hash_;
   ::google::protobuf::internal::ArenaStringPtr reserve_;
+  ::google::protobuf::int64 chain_id_;
   mutable int _cached_size_;
   friend void  protobuf_AddDesc_chain_2eproto();
   friend void protobuf_AssignDesc_chain_2eproto();
@@ -2448,6 +2455,12 @@ class Transaction : public ::google::protobuf::Message /* @@protoc_insertion_poi
   const ::google::protobuf::RepeatedPtrField< ::protocol::Operation >&
       operations() const;
 
+  // optional int64 chain_id = 8;
+  void clear_chain_id();
+  static const int kChainIdFieldNumber = 8;
+  ::google::protobuf::int64 chain_id() const;
+  void set_chain_id(::google::protobuf::int64 value);
+
   // @@protoc_insertion_point(class_scope:protocol.Transaction)
  private:
 
@@ -2460,6 +2473,7 @@ class Transaction : public ::google::protobuf::Message /* @@protoc_insertion_poi
   ::google::protobuf::int64 ceil_ledger_seq_;
   ::google::protobuf::internal::ArenaStringPtr metadata_;
   ::google::protobuf::RepeatedPtrField< ::protocol::Operation > operations_;
+  ::google::protobuf::int64 chain_id_;
   mutable int _cached_size_;
   friend void  protobuf_AddDesc_chain_2eproto();
   friend void protobuf_AssignDesc_chain_2eproto();
@@ -3034,6 +3048,22 @@ class TransactionEnvStore : public ::google::protobuf::Message /* @@protoc_inser
   ::google::protobuf::int64 actual_fee() const;
   void set_actual_fee(::google::protobuf::int64 value);
 
+  // repeated bytes contract_tx_hashes = 8;
+  int contract_tx_hashes_size() const;
+  void clear_contract_tx_hashes();
+  static const int kContractTxHashesFieldNumber = 8;
+  const ::std::string& contract_tx_hashes(int index) const;
+  ::std::string* mutable_contract_tx_hashes(int index);
+  void set_contract_tx_hashes(int index, const ::std::string& value);
+  void set_contract_tx_hashes(int index, const char* value);
+  void set_contract_tx_hashes(int index, const void* value, size_t size);
+  ::std::string* add_contract_tx_hashes();
+  void add_contract_tx_hashes(const ::std::string& value);
+  void add_contract_tx_hashes(const char* value);
+  void add_contract_tx_hashes(const void* value, size_t size);
+  const ::google::protobuf::RepeatedPtrField< ::std::string>& contract_tx_hashes() const;
+  ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_contract_tx_hashes();
+
   // @@protoc_insertion_point(class_scope:protocol.TransactionEnvStore)
  private:
 
@@ -3045,6 +3075,7 @@ class TransactionEnvStore : public ::google::protobuf::Message /* @@protoc_inser
   ::google::protobuf::int64 close_time_;
   ::google::protobuf::internal::ArenaStringPtr hash_;
   ::google::protobuf::int64 actual_fee_;
+  ::google::protobuf::RepeatedPtrField< ::std::string> contract_tx_hashes_;
   ::google::protobuf::int32 error_code_;
   mutable int _cached_size_;
   friend void  protobuf_AddDesc_chain_2eproto();
@@ -4730,6 +4761,20 @@ inline void LedgerHeader::set_allocated_reserve(::std::string* reserve) {
   // @@protoc_insertion_point(field_set_allocated:protocol.LedgerHeader.reserve)
 }
 
+// optional int64 chain_id = 12;
+inline void LedgerHeader::clear_chain_id() {
+  chain_id_ = GOOGLE_LONGLONG(0);
+}
+inline ::google::protobuf::int64 LedgerHeader::chain_id() const {
+  // @@protoc_insertion_point(field_get:protocol.LedgerHeader.chain_id)
+  return chain_id_;
+}
+inline void LedgerHeader::set_chain_id(::google::protobuf::int64 value) {
+  
+  chain_id_ = value;
+  // @@protoc_insertion_point(field_set:protocol.LedgerHeader.chain_id)
+}
+
 // -------------------------------------------------------------------
 
 // Ledger
@@ -6243,6 +6288,20 @@ Transaction::operations() const {
   return operations_;
 }
 
+// optional int64 chain_id = 8;
+inline void Transaction::clear_chain_id() {
+  chain_id_ = GOOGLE_LONGLONG(0);
+}
+inline ::google::protobuf::int64 Transaction::chain_id() const {
+  // @@protoc_insertion_point(field_get:protocol.Transaction.chain_id)
+  return chain_id_;
+}
+inline void Transaction::set_chain_id(::google::protobuf::int64 value) {
+  
+  chain_id_ = value;
+  // @@protoc_insertion_point(field_set:protocol.Transaction.chain_id)
+}
+
 // -------------------------------------------------------------------
 
 // Signer
@@ -6731,6 +6790,61 @@ inline void TransactionEnvStore::set_actual_fee(::google::protobuf::int64 value)
   
   actual_fee_ = value;
   // @@protoc_insertion_point(field_set:protocol.TransactionEnvStore.actual_fee)
+}
+
+// repeated bytes contract_tx_hashes = 8;
+inline int TransactionEnvStore::contract_tx_hashes_size() const {
+  return contract_tx_hashes_.size();
+}
+inline void TransactionEnvStore::clear_contract_tx_hashes() {
+  contract_tx_hashes_.Clear();
+}
+inline const ::std::string& TransactionEnvStore::contract_tx_hashes(int index) const {
+  // @@protoc_insertion_point(field_get:protocol.TransactionEnvStore.contract_tx_hashes)
+  return contract_tx_hashes_.Get(index);
+}
+inline ::std::string* TransactionEnvStore::mutable_contract_tx_hashes(int index) {
+  // @@protoc_insertion_point(field_mutable:protocol.TransactionEnvStore.contract_tx_hashes)
+  return contract_tx_hashes_.Mutable(index);
+}
+inline void TransactionEnvStore::set_contract_tx_hashes(int index, const ::std::string& value) {
+  // @@protoc_insertion_point(field_set:protocol.TransactionEnvStore.contract_tx_hashes)
+  contract_tx_hashes_.Mutable(index)->assign(value);
+}
+inline void TransactionEnvStore::set_contract_tx_hashes(int index, const char* value) {
+  contract_tx_hashes_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:protocol.TransactionEnvStore.contract_tx_hashes)
+}
+inline void TransactionEnvStore::set_contract_tx_hashes(int index, const void* value, size_t size) {
+  contract_tx_hashes_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:protocol.TransactionEnvStore.contract_tx_hashes)
+}
+inline ::std::string* TransactionEnvStore::add_contract_tx_hashes() {
+  // @@protoc_insertion_point(field_add_mutable:protocol.TransactionEnvStore.contract_tx_hashes)
+  return contract_tx_hashes_.Add();
+}
+inline void TransactionEnvStore::add_contract_tx_hashes(const ::std::string& value) {
+  contract_tx_hashes_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:protocol.TransactionEnvStore.contract_tx_hashes)
+}
+inline void TransactionEnvStore::add_contract_tx_hashes(const char* value) {
+  contract_tx_hashes_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:protocol.TransactionEnvStore.contract_tx_hashes)
+}
+inline void TransactionEnvStore::add_contract_tx_hashes(const void* value, size_t size) {
+  contract_tx_hashes_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:protocol.TransactionEnvStore.contract_tx_hashes)
+}
+inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
+TransactionEnvStore::contract_tx_hashes() const {
+  // @@protoc_insertion_point(field_list:protocol.TransactionEnvStore.contract_tx_hashes)
+  return contract_tx_hashes_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::std::string>*
+TransactionEnvStore::mutable_contract_tx_hashes() {
+  // @@protoc_insertion_point(field_mutable_list:protocol.TransactionEnvStore.contract_tx_hashes)
+  return &contract_tx_hashes_;
 }
 
 // -------------------------------------------------------------------
