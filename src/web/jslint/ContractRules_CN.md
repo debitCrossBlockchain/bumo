@@ -149,7 +149,7 @@ function main(input)
 
 - 禁用 `++` 和 `--`，使用 `+=` 和 `-=` 替代
 
-- 禁止使用 `eval`, `void`, `this` 关键字
+- 禁止使用 `eval`, `void` 关键字
 
 - 禁止使用 `new` 创建 `Number`, `String`, `Boolean`对象，可以使用其构造调用来获取对象
 

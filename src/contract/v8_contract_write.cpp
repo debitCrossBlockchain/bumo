@@ -415,6 +415,12 @@ namespace bumo {
 				break;
 			}
 
+			int32_t arg_1 = (int32_t)args[1]->NumberValue();
+			if (arg_1 != Contract::TYPE_V8){
+				error_desc = "Contract execution error, contractCreate parameter 1 should be 0 for javascript";
+				break;
+			}
+
 			if (!args[2]->IsString()) {
 				error_desc = "Contract execution error, contractCreate parameter 2 should be a string";
 				break;
@@ -443,11 +449,9 @@ namespace bumo {
 			std::string arg_0 = std::string(ToCString(v8::String::Utf8Value(args[0])));
 			int64_t int_balance = 0;
 			if (!utils::String::SafeStoi64(arg_0, int_balance) || int_balance < 0) {
-				error_desc = utils::String::Format("Failed to execute contractCreate function in contract, balance:%s, amount:%s.", arg_0.c_str());
+				error_desc = utils::String::Format("Failed to execute contractCreate function in contract, arg_0:%s.", arg_0.c_str());
 				break;
 			}
-
-			int32_t arg_1 = (int32_t)args[1]->NumberValue();
 
 			std::string arg_code = std::string(ToCString(v8::String::Utf8Value(args[2])));
 			std::string arg_input = std::string(ToCString(v8::String::Utf8Value(args[3])));

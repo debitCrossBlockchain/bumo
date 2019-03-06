@@ -93,7 +93,8 @@ namespace bumo {
 
 			std::shared_ptr<Environment> environment = ledger_context->GetTopTx()->environment_;
 			if (!environment->GetEntry(address, account_frm)) {
-				Environment::AccountFromDB(address, account_frm);
+				error_desc = utils::String::Format("Failed to find account %s.", address.c_str());
+				break;
 			}
 
 			double type = -1;

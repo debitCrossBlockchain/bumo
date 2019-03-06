@@ -1877,7 +1877,7 @@ Referenced Documents: [Smart Contract Rules](../src/web/jslint/ContractRules.md)
 - ##### Get block information
 
     `getBlockHash(offset_seq);`
-    - offset_seq: offset from the latest block. The maximun is 1024.
+    - offset_seq: offset from the latest block,range [0,1024)
 
     example
     ```javascript

@@ -52,7 +52,7 @@ Token 属性可以通过合约的 `tokenInfo` 功能函数查询到，存储在�
 |symbol        | Token 符号                  |
 |decimals      | Token 小数位数              |
 |totalSupply   | Token 总量      |
-|version       | Contract Token Protocol版本 |
+|version       | ATP版本 |
 
 注意：
 
@@ -224,6 +224,8 @@ tlog('transferFrom', sender, from, to, value);
 
 
 
+
+
 ### tokenInfo
 
 - 返回 Token 的基本信息。
@@ -247,12 +249,14 @@ tlog('transferFrom', sender, from, to, value);
                 "symbol": "DT",
                 "decimals": 8,
                 "totalSupply": "5000000000000",
-                "version": "1.0"
+                "version": "ATP20"
             }
         }
     }
 } 
 ```
+
+
 
 
 
@@ -286,6 +290,7 @@ tlog('transferFrom', sender, from, to, value);
 
 
 
+
 ## 合约入口
 
 ### init
@@ -304,8 +309,7 @@ function init(input_str){
         "name":"DemoToken",
         "symbol":"DT",
         "decimals":8,
-        "totalSupply":"5000000000000",
-        "version": "1.0"
+        "totalSupply":"5000000000000"
     }
 }
 ```
@@ -313,9 +317,9 @@ function init(input_str){
 - symbol: 资产符号
 - decimals: 小数位数
 - totalSupply: 字符串格式，发行Token 总数。例如发行 50000 个 Token，其 totalSupply 总量为 50000 * 100000000
-- version: 版本号
 
 入口函数的返回值：true或者抛异常
+
 
 
 
@@ -339,6 +343,8 @@ function main(input_str){
     }
 }
 ```
+
+
 
 
 
