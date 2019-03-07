@@ -352,7 +352,7 @@ Chain.issueAsset("CNY", 10000);
     let ret = Chain.delegateQuery('buQBwe7LZYCYHfxiEGb1RE9XC9kN2qrGXWCY'，"");
     /*
       权限：只读
-      返回：如果目标账户为普通账户，则返回true，如果目标账户为合约，调用成功则返回字符串 {"result":"4"}，其中 result 字段的值即查询的具体结果，调用失败返回 {"error":true} 字符串。
+      返回：调用成功则返回JSON对象 {"result":"4"}，其中 result 字段的值即查询的具体结果，调用失败返回JSON对象 {"error":true} 。
     */
 
     ```
@@ -393,7 +393,7 @@ Chain.issueAsset("CNY", 10000);
     let ret = Chain.contractQuery('buQBwe7LZYCYHfxiEGb1RE9XC9kN2qrGXWCY'，"");
     /*
       权限：只读
-      返回：调用成功则返回字符串 {"result":"xxx"}，其中 result 字段的值即查询的具体结果，调用失败返回 {"error":true} 字符串。
+      返回：调用成功则返回JSON对象 {"result":"xxx"}，其中 result 字段的值即查询的具体结果，调用失败返回JSON对象 {"error":true}。
     */
 
     ```
