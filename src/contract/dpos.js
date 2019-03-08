@@ -337,8 +337,10 @@ function passIn(committee, key, proposal, item, address){
     saveObj(key, proposal);
 
     if(item === role.COMMITTEE){
-        committee.push(address);
-        saveObj(committeeKey, committee);
+        if(committee.length < cfg.committee_size){
+            committee.push(address);
+            saveObj(committeeKey, committee);
+        }
     }
     else{
         electInit();
@@ -657,18 +659,19 @@ function foundingProposal(){
 
 function initialization(params){
     cfg = {
-        'committee_size'           : 100,
-        'kol_size'                 : 30,
-        'kol_candidate_size'       : 300,
-        'kol_min_pledge'           : 5000000000000,  /* 5 0000 0000 0000 */
-        'validator_size'           : 30,
-        'validator_candidate_size' : 300,
+        'committee_size'           : 10,
+        'kol_size'                 : 21,
+        'kol_candidate_size'       : 100,
+        'kol_min_pledge'           : 500000000000000,/* 500 0000 0000 0000 */
+        'validator_size'           : 19,
+        'validator_candidate_size' : 100,
         'validator_min_pledge'     : 500000000000000,/* 500 0000 0000 0000 */
         'pass_rate'                : 0.5,
         'valid_period'             : 1296000000000,  /* 15 * 24 * 60 * 60 * 1000 * 1000 */
-        'vote_unit'                : 10000000000,    /* 100 0000 0000 */
+        'vote_unit'                : 100000000,      /* 1 0000 0000 */
+        'reward_validator_share'   : 0.6,            /* validators 60%, kols 40% */
+        'reward_approved_share'    : 0.9,            /* approved validators or kols 90%, candidates 10% */
         'fee_allocation_share'     : '70:20:10',     /* DAPP_70% : blockReward_20% : creator_10% */
-        'reward_allocation_share'  : '50:40:10',     /* validator_50% : validatorCandidate_40% : kol_10% */
         'logic_contract'           : params.logic_contract
     };
     saveObj(configKey, cfg);
