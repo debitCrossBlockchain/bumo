@@ -291,7 +291,12 @@ function apply(roleType, node){
     if(proposal === false){
         /* first apply */
         checkPledge(roleType);
-        proposal = applicationProposal(node);
+        if(roleType === role.VALIDATOR){
+            proposal = applicationProposal(node || sender);
+        }
+        else{
+            proposal = applicationProposal();
+        }
         return saveObj(key, proposal);
     }
 
