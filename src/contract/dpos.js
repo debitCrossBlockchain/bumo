@@ -63,8 +63,8 @@ function transferCoin(dest, amount)
         return true; 
     }
 
-    payCoin(dest, String(amount));
     minusStake(amount);
+    payCoin(dest, String(amount));
 
     log('Pay coin( ' + amount + ') to dest account(' + dest + ') succeed.');
 }
@@ -406,10 +406,12 @@ function approve(operate, item, address){
     assert(proposal !== false, 'failed to get metadata: ' + key + '.');
 
     if(blockTimestamp >= proposal.expiration){
+        storageDel(key);
         if(operate === motion.APPLY && proposal.pledge > 0){
             transferCoin(address, proposal.pledge);
         }
-        return storageDel(key);
+
+        return;
     }
 
     assert(proposal.ballot.includes(sender) !== true, sender + ' has voted.');
@@ -472,8 +474,8 @@ function unVote(roleType, address){
     let amount = storageLoad(key);
     assert(amount !== false, 'The account did not vote for: ' + address);
 
-    transferCoin(sender, amount);
     storageDel(key);
+    transferCoin(sender, amount);
 
     electInit();
     let candidates = roleType === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
