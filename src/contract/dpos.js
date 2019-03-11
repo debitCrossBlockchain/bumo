@@ -118,14 +118,19 @@ function rewardDistribution(){
         return;
     }
 
-    let oneTenth    = reward / 10;
-    let ret         = distribute(elect.kols, oneTenth);
-    let candiReward = ret ? (oneTenth * 4) : (oneTenth * 5);
-
-    distribute(elect.validators, oneTenth * 5);
-    distribute(elect.validatorCands, candiReward);
-
     let left = reward % 10;
+    if(elect.kolCands.length !== 0 ){
+        let kolAllReward = (reward / 10) * (10 - cfg.reward_validator_share);
+        distribute(elect.kols, (kolAllReward / 10) * cfg.reward_approved_share);
+        distribute(elect.kolCands, (kolAllReward / 10) * (10 - cfg.reward_approved_share));
+        left += kolAllReward % 10;
+    }
+
+    let validatorAllReward = elect.kolCands.length === 0 ? reward : ((reward / 10) * cfg.reward_validator_share);
+    distribute(elect.validators, (validatorAllReward / 10) * cfg.reward_approved_share);
+    distribute(elect.validatorCands, (validatorAllReward / 10) * (10 - cfg.reward_approved_share));
+    left += validatorAllReward % 10;
+
     elect.distribution[elect.validators[0][0]] = int64Add(elect.distribution[elect.validators[0][0]], left);
 
     elect.allStake = elect.balance;
@@ -698,8 +703,8 @@ function initialization(params){
         'pass_rate'                : 0.5,
         'valid_period'             : 1296000000000,  /* 15 * 24 * 60 * 60 * 1000 * 1000 */
         'vote_unit'                : 100000000,      /* 1 0000 0000 */
-        'reward_validator_share'   : 0.6,            /* validators 60%, kols 40% */
-        'reward_approved_share'    : 0.9,            /* approved validators or kols 90%, candidates 10% */
+        'reward_validator_share'   : 6,              /* validators 60%, kols 40% */
+        'reward_approved_share'    : 9,              /* approved validators or kols 90%, candidates 10% */
         'fee_allocation_share'     : '70:20:10',     /* DAPP_70% : blockReward_20% : creator_10% */
         'logic_contract'           : params.logic_contract
     };
