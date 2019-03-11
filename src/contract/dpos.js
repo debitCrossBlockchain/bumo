@@ -197,14 +197,14 @@ function addCandidates(roleType, address, pledge, maxSize){
     rewardDistribution();
 
     let size = candidates.push([address, pledge]);
-    let node = candidates[size - 1];
+    let found = candidates[size - 1];
 
     candidates.sort(doubleSort);
     if(candidates.length > maxSize){
         candidates = candidates.slice(0, maxSize);
     }
 
-    if(roleType === role.VALIDATOR && candidates.indexOf(node) < cfg.validator_size){
+    if(roleType === role.VALIDATOR && candidates.indexOf(found) < cfg.validator_size){
         let validators = candidates.slice(0, cfg.validator_size);
         setValidators(JSON.stringify(validators));
     }
@@ -215,14 +215,14 @@ function addCandidates(roleType, address, pledge, maxSize){
 
 function deleteCandidate(roleType, address){
     let candidates = roleType === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
-    let node       = candidates.find(function(x){ return x[0] === address; });
-    if(node === undefined){
+    let found      = candidates.find(function(x){ return x[0] === address; });
+    if(found === undefined){
         return; 
     }
 
     rewardDistribution();
 
-    let index = candidates.indexOf(node);
+    let index = candidates.indexOf(found);
     candidates.splice(index, 1);
     candidates.sort(doubleSort);
 
@@ -235,13 +235,13 @@ function deleteCandidate(roleType, address){
     saveObj(key, candidates);
 }
 
-function updateStake(roleType, node, formalSize, amount){
+function updateStake(roleType, candidate, formalSize, amount){
     let candidates = roleType === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
 
-    let oldPos = candidates.indexOf(node);
-    node[1]    = int64Add(node[1], amount);
+    let oldPos   = candidates.indexOf(candidate);
+    candidate[1] = int64Add(candidate[1], amount);
     candidates.sort(doubleSort);
-    let newPos = candidates.indexOf(node);
+    let newPos = candidates.indexOf(candidate);
 
     if((oldPos > formalSize && newPos <= formalSize) ||
        (oldPos <= formalSize && newPos > formalSize)){
@@ -287,15 +287,15 @@ function apply(roleType){
 
     electInit();
     let candidates = roleType === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
-    let node = candidates.find(function(x){ return x[0] === sender; });
+    let found = candidates.find(function(x){ return x[0] === sender; });
 
-    if(node === undefined){
+    if(found === undefined){
         let maxSize = roleType === role.VALIDATOR ? cfg.validator_candidate_size : cfg.kol_candidate_size;
         addCandidates(roleType, sender, proposal.pledge, maxSize);
     }
     else{
         let formalSize = roleType === role.VALIDATOR ? cfg.validator_size : cfg.kol_size;
-        updateStake(roleType, node, formalSize, thisPayCoinAmount);
+        updateStake(roleType, found, formalSize, thisPayCoinAmount);
     }
 }
 
@@ -430,11 +430,11 @@ function vote(roleType, address){
 
     electInit();
     let candidates = roleType === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
-    let node       = candidates.find(function(x){ return x[0] === address; });
+    let found      = candidates.find(function(x){ return x[0] === address; });
 
-    assert(node !== undefined, address + ' is not validator candidate or KOL candidate.');
+    assert(found !== undefined, address + ' is not validator candidate or KOL candidate.');
     let formalSize = roleType === role.VALIDATOR ? cfg.validator_size : cfg.kol_size;
-    updateStake(roleType, node, formalSize, thisPayCoinAmount);
+    updateStake(roleType, found, formalSize, thisPayCoinAmount);
 }
 
 function unVote(roleType, address){
@@ -450,11 +450,11 @@ function unVote(roleType, address){
 
     electInit();
     let candidates = roleType === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
-    let node       = candidates.find(function(x){ return x[0] === address; });
+    let found      = candidates.find(function(x){ return x[0] === address; });
 
-    assert(node !== undefined, address + ' is not validator candidate or KOL candidate.');
+    assert(found !== undefined, address + ' is not validator candidate or KOL candidate.');
     let formalSize = roleType === role.VALIDATOR ? cfg.validator_size : cfg.kol_size;
-    updateStake(roleType, node, formalSize, -amount);
+    updateStake(roleType, found, formalSize, -amount);
 }
 
 function abolitionProposal(proof){
