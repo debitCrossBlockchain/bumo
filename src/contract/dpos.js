@@ -154,12 +154,16 @@ function proposalKey(operate, content, address){
     return operate + '_' + content + '_' + address;
 }
 
-function applicationProposal(){
+function applicationProposal(node){
     let proposal = {
         'pledge':thisPayCoinAmount,
         'expiration':blockTimestamp + cfg.valid_period,
         'ballot':[]
     };
+
+    if(node !== undefined && addressCheck(node)){
+        proposal.node = node;
+    }
 
     return proposal;
 }
@@ -183,11 +187,21 @@ function checkPledge(roleType){
     }
 }
 
-function addCandidates(roleType, address, pledge, maxSize){
+function getNodeSet(validators){
+    let i = 0;
+    for(i = 0; i < validators.length; i += 1){
+        validators[i][0] = validators[i][2];
+        validators[i].splice(2, 1);
+    }
+
+    return validators;
+}
+
+function addCandidates(roleType, address, proposal, maxSize){
     let candidates = roleType === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
 	let com = -1;
 	if(candidates.length > 0) {
-    	com = int64Compare(pledge, candidates[candidates.length - 1][1]);
+    	com = int64Compare(proposal.pledge, candidates[candidates.length - 1][1]);
 	}
 
     if(candidates.length >= maxSize && com <= 0){
@@ -196,7 +210,12 @@ function addCandidates(roleType, address, pledge, maxSize){
 
     rewardDistribution();
 
-    let size = candidates.push([address, pledge]);
+    let addition = [address, proposal.pledge];
+    if(roleType === role.VALIDATOR){
+        addition.push(proposal.node);
+    }
+
+    let size = candidates.push(addition);
     let found = candidates[size - 1];
 
     candidates.sort(doubleSort);
@@ -206,6 +225,7 @@ function addCandidates(roleType, address, pledge, maxSize){
 
     if(roleType === role.VALIDATOR && candidates.indexOf(found) < cfg.validator_size){
         let validators = candidates.slice(0, cfg.validator_size);
+        validators     = getNodeSet(validators);
         setValidators(JSON.stringify(validators));
     }
 
@@ -228,6 +248,7 @@ function deleteCandidate(roleType, address){
 
     if(roleType === role.VALIDATOR && index < cfg.validator_size){
         let validators = candidates.slice(0, cfg.validator_size);
+        validators     = getNodeSet(validators);
         setValidators(JSON.stringify(validators));
     }
 
@@ -249,6 +270,7 @@ function updateStake(roleType, candidate, formalSize, amount){
 
         if(roleType === role.VALIDATOR){
             let validators = candidates.slice(0, cfg.validator_size);
+            validators     = getNodeSet(validators);
             setValidators(JSON.stringify(validators));
         }
     }
@@ -261,7 +283,7 @@ function roleValid(roleType){
     return roleType === role.COMMITTEE || roleType === role.VALIDATOR || roleType === role.KOL;
 }
 
-function apply(roleType){
+function apply(roleType, node){
     assert(roleValid(roleType), 'Unknow role type.');
 
     let key      = proposalKey(motion.APPLY, roleType, sender);
@@ -269,7 +291,7 @@ function apply(roleType){
     if(proposal === false){
         /* first apply */
         checkPledge(roleType);
-        proposal = applicationProposal();
+        proposal = applicationProposal(node);
         return saveObj(key, proposal);
     }
 
@@ -291,7 +313,7 @@ function apply(roleType){
 
     if(found === undefined){
         let maxSize = roleType === role.VALIDATOR ? cfg.validator_candidate_size : cfg.kol_candidate_size;
-        addCandidates(roleType, sender, proposal.pledge, maxSize);
+        addCandidates(roleType, sender, proposal, maxSize);
     }
     else{
         let formalSize = roleType === role.VALIDATOR ? cfg.validator_size : cfg.kol_size;
@@ -345,7 +367,7 @@ function passIn(committee, key, proposal, item, address){
     else{
         electInit();
         let maxSize = item === role.VALIDATOR ? cfg.validator_candidate_size : cfg.kol_candidate_size;
-        addCandidates(item, address, proposal.pledge, maxSize);
+        addCandidates(item, address, proposal, maxSize);
     }
 }
 
@@ -691,6 +713,7 @@ function initialization(params){
     let j = 0;
     for(j = 0; j < validators.length; j += 1){
         saveObj(proposalKey(motion.APPLY, role.VALIDATOR, validators[j][0]), foundingProposal());
+        validators[j][2] = validators[j][0];
     }
     saveObj(validatorCandsKey, validators.sort(doubleSort));
 
