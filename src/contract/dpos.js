@@ -488,7 +488,7 @@ function unVote(roleType, address){
 
     assert(found !== undefined, address + ' is not validator candidate or KOL candidate.');
     let formalSize = roleType === role.VALIDATOR ? cfg.validator_size : cfg.kol_size;
-    updateStake(roleType, found, formalSize, -amount);
+    updateStake(roleType, found, formalSize, '-' + amount);
 }
 
 function abolitionProposal(proof){
@@ -747,27 +747,33 @@ function main(input_str){
     prepare();
 
     if(input.method === 'apply'){
-        apply(params.role);
+        apply(params.role, params.node);
     }
     else if(input.method === 'approve'){
+        assert(thisPayCoinAmount === '0', 'thisPayCoinAmount != 0.');
 	    approve(params.operate, params.item, params.address);
     }
     else if(input.method === 'vote'){
 	    vote(params.role, params.address);
     }
     else if(input.method === 'unVote'){
+        assert(thisPayCoinAmount === '0', 'thisPayCoinAmount != 0.');
 	    unVote(params.role, params.address, params.amount);
     }
     else if(input.method === 'abolish'){
+        assert(thisPayCoinAmount === '0', 'thisPayCoinAmount != 0.');
     	abolish(params.role, params.address, params.proof);
     }
     else if(input.method === 'withdraw'){
+        assert(thisPayCoinAmount === '0', 'thisPayCoinAmount != 0.');
     	withdraw(params.role);
     }
     else if(input.method === 'extract'){
+        assert(thisPayCoinAmount === '0', 'thisPayCoinAmount != 0.');
     	extract();
     }
     else if(input.method === 'configure'){
+        assert(thisPayCoinAmount === '0', 'thisPayCoinAmount != 0.');
     	configure(params.item, params.value);
     }
     else{
