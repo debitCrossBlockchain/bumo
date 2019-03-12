@@ -488,7 +488,7 @@ function unVote(roleType, address){
 
     assert(found !== undefined, address + ' is not validator candidate or KOL candidate.');
     let formalSize = roleType === role.VALIDATOR ? cfg.validator_size : cfg.kol_size;
-    updateStake(roleType, found, formalSize, '-' + amount);
+    updateStake(roleType, found, formalSize, -amount);
 }
 
 function abolitionProposal(proof){
@@ -559,6 +559,18 @@ function withdraw(roleType){
     let withdrawKey = proposalKey(motion.WITHDRAW, roleType, sender);
     let expiration  = storageLoad(withdrawKey);
     if(expiration === false){
+        if(roleType === role.COMMITTEE){
+            let committee = loadObj(committeeKey);
+            assert(committee !== false, 'Failed to get ' + committeeKey + ' from metadata.');
+
+            committee.splice(committee.indexOf(sender), 1);
+            saveObj(committeeKey, committee);
+        }
+        else{
+            electInit();
+            deleteCandidate(roleType, sender);
+        }
+
         return storageStore(withdrawKey, String(blockTimestamp + cfg.valid_period));
     }
 	
@@ -569,25 +581,13 @@ function withdraw(roleType){
     let applicant    = loadObj(applicantKey);
     assert(applicant !== false, 'failed to get metadata: ' + applicantKey + '.');
 
-    if(roleType === role.COMMITTEE){
-        let committee = loadObj(committeeKey);
-        assert(committee !== false, 'Failed to get ' + committeeKey + ' from metadata.');
-
-        committee.splice(committee.indexOf(sender), 1);
-        saveObj(committeeKey, committee);
+    if(elect.distribution[sender] === undefined){
+        elect.distribution[sender] = applicant.pledge;
     }
     else{
-        electInit();
-        deleteCandidate(roleType, sender);
-
-        if(elect.distribution[sender] === undefined){
-            elect.distribution[sender] = applicant.pledge;
-        }
-        else{
-            elect.distribution[sender] = int64Add(elect.distribution[sender], applicant.pledge);
-        }
-        distributed = true;
+        elect.distribution[sender] = int64Add(elect.distribution[sender], applicant.pledge);
     }
+    distributed = true;
 
     storageDel(applicantKey);
     storageDel(withdrawKey);
@@ -702,7 +702,7 @@ function initialization(params){
         'validator_min_pledge'     : 500000000000000,/* 500 0000 0000 0000 */
         'pass_rate'                : 0.5,
         'valid_period'             : 1296000000000,  /* 15 * 24 * 60 * 60 * 1000 * 1000 */
-        'vote_unit'                : 100000000,      /* 1 0000 0000 */
+        'vote_unit'                : 1000000000,     /* 10 0000 0000 */
         'reward_validator_share'   : 6,              /* validators 60%, kols 40% */
         'reward_approved_share'    : 9,              /* approved validators or kols 90%, candidates 10% */
         'fee_allocation_share'     : '70:20:10',     /* DAPP_70% : blockReward_20% : creator_10% */
