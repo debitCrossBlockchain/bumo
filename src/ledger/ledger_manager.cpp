@@ -939,7 +939,6 @@ namespace bumo {
 	}
 
 	Result LedgerManager::DoTransaction(protocol::TransactionEnv& env, LedgerContext *ledger_context) {
-
 		Result result;
 		TransactionFrm::pointer top_tx = ledger_context->GetTopTx();
 		std::shared_ptr<AccountFrm> source_account;
@@ -951,8 +950,7 @@ namespace bumo {
 		TransactionFrm::pointer new_tx = std::make_shared<bumo::TransactionFrm >(env);
 		TransactionFrm::pointer bottom_tx = ledger_context->GetBottomTx();
 		do {
-
-			if (ledger_context->transaction_stack_.size() > General::CONTRACT_MAX_RECURSIVE_DEPTH) {
+			if (!CheckContractDepthSafe(ledger_context->transaction_stack_.size())) {
 				new_tx->result_.set_code(protocol::ERRCODE_CONTRACT_TOO_MANY_RECURSION);
 				new_tx->result_.set_desc("Too many recursion.");
 				//Add byte fee
@@ -963,7 +961,7 @@ namespace bumo {
 
 			ledger_context->transaction_stack_.push_back(new_tx);
 			new_tx->NonceIncrease(ledger_context->closing_ledger_.get(), top_tx->environment_);
-			if (new_tx->ValidForParameter(true)) {
+			if (new_tx->ValidForParameter(ledger_context->transaction_stack_.size())) {
 				std::shared_ptr<Environment> cacheEnv = top_tx->environment_->NewStackFrameEnv();
 				new_tx->Apply(ledger_context->closing_ledger_.get(), cacheEnv, true);
 			}
@@ -1020,5 +1018,19 @@ namespace bumo {
 
 		result = new_tx->GetResult();
 		return result;
+	}
+
+	bool LedgerManager::CheckContractDepthSafe(uint32_t tx_size){
+		//New version check in ContractManager::Execute and Query.
+		if (CHECK_VERSION_GT_1001){
+			return true;
+		}
+
+		//Old version max depth 4, the 4th can't write or call contract, throw exception. tx_size donot include current tx.
+		if (tx_size < General::CONTRACT_MAX_RECURSIVE_DEPTH) {
+			return true;
+		}
+
+		return false;
 	}
 }

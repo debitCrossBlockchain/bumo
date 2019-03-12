@@ -45,7 +45,7 @@ namespace bumo{
 		Result GetResult() const;
 		int64_t GetOpeFee() const;
 
-		static Result CheckValid(const protocol::Operation& ope, const std::string &source_address);
+		static Result CheckValid(const protocol::Operation& ope, const std::string &source_address, uint32_t ldcontext_stack_size);
 	protected:
 		void CreateAccount(std::shared_ptr<Environment> environment);
 		void IssueAsset(std::shared_ptr<Environment> environment);
@@ -59,7 +59,7 @@ namespace bumo{
 		void Exit(std::shared_ptr<Environment> environment);
 
 	private:
-		static Result CheckCreateAccountGt1000(const protocol::OperationCreateAccount& create_account);
+		static Result CheckCreateAccountGt1000(const protocol::OperationCreateAccount& create_account, uint32_t ldcontext_stack_size);
 		static Result CheckSetPrivilege(const protocol::OperationSetPrivilege &set_privilege, const std::string &source_address);
 		void ChangeCreateContractAmount(const int64_t &init_amount, int64_t &changed_amount);
 	};

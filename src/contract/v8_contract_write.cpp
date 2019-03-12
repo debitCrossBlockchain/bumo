@@ -211,11 +211,6 @@ namespace bumo {
 				break;
 			}
 
-			if (ledger_context->transaction_stack_.size() > General::CONTRACT_MAX_RECURSIVE_DEPTH) {
-				error_desc = "Too many recursion";
-				break;
-			}
-
 			ledger_context->transaction_stack_.push_back(ledger_context->GetTopTx());
 
 			ContractParameter parameter = v8_contract->GetParameter();

@@ -445,7 +445,7 @@ namespace bumo {
 					return false;
 				}
 
-				result = ContractManager::Instance().SourceCodeCheck(Contract::TYPE_V8, code);
+				result = ContractManager::Instance().SourceCodeCheck(Contract::TYPE_V8, code, ledger_context->transaction_stack_.size());
 				if (result.code() == protocol::ERRCODE_SUCCESS) {
 					break;
 				}

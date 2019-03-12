@@ -34,11 +34,22 @@ namespace bumo{
 		return true;
 	}
 
-	Result ContractManager::SourceCodeCheck(int32_t type, const std::string &code) {
+	Result ContractManager::SourceCodeCheck(int32_t type, const std::string &code, uint32_t ldcontext_stack_size) {
 		ContractParameter parameter;
 		parameter.code_ = code;
 		Contract *contract = NULL;
 		Result tmp_result;
+
+		//"VERSION CHECKING condition" may be removed after version 1002
+		if (CHECK_VERSION_GT_1001) {
+			//New version max depth 4, the 4th can't call contract, ldcontext_stack_size include current tx.
+			if (ldcontext_stack_size > General::CONTRACT_MAX_RECURSIVE_DEPTH) {
+				tmp_result.set_code(protocol::ERRCODE_CONTRACT_TOO_MANY_RECURSION);
+				tmp_result.set_desc("Too many recursion.");
+				return tmp_result;
+			}
+		}
+
 		if (type == Contract::TYPE_V8) {
 			contract = new V8Contract(false, parameter);
 		}
@@ -58,6 +69,18 @@ namespace bumo{
 	Result ContractManager::Execute(int32_t type, const ContractParameter &paramter) {
 		Result ret;
 		do {
+			//"VERSION CHECKING condition" may be removed after version 1002
+			if (CHECK_VERSION_GT_1001) {
+				//New version max depth 4, the 4th can't call contract, tx_size include current tx.
+				uint32_t tx_size = paramter.ledger_context_->transaction_stack_.size();
+				if (tx_size > General::CONTRACT_MAX_RECURSIVE_DEPTH) {
+					ret.set_code(protocol::ERRCODE_CONTRACT_TOO_MANY_RECURSION);
+					ret.set_desc("Too many recursion.");
+					break;
+				}
+			}
+			//--------end-----------
+
 			Contract *contract;
 			if (type == Contract::TYPE_V8) {
 				utils::MutexGuard guard(contracts_lock_);
@@ -90,6 +113,17 @@ namespace bumo{
 
 	bool ContractManager::Query(int32_t type, const ContractParameter &paramter, Json::Value &result) {
 		do {
+			//"VERSION CHECKING condition" may be removed after version 1002
+			if (CHECK_VERSION_GT_1001) {
+				//New version max depth 4, the 4th can't call contract, tx_size include current tx.
+				uint32_t tx_size = paramter.ledger_context_->transaction_stack_.size();
+				if (tx_size > General::CONTRACT_MAX_RECURSIVE_DEPTH) {
+					LOG_TRACE("Too many recursion.");
+					break;
+				}
+			}
+			//--------end-----------
+
 			Contract *contract;
 			if (type == Contract::TYPE_V8) {
 				utils::MutexGuard guard(contracts_lock_);

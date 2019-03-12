@@ -469,7 +469,7 @@ namespace bumo {
 		return true;
 	}
 
-	bool TransactionFrm::ValidForParameter(bool contract_trigger) {
+	bool TransactionFrm::ValidForParameter(uint32_t ldcontext_stack_size) {
 		const protocol::Transaction &tran = transaction_env_.transaction();
 		const LedgerConfigure &ledger_config = Configure::Instance().ledger_configure_;
 		if (transaction_env_.ByteSize() >= General::TRANSACTION_LIMIT_SIZE) {
@@ -529,8 +529,8 @@ namespace bumo {
 			LOG_ERROR("%s", result_.desc().c_str());
 			return false;
 		} 
-
-		if (!contract_trigger){
+		bool first_tx = (ldcontext_stack_size == 0) ? true : false;
+		if (first_tx){
 			if (tran.fee_limit() < 0){
 				result_.set_code(protocol::ERRCODE_INVALID_PARAMETER);
 				result_.set_desc(utils::String::Format("Transaction fee limit(" FMT_I64 ") < 0", tran.fee_limit()));
@@ -573,7 +573,7 @@ namespace bumo {
 				}
 			}
 
-			result_ = OperationFrm::CheckValid(ope, ope_source);
+			result_ = OperationFrm::CheckValid(ope, ope_source, ldcontext_stack_size);
 
 			if (result_.code() != protocol::ERRCODE_SUCCESS) {
 				check_valid = false;

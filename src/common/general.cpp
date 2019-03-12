@@ -33,7 +33,7 @@ namespace bumo {
 	const uint32_t General::LEDGER_VERSION = 1002;
 	const uint32_t General::LEDGER_MIN_VERSION = 1000;
 	const uint32_t General::MONITOR_VERSION = 1000;
-	const char *General::BUMO_VERSION = "1.1.0";
+	const char *General::BUMO_VERSION = "1.2.0";
 
 #ifdef WIN32
 	const char *General::DEFAULT_KEYVALUE_DB_PATH = "data/keyvalue.db";
