@@ -389,7 +389,9 @@ function passIn(committee, key, proposal, item, address){
 
 function passOut(committee, key, item, address){
     storageDel(key);
+
     if(item === role.COMMITTEE){
+        assert(committee.includes(address), 'There is no '+ address + ' in the committee');
         committee.splice(committee.indexOf(address), 1);
         saveObj(committeeKey, committee);
     }
@@ -564,26 +566,25 @@ function abolish(roleType, address, proof){
 function withdraw(roleType){
     assert(roleValid(roleType), 'Unknow role type.');
 
+    if(roleType === role.COMMITTEE){
+        let committee = loadObj(committeeKey);
+        assert(committee !== false, 'Failed to get ' + committeeKey + ' from metadata.');
+        assert(committee.includes(sender), 'There is no '+ sender + ' in the committee');
+
+        committee.splice(committee.indexOf(sender), 1);
+        return saveObj(committeeKey, committee);
+    }
+
     let withdrawKey = proposalKey(motion.WITHDRAW, roleType, sender);
-    let expiration  = storageLoad(withdrawKey);
-    if(expiration === false){
-        if(roleType === role.COMMITTEE){
-            let committee = loadObj(committeeKey);
-            assert(committee !== false, 'Failed to get ' + committeeKey + ' from metadata.');
-
-            committee.splice(committee.indexOf(sender), 1);
-            saveObj(committeeKey, committee);
-        }
-        else{
-            electInit();
-            deleteCandidate(roleType, sender);
-        }
-
-        return storageStore(withdrawKey, String(blockTimestamp + cfg.valid_period));
+    let withdrawInfo = storageLoad(withdrawKey);
+    if(withdrawInfo === false){
+        electInit();
+        deleteCandidate(roleType, sender);
+        return saveObj(withdrawKey, {'expiration': blockTimestamp + cfg.valid_period});
     }
 	
-	log('blockTimestamp:' + blockTimestamp + ' , expiration:' + expiration);
-    assert(int64Compare(blockTimestamp, expiration) >= 0, 'Buffer period is not over.');
+	log('blockTimestamp:' + blockTimestamp + ' , expiration:' + withdrawInfo.expiration);
+    assert(blockTimestamp >= withdrawInfo.expiration, 'Buffer period is not over.');
 
     let applicantKey = proposalKey(motion.APPLY, roleType, sender);
     let applicant    = loadObj(applicantKey);
@@ -637,7 +638,7 @@ function clean(operate, item, address){
     let key = proposalKey(operate, item, address);
     let proposal = loadObj(key);
     assert(proposal !== false, 'failed to get metadata: ' + key + '.');
-    assert(blockTimestamp >= proposal.expiration && proposal.passTime !== undefined, 'The proposal is still useful.');
+    assert(blockTimestamp >= proposal.expiration && proposal.passTime === undefined, 'The proposal is still useful.');
 
     storageDel(key);
     if(operate === motion.APPLY && proposal.pledge > 0){
