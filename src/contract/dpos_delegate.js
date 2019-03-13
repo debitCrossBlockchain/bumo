@@ -1,6 +1,6 @@
 'use strict';
 
-const configKey             = 'dpos_config';
+const configKey = 'dpos_config';
 
 function loadObj(key)
 {

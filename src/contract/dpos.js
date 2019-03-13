@@ -401,6 +401,7 @@ function operateValid(operate){
 function approve(operate, item, address){
     assert(operateValid(operate), 'Unknown approve operation');
     assert(roleValid(item) || cfg[item] !== undefined, 'Unknown approve item.');
+    assert(addressCheck(address), address + ' is not valid adress.');
 
     let committee = loadObj(committeeKey);
     assert(committee !== false, 'Failed to get ' + committeeKey + ' from metadata.');
@@ -540,6 +541,7 @@ function reportPermission(roleType){
 function abolish(roleType, address, proof){
     assert(addressCheck(address), address + ' is not valid adress.');
     assert(reportPermission(roleType), sender + ' has no permission to report.');
+    assert(typeof proof === 'string', 'Args type error, proof must be a string.');
 
     let key      = proposalKey(motion.ABOLISH, roleType, address);
     let proposal = loadObj(key);
@@ -758,7 +760,7 @@ function main(input_str){
     }
     else if(input.method === 'unVote'){
         assert(thisPayCoinAmount === '0', 'thisPayCoinAmount != 0.');
-	    unVote(params.role, params.address, params.amount);
+	    unVote(params.role, params.address);
     }
     else if(input.method === 'abolish'){
         assert(thisPayCoinAmount === '0', 'thisPayCoinAmount != 0.');
