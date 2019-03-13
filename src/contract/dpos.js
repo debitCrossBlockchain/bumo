@@ -293,28 +293,34 @@ function apply(roleType, node){
 
     let key      = proposalKey(motion.APPLY, roleType, sender);
     let proposal = loadObj(key);
-    if(proposal === false){
-        /* first apply */
-        checkPledge(roleType);
-        if(roleType === role.VALIDATOR){
-            proposal = applicationProposal(node || sender);
-        }
-        else{
-            proposal = applicationProposal();
-        }
-        return saveObj(key, proposal);
-    }
+    assert(proposal === false, sender + ' has applied for a ' + roleType);
 
+    checkPledge(roleType);
+    if(roleType === role.VALIDATOR){
+        proposal = applicationProposal(node || sender);
+    }
+    else{
+        proposal = applicationProposal();
+    }
+    return saveObj(key, proposal);
+}
+
+function append(roleType){
+    let key      = proposalKey(motion.APPLY, roleType, sender);
+    let proposal = loadObj(key);
+
+    assert(proposal !== false, sender + ' has not yet applied to become ' + roleType);
+    assert(proposal.expiration < blockTimestamp || proposal.passTime !== undefined, 'Application has expired.');
     assert(int64Mod(thisPayCoinAmount, cfg.vote_unit) === '0', 'The number of additional pledge must be an integer multiple of ' + cfg.vote_unit);
+
     proposal.pledge = int64Add(proposal.pledge, thisPayCoinAmount);
+    saveObj(key, proposal);
     if(proposal.passTime === undefined){ 
         /* Additional deposit, not yet approved */
-        proposal.expiration = blockTimestamp + cfg.valid_period;
-        return saveObj(key, proposal);
+        return true;
     }
 
     /* Approved, additional deposit */
-    saveObj(key, proposal);
     assert(roleType === role.VALIDATOR || roleType === role.KOL, 'Only the validator and KOL may add a deposit.');
 
     electInit();
@@ -623,6 +629,24 @@ function configure(item, value){
     return saveObj(key, proposal);
 }
 
+function clean(operate, item, address){
+    assert(operateValid(operate), 'Unknown approve operation');
+    assert(roleValid(item) || cfg[item] !== undefined, 'Unknown approve item.');
+    assert(addressCheck(address), address + ' is not valid adress.');
+
+    let key = proposalKey(operate, item, address);
+    let proposal = loadObj(key);
+    assert(proposal !== false, 'failed to get metadata: ' + key + '.');
+    assert(blockTimestamp >= proposal.expiration && proposal.passTime !== undefined, 'The proposal is still useful.');
+
+    storageDel(key);
+    if(operate === motion.APPLY && proposal.pledge > 0){
+        transferCoin(address, proposal.pledge);
+    }
+
+    return true;
+}
+
 function query(input_str){
     let input  = JSON.parse(input_str);
     let params = input.params;
@@ -777,6 +801,10 @@ function main(input_str){
     else if(input.method === 'configure'){
         assert(thisPayCoinAmount === '0', 'thisPayCoinAmount != 0.');
     	configure(params.item, params.value);
+    }
+    else if(input.method === 'clean'){
+        assert(thisPayCoinAmount === '0', 'thisPayCoinAmount != 0.');
+	    clean(params.operate, params.item, params.address);
     }
     else{
         throw '<undidentified operation type>';
