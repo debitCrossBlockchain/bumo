@@ -97,7 +97,7 @@ BU Firework超级节点竞选主要由三部分构成：社区治理规则，竞
 
 - 架构图如下
 
-![架构图1](arch-1.png "BU Firework：DPOS + BFT")
+![架构图1](image/consensus_architecture.png "BU Firework：DPOS + BFT")
 
 - BU Firework共识的特点：
 
@@ -167,7 +167,7 @@ Bumo社区治理由初始选定的委员会组成，后续可根据社区实际�
 
 ### 竞选流程
 
-![竞选流程](election-flow.png "竞选流程")
+![竞选流程](image/election-flow.png "竞选流程")
 
 ### 退出和作恶惩罚
 
@@ -209,7 +209,7 @@ Bumo社区治理由初始选定的委员会组成，后续可根据社区实际�
 
 - 分配模型如下图：
 
-![激励分配](incentive-model.png "激励分配")
+![激励分配](image/incentive-model.png "激励分配")
 
 ### 收益
 
