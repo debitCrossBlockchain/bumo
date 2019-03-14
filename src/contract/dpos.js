@@ -630,6 +630,34 @@ function configure(item, value){
     return saveObj(key, proposal);
 }
 
+function switchNode(address){
+    assert(addressCheck(address), address + ' is not valid adress.');
+
+    let key      = proposalKey(motion.APPLY, role.VALIDATOR, sender);
+    let proposal = loadObj(key);
+    assert(proposal !== false, sender + ' has not applied to become a validator.');
+
+    proposal.node = address;
+    saveObj(key, proposal);
+
+    let candidates = loadObj(validatorCandsKey);
+    assert(candidates !== false, 'Failed to get validator candidates.');
+
+    let found = candidates.find(function(x){ return x[0] === sender; });
+    if(found === undefined){
+        return false; 
+    }
+    
+    found[2] = address;
+    saveObj(validatorCandsKey, candidates);
+
+    if(candidates.indexOf(found) < cfg.validator_size){
+        let validators = candidates.slice(0, cfg.validator_size);
+        validators     = getNodeSet(validators);
+        setValidators(JSON.stringify(validators));
+    }
+}
+
 function clean(operate, item, address){
     assert(operateValid(operate), 'Unknown approve operation');
     assert(roleValid(item) || cfg[item] !== undefined, 'Unknown approve item.');
@@ -805,6 +833,10 @@ function main(input_str){
     else if(input.method === 'configure'){
         assert(thisPayCoinAmount === '0', 'thisPayCoinAmount != 0.');
     	configure(params.item, params.value);
+    }
+    else if(input.method === 'switchNode'){
+        assert(thisPayCoinAmount === '0', 'thisPayCoinAmount != 0.');
+	    switchNode(params.address);
     }
     else if(input.method === 'clean'){
         assert(thisPayCoinAmount === '0', 'thisPayCoinAmount != 0.');
