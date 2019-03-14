@@ -804,42 +804,41 @@ function main(input_str){
 
     prepare();
 
+    if(input.method !== 'apply' && input.method !== 'append' && input.method !== 'vote'){
+        assert(thisPayCoinAmount === '0', 'thisPayCoinAmount != 0.');
+    }
+
     if(input.method === 'apply'){
         apply(params.role, params.node);
     }
+    else if(input.method === 'append'){
+        append(params.role);
+    }
     else if(input.method === 'approve'){
-        assert(thisPayCoinAmount === '0', 'thisPayCoinAmount != 0.');
 	    approve(params.operate, params.item, params.address);
     }
     else if(input.method === 'vote'){
 	    vote(params.role, params.address);
     }
     else if(input.method === 'unVote'){
-        assert(thisPayCoinAmount === '0', 'thisPayCoinAmount != 0.');
 	    unVote(params.role, params.address);
     }
     else if(input.method === 'abolish'){
-        assert(thisPayCoinAmount === '0', 'thisPayCoinAmount != 0.');
     	abolish(params.role, params.address, params.proof);
     }
     else if(input.method === 'withdraw'){
-        assert(thisPayCoinAmount === '0', 'thisPayCoinAmount != 0.');
     	withdraw(params.role);
     }
     else if(input.method === 'extract'){
-        assert(thisPayCoinAmount === '0', 'thisPayCoinAmount != 0.');
     	extract();
     }
     else if(input.method === 'configure'){
-        assert(thisPayCoinAmount === '0', 'thisPayCoinAmount != 0.');
     	configure(params.item, params.value);
     }
     else if(input.method === 'switchNode'){
-        assert(thisPayCoinAmount === '0', 'thisPayCoinAmount != 0.');
 	    switchNode(params.address);
     }
     else if(input.method === 'clean'){
-        assert(thisPayCoinAmount === '0', 'thisPayCoinAmount != 0.');
 	    clean(params.operate, params.item, params.address);
     }
     else{
