@@ -706,7 +706,7 @@ function prepare(){
     saveObj(stakeKey, elect.allStake);
 }
 
-function foundingProposal(){
+function foundingProposal(node){
     let proposal = {
         'pledge': '0',
         'expiration':blockTimestamp,
@@ -714,8 +714,11 @@ function foundingProposal(){
         'ballot':['foundings']
     };
 
-    return proposal;
+    if(node !== undefined && addressCheck(node)){
+        proposal.node = node;
+    }
 
+    return proposal;
 }
 
 function initialization(params){
@@ -751,7 +754,7 @@ function initialization(params){
 
     let j = 0;
     for(j = 0; j < validators.length; j += 1){
-        saveObj(proposalKey(motion.APPLY, role.VALIDATOR, validators[j][0]), foundingProposal());
+        saveObj(proposalKey(motion.APPLY, role.VALIDATOR, validators[j][0]), foundingProposal(validators[j][0]));
         validators[j][2] = validators[j][0];
     }
     saveObj(validatorCandsKey, validators.sort(doubleSort));
