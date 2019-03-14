@@ -118,24 +118,30 @@ function rewardDistribution(){
         return;
     }
 
-    let left = reward % 10;
+    let centi = int64Div(reward, 100);
+    let kolsReward = int64Mul(centi, cfg.reward_allocation_share[2]);
+    let kolCandsReward = int64Mul(centi, cfg.reward_allocation_share[3]);
+    let validatorsReward = int64Mul(centi, cfg.reward_allocation_share[0]);
+    let validatorCandsReward = int64Mul(centi, cfg.reward_allocation_share[1]);
+
     if(elect.kolCands.length !== 0 ){
-        let kolAllReward = (reward / 10) * (10 - cfg.reward_validator_share);
-        distribute(elect.kols, (kolAllReward / 10) * cfg.reward_approved_share);
-        distribute(elect.kolCands, (kolAllReward / 10) * (10 - cfg.reward_approved_share));
-        left += kolAllReward % 10;
+        distribute(elect.kols, kolsReward);
+        distribute(elect.kolCands, kolCandsReward);
+    }
+    else{
+        validatorsReward = int64Add(validatorsReward, kolsReward);
+        validatorCandsReward = int64Add(validatorCandsReward, kolCandsReward);
     }
 
-    let validatorAllReward = elect.kolCands.length === 0 ? reward : ((reward / 10) * cfg.reward_validator_share);
-    distribute(elect.validators, (validatorAllReward / 10) * cfg.reward_approved_share);
-    distribute(elect.validatorCands, (validatorAllReward / 10) * (10 - cfg.reward_approved_share));
-    left += validatorAllReward % 10;
+    distribute(elect.validators, validatorsReward);
+    distribute(elect.validatorCands, validatorCandsReward);
 
+    let left = int64Mod(reward, 100);
     elect.distribution[elect.validators[0][0]] = int64Add(elect.distribution[elect.validators[0][0]], left);
+    distributed = true;
 
     elect.allStake = elect.balance;
     saveObj(stakeKey, elect.allStake);
-    distributed = true;
 }
 
 function extract(){
@@ -761,8 +767,7 @@ function initialization(params){
         'pass_rate'                : 0.5,
         'valid_period'             : 1296000000000,  /* 15 * 24 * 60 * 60 * 1000 * 1000 */
         'vote_unit'                : 1000000000,     /* 10 0000 0000 */
-        'reward_validator_share'   : 6,              /* validators 60%, kols 40% */
-        'reward_approved_share'    : 9,              /* approved validators or kols 90%, candidates 10% */
+        'reward_allocation_share'  : [50,6,40,4],    /* validators 50%, validator candidates 6%, kols 40%, kol candidates 4% */
         'fee_allocation_share'     : '70:20:10',     /* DAPP_70% : blockReward_20% : creator_10% */
         'logic_contract'           : params.logic_contract
     };
