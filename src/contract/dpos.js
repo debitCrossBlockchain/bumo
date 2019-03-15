@@ -206,9 +206,11 @@ function getNodeSet(validators){
 
 function addCandidates(roleType, address, proposal, maxSize){
     let candidates = roleType === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
+    let stake = int64Mul(proposal.pledge, 2);
 	let com = -1;
+
 	if(candidates.length > 0) {
-    	com = int64Compare(proposal.pledge, candidates[candidates.length - 1][1]);
+    	com = int64Compare(stake, candidates[candidates.length - 1][1]);
 	}
 
     if(candidates.length >= maxSize && com <= 0){
@@ -217,7 +219,7 @@ function addCandidates(roleType, address, proposal, maxSize){
 
     rewardDistribution();
 
-    let addition = [address, proposal.pledge];
+    let addition = [address, stake];
     if(roleType === role.VALIDATOR){
         addition.push(proposal.node);
     }
@@ -335,7 +337,8 @@ function append(roleType){
     }
     else{
         let formalSize = roleType === role.VALIDATOR ? cfg.validator_size : cfg.kol_size;
-        updateStake(roleType, found, formalSize, thisPayCoinAmount);
+        let stake = int64Mul(thisPayCoinAmount, 2);
+        updateStake(roleType, found, formalSize, stake);
     }
 }
 
