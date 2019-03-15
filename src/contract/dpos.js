@@ -119,22 +119,18 @@ function rewardDistribution(){
     }
 
     let centi = int64Div(reward, 100);
-    let kolsReward = int64Mul(centi, cfg.reward_allocation_share[2]);
-    let kolCandsReward = int64Mul(centi, cfg.reward_allocation_share[3]);
-    let validatorsReward = int64Mul(centi, cfg.reward_allocation_share[0]);
-    let validatorCandsReward = int64Mul(centi, cfg.reward_allocation_share[1]);
+    let rValForm = int64Mul(centi, cfg.reward_allocation_share[0]);
+    let rValCand = int64Mul(centi, cfg.reward_allocation_share[1]);
+    let rKolForm = int64Mul(centi, cfg.reward_allocation_share[2]);
+    let rKolCand = int64Mul(centi, cfg.reward_allocation_share[3]);
 
-    if(elect.kolCands.length !== 0 ){
-        distribute(elect.kols, kolsReward);
-        distribute(elect.kolCands, kolCandsReward);
-    }
-    else{
-        validatorsReward = int64Add(validatorsReward, kolsReward);
-        validatorCandsReward = int64Add(validatorCandsReward, kolCandsReward);
-    }
+    let kolCandidates = elect.kolCands.slice(cfg.kol_size);
+    let valCandidates = elect.validatorCands.slice(cfg.validator_size);
 
-    distribute(elect.validators, validatorsReward);
-    distribute(elect.validatorCands, validatorCandsReward);
+    rKolForm = distribute(kolCandidates, rKolCand) ? rKolForm : int64Add(rKolForm, rKolCand);
+    rValForm = distribute(elect.kols, rKolForm)    ? rValForm : int64Add(rValForm, rKolForm);
+    rValForm = distribute(valCandidates, rValCand) ? rValForm : int64Add(rValForm, rValCand);
+    distribute(elect.validators, rValForm);
 
     let left = int64Mod(reward, 100);
     elect.distribution[elect.validators[0][0]] = int64Add(elect.distribution[elect.validators[0][0]], left);
