@@ -14,6 +14,7 @@
   - [角色权职](#角色权职)
 - [验证者节点选举](#验证者节点选举)
   - [申请成为候选节点](#申请成为候选节点)
+  - [切换节点地址](#切换节点地址)
   - [为候选节点投票](#为候选节点投票)
   - [撤销投票](#撤销投票)
   - [候选节点退出](#候选节点退出)
@@ -37,6 +38,7 @@
     - [查询选举配置信息](#查询选举配置信息)
 - [社区激励](#社区激励)
   - [KOL申请](#KOL申请)
+  - [追加质押金](#追加质押金)
   - [KOL退出](#KOL退出)
   - [KOL投票和撤销投票](#KOL投票和撤销投票)
   - [查询KOL申请信息](#查询KOL申请信息)
@@ -44,6 +46,7 @@
   - [查询当前KOL集合信息](#查询当前KOL集合信息)
   - [查询候选KOL集合信息](#查询候选KOL集合信息)
   - [奖励和质押金提取](#奖励和质押金提取)
+  - [清理过期提案](#清理过期提案)
 
 <!-- /TOC -->
 
@@ -106,9 +109,8 @@ config = {
   'validator_min_pledge'     : 500000000000000,/* 500 0000 0000 0000 */
   'pass_rate'                : 0.5,
   'valid_period'             : 1296000000000,  /* 15 * 24 * 60 * 60 * 1000 * 1000 */
-  'vote_unit'                : 10000000000, /*100 00000 00000*/
-  'fee_allocation_share'     : '70:20:10',     /* DAPP_70% : blockReward_20% : creator_10% */
-  'reward_allocation_share'  : '50:40:10',      /* validator_50% : validatorCandidate_40% : kol_10% */
+  'vote_unit'                : 1000000000, /*10 00000 00000*/
+  'reward_allocation_share'  : [50,6,40,4],      /* validators 50%, validator candidates 6%, kol 10%, kol candidates 4% */
   'logic_contract'           : params.logic_contract
     };
 ```
@@ -124,9 +126,8 @@ config = {
 | validator_min_pledge        | 验证节点候选人最小质押金额  |500000000000000|
 | pass_rate                | 审核投票通过率。在有效审核期内，投票支持提案的委员的个数超过通过率，提案才会被执行。投票数 > (可投总数 * pass_rate) 则投票通过，例如，假设总共有4个节点，4 * 0.5 = 2, 投票数 > 2，那么至少要有3个投票才能通过。|0.5|
 | valid_period                | 有效期，单位为微秒，应用在投票有效期以及退出锁定期|1296000000000|
-|vote_unit                    |投票单元，每次投票、追加投票或竞选者追加质押金额必须为该值的整数倍。| 100 0000 0000|
-| fee_allocation_share        | 交易费用分配比例，70:20:10代表如果交易来自DAPP，则DAPP获得70%（否则该部分计入区块奖励block reward），20%置入区块奖励，10%分配给交易源账户的创建者。|"70:20:10"|
-| reward_allocation_share     |区块奖励的分配比例，50:40:10 代表验证节点集合平分区块奖励的 50%，验证节点的候选节点集合（包括验证节点集合）平分区块奖励的 40%，kol 集合平分区块奖励的 10%。|"50:40:10" |
+|vote_unit                    |投票单元，每次投票、追加投票或竞选者追加质押金额必须为该值的整数倍。| 10 0000 0000|
+| reward_allocation_share     |区块奖励的分配比例，[50,6,40,4] 代表验证节点集合平分区块奖励的 50%，验证节点的候选节点集合平分区块奖励的 6%，kol 集合平分区块奖励的 40%, 候选kol集合平分区块奖励的4%。|[50,6,40,4] |
 |logic_contract |dpos的逻辑合约地址| "${logic_address}"|
 
 ### 用户角色
@@ -164,6 +165,8 @@ motion = [
 |方法     |参数                          |说明 |
 | :----- | ---------------------------- | -------------- |
 |apply   |`role`、`node`                |申请接口，任意BuChain账户申请成为候选验证节点、候选KOL和委员会委员。`role`参数为申请的角色，参数值必须为[用户角色](#用户角色)章节中列出的值之一, `node`为物理节点地址，只有申请的角色为候选验证节点时，此参数才需要赋值。|
+|append  |`role`                       |追加质押金接口。候选节点或候选kol可以通过调用此接口追加质押金。`role`参数解释同上。|
+|switchNode|`address`                  |切换节点地址接口。验证节点或候选验证节点可以调用此接口切换出块的物理节点。`address`参数为新节点的地址。|
 |abolish |`role`、`address`、`proof`    |废止接口。某角色成员提案废止同角色集合内另一成员。`address`参数为被废止者地址；`proof`参数为废止原因；`role`参数解释同上。|
 |configure |`item`、`value`             |配置接口。委员会委员提案修改某项选举配置项的值。`item`参数为修改的配置项，参数值必须为[选举配置](#选举配置)章节列出的配置项之一；`value`参数为新配置值。|
 |approve   |`operate`、`item`、`address`|审核接口。委员会成员对某提案审核后投票。`operate`参数为提案的动作类型，参数值必须为[提案动作](#提案动作)章节中列出的值之一；`item`参数为提案的项目，参数值必须为[用户角色](#用户角色)章节或[选举配置](#选举配置)章节列出的值之一；`address`参数为被提案者地址，如果审核的配置修改提案，则为提案者地址。|
@@ -171,6 +174,7 @@ motion = [
 |unVote   |`role`、`address`            |撤销投票接口。已投票账户撤回选票。`role`参数和`address`参数解释同上。|
 |withdraw |`role`                       | 退出接口。候选验证节点、候选KOL或委员会委员退出自己所在集合。参数解释同上。|
 |extract  |无                           | 提现接口。验证节点、候选验证节点或KOL提现已分得的区块奖励收益。|
+|clean    |`operate`、`item`、`address`  |清理过期提案接口。任意账户可以调用此接口清理任意过期提案。`operate`参数为提案的动作类型，参数值必须为[提案动作](#提案动作)章节中列出的值之一；`item`参数为提案的项目，参数值必须为[用户角色](#用户角色)章节或[选举配置](#选举配置)章节列出的值之一；`address`参数为被提案者地址，如果审核的配置修改提案，则为提案者地址。|
 
 #### 查询接口
 
@@ -233,7 +237,6 @@ motion = [
 
 - 申请者向DPOS合约转移一笔 BU 作为押金（参见开发文档‘[转移BU资产](#转移bu资产)’），用户如果退出，该押金将被转移到区块奖励分配列表，用户可手动触发DPOS合约提现（参见[候选节点退出](#候选节点退出)）。
 - ‘转移货币’操作的 input 字段填入`{ "method" : "apply", "params":{"role":"validator", "node":"buQo8w52g2nQgxnfKWovUUEFQzMCTX5TRpZD"}}`,注意使用转义字符。
-- 候选节点可以多次质押，增加质押金额，提高自己的排名，追加额必须为[选举配置](#选举配置)中的`vote_unit`配置值的整数倍，否则追加操作将被拒绝。
 
 >例
 
@@ -258,7 +261,32 @@ motion = [
 
 申请成功后可以通过[验证节点查询](#验证节点查询)，查询候选节点信息。
 
-注意：申请成为候选节点的账户必须拥有节点，且节点地址和账户地址相同。
+### 切换节点地址
+
+验证节点的资金地址和节点地址是分开的，为了方便验证节点在线更新升级，验证节点或候选节点可以调用此接口修改节点地址。
+
+- 向DPOS合约转账 0 BU。
+- ‘转移货币’操作的 input 字段填入`{ "method" : "switchNode", "params" : {  "address" : "此处填入新节点地址"} }`，注意使用转义字符。
+
+>例
+
+```json
+  "payCoin" :
+  {
+    "dest_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
+    "amount" :10000000000000,
+    "input":
+    "{
+      \"method\":\"switchNode\",
+      \"params\":
+      {
+        \"node\":\"buQo8w52g2nQgxnfKWovUUEFQzMCTX5TRpZD\"
+      }
+    }"
+  }
+```
+
+- node 参数为新节点地址，用于代替当前执行出块任务的节点。
 
 ### 为候选节点投票
 
@@ -686,7 +714,7 @@ input 中的 address 字段填入指定的恶意节点地址。
 
 #### 选举配置结构
 
-- 选举配置中，部分配置为系统配置，区块链底层将会使用到，在更新时需要通过合约内置接口（setSystemCfg）设置到底层。目前只有费用分配比例（fee_allocation_share）为系统配置，区块链底层在分配交易费时将读取改配置。选举配置项参考：[选举配置](#选举配置)
+- 可调整的选举配置，如果在运营者发现配置值不合理，可以通过委员会提案和投票修改。
 
 #### 选举配置更新提案
 
@@ -740,7 +768,7 @@ input 中的 address 字段填入指定的恶意节点地址。
 {
   "result": {
       "type": "string",
-      "value": "{\"configuration\":{\"committee_size\":100,\"kol_size\":30,\"kol_candidate_size\":300,\"kol_min_pledge\":5000000000000,\"validator_size\":30,\"validator_candidate_size\":300,\"validator_min_pledge\":500000000000000,\"pass_rate\":0.5,\"valid_period\":30000000,\"fee_allocation_share\":\"70:20:10\",\"reward_allocation_share\":\"50:40:10\",\"logic_contract\":\"buQWBw4tMKhj1sPsGmsLmmzXLJUcEy1WjZ2p\"}}"
+      "value": "{\"configuration\":{\"committee_size\":100,\"kol_size\":30,\"kol_candidate_size\":300,\"kol_min_pledge\":5000000000000,\"validator_size\":30,\"validator_candidate_size\":300,\"validator_min_pledge\":500000000000000,\"pass_rate\":0.5,\"valid_period\":30000000,\"reward_allocation_share\":[50,6,40,4],\"logic_contract\":\"buQWBw4tMKhj1sPsGmsLmmzXLJUcEy1WjZ2p\"}}"
   }
 }
 ```
@@ -777,6 +805,31 @@ input 中的 address 字段填入指定的恶意节点地址。
 - role 参数为申请的角色，参数值必须为[用户角色](#用户角色)章节列出的值之一，此处为KOL。
 
 申请成功后可以通过[查询当前KOL集合信息](#查询当前KOL集合信息)接口，查询候选KOL信息。
+
+### 追加质押金
+候选节点或候选KOL可以追加质押金，提高自己的权益排名，追加额必须为[选举配置](#选举配置)中的`vote_unit`配置值的整数倍，否则追加操作将被拒绝。
+
+- ‘转移货币’操作的 input 字段填入`{ "method" : "append", "params":{"role":"validator"}}`,注意使用转义字符。
+
+>例
+
+```json
+  "payCoin" :
+  {
+    "dest_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
+    "amount" :10000000000000,
+    "input":
+    "{
+      \"method\":\"append\",
+      \"params\":
+      {
+        \"role\":\"kol\" 
+      }
+    }"
+  }
+```
+
+- role 参数为申请的角色，参数值必须为[用户角色](#用户角色)章节列出的值之一(committee不需要质押)，此处为验证节点角色。
 
 ### KOL退出
 
@@ -1037,4 +1090,28 @@ input 中的 address 字段填入指定的恶意节点地址。
     }
   }
 ]
+```
+
+### 清理过期提案
+
+对于所有类型的过期提案（包括验证节点、kol、委员会委员的申请和废止，以及所有类型的选举配置更新提案），任意用户可触发此接口清理该过期提案。
+- 向DPOS合约转账0BU。
+- ‘转移货币’操作的 input 字段填入 `{ "method":"clean", "params" : {"item": "此处填入提案项目", "address": "此处填入提案者或被提案者地址", "operate": "此处填入提案类型"} }`，注意使用转义字符。
+
+>例
+
+```json
+  "payCoin" :
+  {
+    "dest_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
+    "amount" :0,
+    "input":"{
+      \"method\":\"approve\",
+      \"params\" : {
+        \"item\":\"kol_min_pledge\",
+        \"address\": \"buQZoJk8bq6A1AtsmfRw3rYJ79eMHUyct9i2\"，
+        \"operate\": \"config\"
+      }
+    }"
+  }
 ```
