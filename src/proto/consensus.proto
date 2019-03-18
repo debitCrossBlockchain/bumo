@@ -116,8 +116,3 @@ message FeeConfig
 	int64 gas_price = 1;
 	int64 base_reserve = 2;
 }
-
-message ElectionConfig
-{
-	string fee_allocation_share = 1;
-}
