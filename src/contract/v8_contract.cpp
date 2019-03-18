@@ -73,7 +73,6 @@ namespace bumo {
 		origin.read_["getBlockHash"] = V8Contract::CallBackGetBlockHash;
 		origin.read_["contractQuery"] = V8Contract::CallBackContractQuery;
 		origin.read_["getValidators"] = V8Contract::CallBackGetValidators;
-		origin.read_["getSystemCfg"] = V8Contract::CallBackGetSystemCfg;
 		origin.read_[General::CHECK_TIME_FUNCTION] = V8Contract::InternalCheckTime;
 		origin.read_["stoI64Check"] = V8Contract::CallBackStoI64Check;
 		origin.read_["int64Add"] = V8Contract::CallBackInt64Add;
@@ -91,7 +90,6 @@ namespace bumo {
 		origin.write_["storageDel"] = V8Contract::CallBackStorageDel;
 		origin.write_["configFee"] = V8Contract::CallBackConfigFee;
 		origin.write_["setValidators"] = V8Contract::CallBackSetValidators;
-		origin.write_["setSystemCfg"] = V8Contract::CallBackSetSystemCfg;
 		origin.write_["payCoin"] = V8Contract::CallBackPayCoin;
 		origin.write_["issueAsset"] = V8Contract::CallBackIssueAsset;
 		origin.write_["payAsset"] = V8Contract::CallBackPayAsset;
@@ -106,7 +104,6 @@ namespace bumo {
 		blockchain.read_["delegateQuery"] = V8Contract::CallBackDelegateQuery;
 		blockchain.read_["contractQuery"] = V8Contract::CallBackContractQuery;
 		blockchain.read_["getValidators"] = V8Contract::CallBackGetValidators;
-		blockchain.read_["getSystemCfg"] = V8Contract::CallBackGetSystemCfg;
 		blockchain.read_["getAccountMetadata"] = V8Contract::CallBackGetAccountMetadata;
 		blockchain.read_["getContractProperty"] = V8Contract::CallBackGetContractProperty;
 
@@ -115,7 +112,6 @@ namespace bumo {
 		blockchain.write_["del"] = V8Contract::CallBackStorageDel;
 		blockchain.write_["configFee"] = V8Contract::CallBackConfigFee;
 		blockchain.write_["setValidators"] = V8Contract::CallBackSetValidators;
-		blockchain.write_["setSystemCfg"] = V8Contract::CallBackSetSystemCfg;
 		blockchain.write_["payCoin"] = V8Contract::CallBackPayCoin;
 		blockchain.write_["issueAsset"] = V8Contract::CallBackIssueAsset;
 		blockchain.write_["payAsset"] = V8Contract::CallBackPayAsset;

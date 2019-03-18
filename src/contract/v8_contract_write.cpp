@@ -289,49 +289,6 @@ namespace bumo {
 			v8::NewStringType::kNormal).ToLocalChecked());
 	}
 
-	void V8Contract::CallBackSetSystemCfg(const v8::FunctionCallbackInfo<v8::Value>& args) {
-		std::string error_desc;
-		do {
-			if (args.Length() != 1) {
-				error_desc = "parameter number error";
-				break;
-			}
-
-			if (!args[0]->IsString()) {
-				error_desc = "arg0 should be string";
-				break;
-			}
-
-			v8::HandleScope handle_scope(args.GetIsolate());
-			V8Contract *v8_contract = GetContractFrom(args.GetIsolate());
-			if (!v8_contract || !v8_contract->parameter_.ledger_context_) {
-				error_desc = "Can't find contract object by isolate id";
-				break;
-			}
-
-			if (v8_contract->parameter_.this_address_ != GET_CONTRACT_VALIDATOR_ADDRESS) {
-				error_desc = utils::String::Format("contract(%s) has no permission to call callBackSetSystemCfg interface.", v8_contract->parameter_.this_address_.c_str());
-				break;
-			}
-
-			v8::String::Utf8Value  utf8(args[0]);
-			Json::Value json;
-			if (!json.fromCString(ToCString(utf8))) {
-				error_desc = "Failed to execute fromCString function, fatal error.";
-				break;
-			}
-
-			LedgerContext *ledger_context = v8_contract->GetParameter().ledger_context_;
-			ledger_context->GetTopTx()->environment_->UpdateElectionConfig(json);
-			args.GetReturnValue().Set(true);
-			return;
-		} while (false);
-		LOG_ERROR("%s", error_desc.c_str());
-		args.GetIsolate()->ThrowException(
-			v8::String::NewFromUtf8(args.GetIsolate(), error_desc.c_str(),
-			v8::NewStringType::kNormal).ToLocalChecked());
-	}
-
 	void V8Contract::CallBackCall(const v8::FunctionCallbackInfo<v8::Value>& args) {
 		std::string error_desc;
 		bool bcoin = false;
