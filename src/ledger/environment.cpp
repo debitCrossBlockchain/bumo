@@ -89,48 +89,6 @@ namespace bumo{
 		return true;
 	}
 
-	bool Environment::UpdateElectionConfig(const Json::Value &electionCfg) {
-		std::shared_ptr<Json::Value> ecfg;
-		settings_.Get(electionCfgKey, ecfg);
-
-		if (!ecfg){
-			ecfg = std::make_shared<Json::Value>(electionCfg);
-			settings_.Set(electionCfgKey, ecfg);
-		}
-		else{
-			for (auto it = electionCfg.begin(); it != electionCfg.end(); it++) {
-				(*ecfg)[it.memberName()] = electionCfg[it.memberName()];
-			}
-		}
-
-		return true;
-	}
-
-	bool Environment::GetVotedElectionConfig(const protocol::ElectionConfig& old_cfg, protocol::ElectionConfig& new_cfg) {
-		bool change = false;
-		new_cfg = old_cfg;
-
-		std::shared_ptr<Json::Value> ecfg;
-		settings_.Get(electionCfgKey, ecfg);
-		if (!ecfg) return false;
-
-		for (auto it = ecfg->begin(); it != ecfg->end(); it++) {
-			std::string key = it.memberName();
-			if (key == "fee_allocation_share") {
-				std::string value = (*ecfg)[key].asString();
-				if (old_cfg.fee_allocation_share() != value) {
-					change = true;
-					new_cfg.set_fee_allocation_share(value);
-				}
-			}
-			else {
-				LOG_TRACE("No such configuration parameter key:%s, value:%s", key.c_str(), (*ecfg)[key].asString().c_str());
-			}
-		}
-
-		return change;
-	}
-
 	bool Environment::GetVotedFee(const protocol::FeeConfig &old_fee, protocol::FeeConfig& new_fee) {
 		bool change = false;
 		new_fee = old_fee;
@@ -188,19 +146,6 @@ namespace bumo{
 		}
 
 		return *validators;
-	}
-
-	Json::Value& Environment::GetElectionConfig(){
-		std::shared_ptr<Json::Value> ecfg;
-		settings_.Get(electionCfgKey, ecfg);
-
-		if (!ecfg){
-			ecfg = std::make_shared<Json::Value>();
-			*ecfg = Proto2Json(LedgerManager::Instance().GetProtoElectionConfig());
-			settings_.Set(validatorsKey, ecfg);
-		}
-
-		return *ecfg;
 	}
 
 	bool Environment::UpdateNewValidators(const Json::Value& validators) {
