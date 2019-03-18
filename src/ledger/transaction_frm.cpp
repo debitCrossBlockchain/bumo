@@ -82,7 +82,6 @@ namespace bumo {
 		result["actual_fee"] = actual_gas_for_query_;
 		result["hash"] = utils::String::BinToHexString(hash_);
 		result["tx_size"] = transaction_env_.ByteSize();
-		result["fee_incentive"] = Proto2Json(incentive_);
 
 		for (auto const &i : contract_tx_hashes_){
 			Json::Value &array_json = result["contract_tx_hashes"];
@@ -330,12 +329,6 @@ namespace bumo {
 				break;
 			}
 			
-			if (CHECK_VERSION_GT_1002){
-				if (!DauReward(actual_fee, source_account, total_fee)) {
-					break;
-				}
-			}
-
 			if (!utils::SafeIntSub(total_fee, fee, total_fee)){
 				result_.set_desc(utils::String::Format("Calculation overflowed when total fee(" FMT_I64 ") - extra fee(" FMT_I64 ") paid by source account(%s).", total_fee, fee, str_address.c_str()));
 				result_.set_code(protocol::ERRCODE_MATH_OVERFLOW);
@@ -361,67 +354,6 @@ namespace bumo {
 
 		if (result_.code() != ERROR_SUCCESS) LOG_ERROR(result_.desc().c_str());
 		return false;
-	}
-
-	bool TransactionFrm::DauReward(int64_t actual_fee, AccountFrm::pointer& source_account, int64_t& total_fee) {
-		// return fee to creator if creator exist
-		uint32_t creator_share = LedgerManager::Instance().GetFeeSharerRate(LedgerManager::SHARER_CREATOR);
-		std::string creator = source_account->GetAccountCreator();
-		if (!creator.empty()) {
-			if (!AllocateFeesByShare(creator, actual_fee, creator_share, total_fee)) {
-				result_.set_desc(utils::String::Format("Failed to return the share of fee to creator %s", creator.c_str()));
-				result_.set_code(protocol::ERRCODE_INTERNAL_ERROR);
-				return false;
-			}
-			LOG_TRACE("Return fee to creator done, create share: " FMT_I64 ", actual fee: " FMT_I64 "", (int64_t)creator_share, actual_fee);
-		}
-
-		std::string dapp_addr = transaction_env_.transaction().dapp_address();
-		if (!dapp_addr.empty()) {
-			if (PublicKey::IsAddressValid(dapp_addr)) {
-				uint32_t dapp_share = LedgerManager::Instance().GetFeeSharerRate(LedgerManager::SHARER_DAPP);
-				if (!AllocateFeesByShare(dapp_addr, actual_fee, dapp_share, total_fee)) {
-					result_.set_desc(utils::String::Format("Failed to return the share of fee to creator %s", dapp_addr.c_str()));
-					result_.set_code(protocol::ERRCODE_INTERNAL_ERROR);
-					return false;
-				}
-				LOG_TRACE("Return fee to dapp done, dapp share: " FMT_I64 ", actual fee: " FMT_I64 "", (int64_t)dapp_share, actual_fee);
-			}
-			else {
-				LOG_WARN("Invalid dapp address, %s", dapp_addr.c_str());
-			}
-		}
-		
-		return true;
-	}
-
-	bool TransactionFrm::AllocateFeesByShare(const std::string& address, int64_t actual_fee, uint32_t share, int64_t& total_fee) {
-		AccountFrm::pointer account;
-		if (!environment_->GetEntry(address, account)) {
-			LOG_ERROR("Account(%s) does not exist", address.c_str());
-			return false;
-		}
-
-		if (share == 0) return true;
-
-		int64_t amount = 0;
-		if (!utils::SafeIntMul(actual_fee, (int64_t)share, amount)) {
-			LOG_ERROR("Calculation overflowed when total:(" FMT_I64 ") * share(" FMT_I64 ") of return.", actual_fee, share);
-			return false;
-		}
-		// the share rate already multiply by 100, to avoid float
-		amount /= 100;
-		if (!account->AddBalance(amount)) {
-			LOG_ERROR("Failed to return the share of fee to %s", address.c_str());
-			return false;
-		}
-
-		if (!utils::SafeIntSub(total_fee, amount, total_fee)){
-			LOG_ERROR("Failed to return the share of fee to %s", address.c_str());
-			return false;
-		}
-
-		return true;
 	}
 
 	int64_t TransactionFrm::GetNonce() const {
@@ -796,7 +728,6 @@ namespace bumo {
 			contract_tx_hashes_.push_back(envstor.contract_tx_hashes(i));
 		}
 
-		incentive_ = envstor.incentive();
 		ledger_seq_ = envstor.ledger_seq();
 		Initialize();
 		result_.set_code(envstor.error_code());

@@ -43,12 +43,6 @@ namespace bumo {
 		public bumo::StatusModule {
 		friend class utils::Singleton<bumo::LedgerManager>;
 	public:
-		enum FeeSharerType {
-			SHARER_DAPP = 0,
-			SHARER_BLOCK_REWARD = 1,
-			SHARER_CREATOR = 2,
-			SHARER_MAX = 3
-		};
 
 		bool Initialize();
 		bool Exit();
@@ -72,15 +66,6 @@ namespace bumo {
 		static bool FeesConfigGet(const std::string& hash, protocol::FeeConfig &fee);
 		bool ConsensusValueFromDB(int64_t seq, protocol::ConsensusValue& request);
 		protocol::FeeConfig GetCurFeeConfig();
-        
-        // DPOS
-		const protocol::ElectionConfig& GetProtoElectionConfig()
-		{
-			return election_config_;
-		}
-        bool SetProtoElectionConfig(const protocol::ElectionConfig& ecfg);
-		bool ReadSharerRate(const std::string& share_rate);
-		uint32_t GetFeeSharerRate(FeeSharerType owner);
 
 		Result DoTransaction(protocol::TransactionEnv& env, LedgerContext *ledger_context); // -1: false, 0 : success, > 0 exception
 		void NotifyLedgerClose(LedgerFrm::pointer closing_ledger, bool has_upgrade);
@@ -98,8 +83,6 @@ namespace bumo {
 		Json::Value statistics_;
 		utils::ReadWriteLock tree_mutex_;
 		KVTrie* tree_;
-		protocol::ElectionConfig election_config_;
-        std::vector<uint32_t> fee_sharer_rate_;
 
 		LedgerContextManager context_manager_;
 	private:
@@ -118,10 +101,6 @@ namespace bumo {
 		static bool ValidatorsGet(const std::string& hash, protocol::ValidatorSet& vlidators_set);
 
 		static void FeesConfigSet(std::shared_ptr<WRITE_BATCH> batch, const protocol::FeeConfig &fee);
-
-		static void ElectionConfigSet(std::shared_ptr<WRITE_BATCH> batch, const protocol::ElectionConfig &ecfg);
-
-		bool loadElectionConfig();
 		
 		LedgerFrm::pointer last_closed_ledger_;
 		protocol::ValidatorSet validators_;

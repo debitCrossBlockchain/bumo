@@ -96,9 +96,6 @@ namespace bumo {
 		int64_t GetActualGas() const;
 		void AddActualGas(int64_t gas);
 
-		bool DauReward(int64_t actual_fee, AccountFrm::pointer& source_account, int64_t& total_fee);
-		bool AllocateFeesByShare(const std::string& address, int64_t actual_fee, uint32_t share, int64_t& total_fee);
-
 		void SetApplyStartTime(int64_t time);
 		void SetApplyEndTime(int64_t time);
 		int64_t GetApplyTime();
@@ -144,7 +141,6 @@ namespace bumo {
 		int64_t apply_start_time_;
 		int64_t apply_use_time_;
 		int32_t processing_operation_;
-		protocol::FeeIncentive incentive_;
 	};
 };
 

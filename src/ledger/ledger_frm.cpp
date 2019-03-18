@@ -68,49 +68,6 @@ namespace bumo {
 		return false;
 	}
 
-	bool LedgerFrm::CalculateReward(int64_t actual_fee, const TransactionFrm::pointer ptr, protocol::FeeIncentive* incentive) {
-		uint32_t share = LedgerManager::Instance().GetFeeSharerRate(LedgerManager::SHARER_CREATOR);
-		int64_t amount = 0;
-		if (!utils::SafeIntMul(actual_fee, (int64_t)share, amount)) {
-			LOG_ERROR("Calculation overflowed when actual fee:(" FMT_I64 ") * share(" FMT_I64 ") of return.", actual_fee, share);
-			return false;
-		}
-		if (!incentive->creator_address().empty()) {	
-			// the share rate already multiply by 100, to avoid float
-			incentive->set_creator_reward(amount / 100);
-		}
-		else {
-			// creator reward will put in block reward if creator address not exist
-			incentive->set_creator_reward(0);
-		}
-		
-		share = LedgerManager::Instance().GetFeeSharerRate(LedgerManager::SHARER_DAPP);
-		if (!utils::SafeIntMul(actual_fee, (int64_t)share, amount)) {
-			LOG_ERROR("Calculation overflowed when actual fee:(" FMT_I64 ") * share(" FMT_I64 ") of return.", actual_fee, share);
-			return false;
-		}
-		if (!ptr->GetProtoTxEnv().transaction().dapp_address().empty()) {
-			incentive->set_dapp_reward(amount / 100);
-		}
-		else {
-			// DAPP reward will put in block reward if DAPP address not exist
-			incentive->set_dapp_reward(0);
-		}
-
-		// block_reward = actual_fee - creator_reward - dapp_reward
-		if (!utils::SafeIntSub(actual_fee, incentive->creator_reward(), actual_fee)){
-			LOG_ERROR("Calculation overflowed when acutal fee(" FMT_I64 ") + creator reward(" FMT_I64 ") of return.", actual_fee, incentive->creator_reward());
-			return false;
-		}
-
-		if (!utils::SafeIntSub(actual_fee, incentive->dapp_reward(), actual_fee)){
-			LOG_ERROR("Calculation overflowed when acutal fee(" FMT_I64 ") + creator reward(" FMT_I64 ") of return.", actual_fee, incentive->creator_reward());
-			return false;
-		}
-		incentive->set_block_reward(actual_fee);
-		return true;
-	}
-
 	bool LedgerFrm::AddToDb(WRITE_BATCH &batch) {
 		KeyValueDb *db = Storage::Instance().ledger_db();
 
@@ -137,21 +94,6 @@ namespace bumo {
 				}
 
 				env_store.set_actual_fee(actual_fee);
-			}
-			if (CHECK_VERSION_GT_1002){
-				protocol::FeeIncentive* incentive = env_store.mutable_incentive();
-				std::string source_address = ptr->GetSourceAddress();
-				AccountFrm::pointer source_account;
-				if (!environment_->GetEntry(source_address, source_account)) {
-					LOG_ERROR("Source account(%s) does not exist", source_address.c_str());
-				}
-				else {
-					incentive->set_creator_address(source_account->GetAccountCreator());
-				}
-
-				if (!CalculateReward(env_store.actual_fee(), ptr, incentive)) {
-					LOG_ERROR("Failed to calculate fee incentive");
-				}
 			}
 
 			list.add_entry(ptr->GetContentHash());

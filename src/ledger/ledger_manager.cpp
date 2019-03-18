@@ -160,12 +160,6 @@ namespace bumo {
 			return false;
 		}
 
-		// election configuration
-		if (!loadElectionConfig()) {
-			LOG_ERROR("Failed to load election configuration!");
-			return false;
-		}
-
 		bumo::General::SetSelfChainId(lclheader.chain_id());
 
 		LOG_INFO("Gas price :" FMT_I64 " Base reserve:" FMT_I64 " .", fees_.gas_price(), fees_.base_reserve());
@@ -310,68 +304,6 @@ namespace bumo {
 			return false;
 		}
 		return fee.ParseFromString(str);
-	}
-
-	bool LedgerManager::loadElectionConfig() {
-		auto db = Storage::Instance().account_db();
-		std::string str;
-		int32_t ret = db->Get(General::ELECTION_CONFIG, str);
-		if (ret == 0) {
-			election_config_.set_fee_allocation_share("70:20:10");
-			return ReadSharerRate(election_config_.fee_allocation_share());
-		} 
-		else if (ret == 1) {
-			if (election_config_.ParseFromString(str)) {
-				return ReadSharerRate(election_config_.fee_allocation_share());
-			}
-			else {
-				LOG_TRACE("Failed to parse election configuration from string");
-				return false;
-			}
-		}
-		else {
-			LOG_TRACE("Failed to get election configuration from account db");
-			return false;
-		}
-	}
-
-	void LedgerManager::ElectionConfigSet(std::shared_ptr<WRITE_BATCH> batch, const protocol::ElectionConfig &ecfg) {
-		std::string hash = HashWrapper::Crypto(ecfg.SerializeAsString());
-		batch->Put(General::ELECTION_CONFIG, ecfg.SerializeAsString());
-	}
-
-	bool LedgerManager::ReadSharerRate(const std::string& sharer_rate){
-		std::vector<std::string> vec = utils::String::split(sharer_rate, ":");
-		if (vec.size() != SHARER_MAX) {
-			return false;
-		}
-
-		std::vector<uint32_t> new_sharer_vec;
-		for (int i = 0; i < SHARER_MAX; i++) {
-			uint32_t value = 0;
-			if (!utils::String::SafeStoui(vec[i], value)) {
-				LOG_ERROR("Failed to convert string(%s) to int", vec[i].c_str());
-				return false;
-			}
-			new_sharer_vec.push_back(value);
-		}
-		fee_sharer_rate_ = new_sharer_vec;
-
-		return true;
-	} 
-
-	uint32_t LedgerManager::GetFeeSharerRate(FeeSharerType owner) {
-		return fee_sharer_rate_[owner];
-	}
-
-	bool LedgerManager::SetProtoElectionConfig(const protocol::ElectionConfig& ecfg) {
-		if (election_config_.fee_allocation_share() != ecfg.fee_allocation_share())
-		{
-			if (!ReadSharerRate(ecfg.fee_allocation_share())) return false;
-		}
-		election_config_ = ecfg;
-		
-		return true;
 	}
 
 	bool LedgerManager::CreateGenesisAccount() {
@@ -638,12 +570,6 @@ namespace bumo {
 
 		data["chain_max_ledger_seq"] = chain_max_ledger_probaly_ > data["ledger_sequence"].asInt64() ?
 		chain_max_ledger_probaly_ : data["ledger_sequence"].asInt64();
-		data["election_config"] = Proto2Json(election_config_);
-		Json::Value share_json;
-		for (int i = 0; i < fee_sharer_rate_.size(); i++) {
-			share_json.append(fee_sharer_rate_[i]);
-		}
-		data["fee_share_rate"] = share_json;
 	}
 
 	bool LedgerManager::CloseLedger(const protocol::ConsensusValue& consensus_value, const std::string& proof) {
@@ -728,19 +654,6 @@ namespace bumo {
 			fees_ = new_fees;
 		}
 		header->set_fees_hash(HashWrapper::Crypto(fees_.SerializeAsString()));
-
-		//for election configuration
-		if (CHECK_VERSION_GT_1002) {
-			protocol::ElectionConfig new_ecfg;
-			if (closing_ledger->environment_->GetVotedElectionConfig(election_config_, new_ecfg)) {
-				if (!SetProtoElectionConfig(new_ecfg)) {
-					LOG_ERROR("Failed to update election configuration, %s", new_ecfg.DebugString().c_str());
-				}
-				else {
-					ElectionConfigSet(account_db_batch, new_ecfg);
-				}
-			}
-		}
 
 		//This header must be for the latest block.
 		header->set_hash(HashWrapper::Crypto(closing_ledger->ProtoLedger().SerializeAsString()));
