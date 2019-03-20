@@ -22,7 +22,7 @@ const motion = {
 
 let elect  = {};
 let cfg    = {};
-let sysCfg = ['fee_allocation_share'];
+let feeCfg = [1, 2]; /* 1 : gas_price, 2 : base_reserve */
 let distributed = false;
 
 function doubleSort(a, b){
@@ -206,7 +206,7 @@ function getNodeSet(validators){
 
 function addCandidates(roleType, address, proposal, maxSize){
     let candidates = roleType === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
-    let stake = int64Mul(proposal.pledge, 2);
+    let stake = int64Mul(proposal.pledge, cfg.pledge_magnification);
 	let com = -1;
 
 	if(candidates.length > 0) {
@@ -337,7 +337,7 @@ function append(roleType){
     }
     else{
         let formalSize = roleType === role.VALIDATOR ? cfg.validator_size : cfg.kol_size;
-        let stake = int64Mul(thisPayCoinAmount, 2);
+        let stake = int64Mul(thisPayCoinAmount, cfg.pledge_magnification);
         updateStake(roleType, found, formalSize, stake);
     }
 }
@@ -368,10 +368,10 @@ function updateCfg(key, proposal, item){
     cfg[item] = proposal.value;
     saveObj(configKey, cfg);
 
-    if(sysCfg.includes(item)){
+    if(feeCfg.includes(item)){
         let sys = {};
         sys[item] = proposal.value;
-        setSystemCfg(JSON.stringify(sys));
+        configFee(JSON.stringify(sys));
     }
 }
 
@@ -756,6 +756,8 @@ function foundingProposal(node){
 
 function initialization(params){
     cfg = {
+        1                          : 1000,     /* 1 : gas_price, 1000 MO */
+        2                          : 10000000, /* 2 : base_reserve, 1000 0000 MO or 0.1 BU */
         'committee_size'           : 10,
         'kol_size'                 : 21,
         'kol_candidate_size'       : 100,
@@ -763,6 +765,7 @@ function initialization(params){
         'validator_size'           : 19,
         'validator_candidate_size' : 100,
         'validator_min_pledge'     : 500000000000000,/* 500 0000 0000 0000 */
+        'pledge_magnification'     : 2,
         'pass_rate'                : 0.5,
         'valid_period'             : 1296000000000,  /* 15 * 24 * 60 * 60 * 1000 * 1000 */
         'vote_unit'                : 1000000000,     /* 10 0000 0000 */
