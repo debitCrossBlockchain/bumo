@@ -343,24 +343,27 @@ function append(roleType){
 }
 
 function penalty(evil, roleType){
-    let applicantKey  = proposalKey(motion.APPLY, roleType, evil);
-    let applicant     = loadObj(applicantKey);
-    Utils.assert(applicant !== false, 'Failed to get ' + applicantKey + ' from metadata.');
+    let key = proposalKey(motion.APPLY, roleType, evil);
+    let proposal = loadObj(key);
 
-    let allAsset = applicant.pledge;
+    if(proposal === false){
+        key = proposalKey(motion.WITHDRAW, roleType, evil);
+        proposal = loadObj(key);
+    }
+
+    Utils.assert(proposal !== false, 'Failed to get ' + key + ' from metadata.');
+    Chain.del(key);
+
+    let allAsset = proposal.pledge;
     if(elect.distribution[evil] !== undefined){
-        allAsset = Utils.int64Add(applicant.pledge, elect.distribution[evil]);
+        allAsset = Utils.int64Add(proposal.pledge, elect.distribution[evil]);
         delete elect.distribution[evil];
         distributed = true;
     }
 
     if(allAsset !== '0'){
-        let candidates = roleType === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
-        distribute(candidates, allAsset);
-        distributed = true;
+        Chain.store('penalty_' + evil, allAsset);
     }
-
-    Chain.del(applicantKey);
 }
 
 function updateCfg(key, proposal, item){
@@ -586,6 +589,8 @@ function withdraw(roleType){
         Utils.assert(committee !== false, 'Failed to get ' + committeeKey + ' from metadata.');
         Utils.assert(committee.includes(Chain.msg.sender), 'There is no '+ Chain.msg.sender + ' in the committee');
 
+        let applyKey = proposalKey(motion.APPLY, roleType, Chain.msg.sender);
+        Chain.del(applyKey);
         committee.splice(committee.indexOf(Chain.msg.sender), 1);
         return saveObj(committeeKey, committee);
     }
