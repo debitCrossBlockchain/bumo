@@ -595,16 +595,9 @@ function withdraw(roleType){
     let applicant    = loadObj(applicantKey);
     Utils.assert(applicant !== false, 'failed to get metadata: ' + applicantKey + '.');
 
-    if(elect.distribution[Chain.msg.sender] === undefined){
-        elect.distribution[Chain.msg.sender] = applicant.pledge;
-    }
-    else{
-        elect.distribution[Chain.msg.sender] = Utils.int64Add(elect.distribution[Chain.msg.sender], applicant.pledge);
-    }
-    distributed = true;
-
     Chain.del(applicantKey);
     Chain.del(withdrawKey);
+    transferCoin(Chain.tx.sender, applicant.pledge);
 }
 
 function configProposal(item, value){
