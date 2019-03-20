@@ -22,7 +22,7 @@ const motion = {
 
 let elect  = {};
 let cfg    = {};
-let feeCfg = [1, 2]; /* 1 : gas_price, 2 : base_reserve */
+let feeCfg = ['1', '2']; /* 1 : gas_price, 2 : base_reserve */
 let distributed = false;
 
 function doubleSort(a, b){
@@ -756,8 +756,8 @@ function foundingProposal(node){
 
 function initialization(params){
     cfg = {
-        1                          : 1000,     /* 1 : gas_price, 1000 MO */
-        2                          : 10000000, /* 2 : base_reserve, 1000 0000 MO or 0.1 BU */
+        '1'                        : 1000,     /* 1 : gas_price, 1000 MO */
+        '2'                        : 1000000,  /* 2 : base_reserve, 100 0000 MO or 0.01 BU */
         'committee_size'           : 10,
         'kol_size'                 : 21,
         'kol_candidate_size'       : 100,

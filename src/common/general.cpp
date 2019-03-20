@@ -93,9 +93,8 @@ namespace bumo {
 	//std::string account2 = pub_key.GetEncAddress();"buQiQgRerQM1fUM3GkqUftpNxGzNg2AdJBpe"
 
 	const char *General::CONTRACT_VALIDATOR_ADDRESS = "buQtxgoaDrVJGtoPT66YnA2S84yE8FbBqQDJ";
-	const char *General::CONTRACT_VALIDATOR_ADDRESS_GT1002 = "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss";
 	const char *General::CONTRACT_FEE_ADDRESS = "buQiQgRerQM1fUM3GkqUftpNxGzNg2AdJBpe";
-	const char *General::ELECTION_CONFIG = "election_config";
+	const char *General::CONTRACT_DPOS_ADDRESS = "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss";
 
 	const int32_t General::TRANSACTION_LIMIT_SIZE = utils::BYTES_PER_MEGA;
 	const int32_t General::TXSET_LIMIT_SIZE = 16 * utils::BYTES_PER_MEGA;

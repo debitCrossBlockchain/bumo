@@ -21,7 +21,7 @@ namespace bumo {
 				break;
 			}
 
-			if (v8_contract->parameter_.this_address_ != General::CONTRACT_FEE_ADDRESS) {
+			if (v8_contract->parameter_.this_address_ != GET_CONTRACT_FEE_ADDRESS) {
 				error_desc = "This address has no priority.";
 				break;
 			}
