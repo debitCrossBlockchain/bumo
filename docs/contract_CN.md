@@ -327,7 +327,7 @@ Chain.issueAsset("CNY", 10000);
     - contractAddress: 被调用的合约地址。
     - input：调用参数。
     
-    Chain.delegateCall 函数会触发被调用的合约main函数入口，并且把当前合约的执行环境赋予被调用的合约。如合约A委托调用合约B，合约B(main入口)执行时使用合约A的执行环境。
+    Chain.delegateCall 函数会触发被调用的合约main函数入口，并且把当前合约的执行环境赋予被调用的合约。如合约A委托调用合约B，即执行B(main入口)的代码，读写A的数据。
     
     例如
     ```javascript
@@ -345,7 +345,7 @@ Chain.issueAsset("CNY", 10000);
     - contractAddress: 被调用的合约地址。
     - input：调用参数。
     
-    Chain.delegateQuery 函数会触发被调用的合约query函数入口，且把当前合约的执行环境赋予被调用的合约。如合约A委托查询合约B，合约B(query入口)执行时使用合约A的执行环境。
+    Chain.delegateQuery 函数会触发被调用的合约query函数入口，且把当前合约的执行环境赋予被调用的合约。如合约A委托查询合约B，即执行B(query入口)的代码，读取A的数据。
     
     例如
     ```javascript
