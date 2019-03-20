@@ -568,6 +568,16 @@ function abolish(roleType, address, proof){
     saveObj(key, proposal);
 }
 
+function exitProposal(exiter, pledge){
+    let proposal = {
+        'exiter': exiter,
+        'pledge': pledge,
+        'expiration': Chain.block.timestamp + cfg.valid_period
+    };
+
+    return proposal;
+}
+
 function withdraw(roleType){
     Utils.assert(roleValid(roleType), 'Unknow role type.');
 
@@ -580,24 +590,25 @@ function withdraw(roleType){
         return saveObj(committeeKey, committee);
     }
 
-    let withdrawKey = proposalKey(motion.WITHDRAW, roleType, Chain.msg.sender);
-    let withdrawInfo = Chain.load(withdrawKey);
-    if(withdrawInfo === false){
+    let exitKey = proposalKey(motion.WITHDRAW, roleType, Chain.msg.sender);
+    let exitInfo = Chain.load(exitKey);
+    if(exitInfo === false){
         electInit();
         deleteCandidate(roleType, Chain.msg.sender);
-        return saveObj(withdrawKey, {'expiration': Chain.block.timestamp + cfg.valid_period});
+
+        let applicantKey = proposalKey(motion.APPLY, roleType, Chain.msg.sender);
+        let applicant    = loadObj(applicantKey);
+        Utils.assert(applicant !== false, 'failed to get metadata: ' + applicantKey + '.');
+
+        Chain.del(applicantKey);
+        return saveObj(exitKey, exitProposal(Chain.msg.sender, applicant.pledge));
     }
 	
-	Utils.log('Chain.block.timestamp:' + Chain.block.timestamp + ' , expiration:' + withdrawInfo.expiration);
-    Utils.assert(Chain.block.timestamp >= withdrawInfo.expiration, 'Buffer period is not over.');
+	Utils.log('Chain.block.timestamp:' + Chain.block.timestamp + ' , expiration:' + exitInfo.expiration);
+    Utils.assert(Chain.block.timestamp >= exitInfo.expiration, 'Buffer period is not over.');
 
-    let applicantKey = proposalKey(motion.APPLY, roleType, Chain.msg.sender);
-    let applicant    = loadObj(applicantKey);
-    Utils.assert(applicant !== false, 'failed to get metadata: ' + applicantKey + '.');
-
-    Chain.del(applicantKey);
-    Chain.del(withdrawKey);
-    transferCoin(Chain.tx.sender, applicant.pledge);
+    Chain.del(exitKey);
+    transferCoin(Chain.msg.sender, exitInfo.pledge);
 }
 
 function configProposal(item, value){
@@ -667,7 +678,7 @@ function clean(operate, item, address){
     Utils.assert(Chain.block.timestamp >= proposal.expiration && proposal.passTime === undefined, 'The proposal is still useful.');
 
     Chain.del(key);
-    if(operate === motion.APPLY && proposal.pledge > 0){
+    if((operate === motion.APPLY || operate === motion.WITHDRAW) && proposal.pledge > 0){
         transferCoin(address, proposal.pledge);
     }
 
