@@ -65,14 +65,14 @@ dpos 合约账户创建成功后，才可以进行后续的操作，且该账户
 
 #### 创建逻辑合约
 
-创建逻辑合约账户时，将 src\ledger\dpos.js 文件中的源码全部拷贝作为账户中 payload 字段的值。
+创建逻辑合约账户时，将 src\contract\dpos.js 文件中的源码全部拷贝作为账户中 payload 字段的值。
 
 >例
 
 ```json
   "contract" :
   {
-    "payload" : "拷贝 src\ledger\dpos.js 中全部代码至此处"
+    "payload" : "拷贝 src\contract\dpos.js 中全部代码至此处"
   },
 ```
 
@@ -88,7 +88,7 @@ dpos 合约账户创建成功后，才可以进行后续的操作，且该账户
     "dest_address": "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
     "contract" :
     {
-      "payload" : "拷贝 src\ledger\dpos_delegate.js 中全部代码至此处"
+      "payload" : "拷贝 src\contract\dpos_delegate.js 中全部代码至此处"
     },
     "init_balance": 10000000,
     "init_input" : "{
