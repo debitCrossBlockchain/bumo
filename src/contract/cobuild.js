@@ -8,6 +8,7 @@ const minInitAmount     = 1000000 * oneBU;
 const statusKey         = 'status';
 const configKey         = 'dpos_config';
 const shareholdersKey   = 'shareholders';
+const withdrawKey       = 'withdraw';
 const dposContract      = 'buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss';
 
 let cfg  = {};
@@ -137,7 +138,7 @@ function applyInput(role, node){
 /*The initiator applies to become a super node*/
 function apply(role, node){
     Utils.assert(stat.applied === false, 'Already applied.');
-    Utils.assert(Chain.tx.sender === stat.initiator, 'Only the initiator has the right to apply.');
+    Utils.assert(Chain.tx.sender === cfg.initiator, 'Only the initiator has the right to apply.');
     Utils.assert(Utils.int64Compare(stat.realShares, cfg.raiseShares) >= 0, 'Co-building fund is not enough.');
 
     stat.pledged = stat.realShares;
@@ -148,53 +149,13 @@ function apply(role, node){
     triggerContract(dposContract, stat.funding, application);
 }
 
-function withdrawedKey(){
-    return 'withdrawed';
-}
-
-function withdrawInput(role){
-    let application = {
-        'method' : 'withdraw',
-        'params':{
-            'role':role || 'kol'
-        }
-    };
-
-    return application;
-}
-
-function takeback(key, role){
-    stat.applied = false;
-    stat.pledged = '0';
-    saveObj(statusKey, stat);
-    Chain.del(key);
-
-    triggerContract(dposContract, 0, withdrawInput(role));
-}
-
-/* The initiator exits super node campaign*/
-function withdraw(role){
-    Utils.assert(stat.applied === true, 'Have not applied yet.');
-    Utils.assert(Chain.tx.sender === stat.initiator, 'Only the initiator has the right to withdraw.');
-
-    let withdrawed = Chain.load(withdrawedKey());
-    if(withdrawed === false){
-        withdrawed = true;
-        Chain.store(withdrawedKey, withdrawed);
-        triggerContract(dposContract, 0, withdrawInput(role));
-    }
-    else{
-        takeback(withdrawedKey(), role);
-    }
-}
-
 function transferKey(from, to){
     return 'transfer_' + from + '_to_' + to;
 }
 
 /* transfer of shares */
 function transfer(to, shares){
-    Utils.assert(stat.applied === true, 'Have not applied yet.');
+    Utils.assert(stat.applied === true, 'Has not applied yet.');
     Utils.assert(Utils.addressCheck(to), 'Arg-to is not a valid address.');
     Utils.assert(Utils.int64Compare(shares, '0') >= 0, 'Arg-shares must be >= 0.');
     Utils.assert(shareholders[Chain.tx.sender] !== undefined, 'Sender is not involved in co-building.');
@@ -206,7 +167,7 @@ function transfer(to, shares){
 
 /* accept transfer */
 function accept(transferor){
-    Utils.assert(stat.applied === true, 'Have not applied yet.');
+    Utils.assert(stat.applied === true, 'Has not applied yet.');
     Utils.assert(Utils.addressCheck(transferor), 'Arg-to is not a valid address.');
 
     let key = transferKey(transferor, Chain.tx.sender);
@@ -237,61 +198,79 @@ function accept(transferor){
     transferCoin(transferor, Utils.int64Add(Chain.msg.coinAmount, reward));
 }
 
-function exitKey(){
-    return 'exitKey';
+function withdrawProposal(){
+    let proposal = {
+        'withdrawed' : false,
+        'expiration' : Chain.block.timestamp + cfg.valid_period,
+        'sum':'0',
+        'ballot': {}
+
+    };
+
+    return proposal;
 }
 
-/*Ordinary users initiate an exit vote*/
-function initiateExit(role){
-    Utils.assert(stat.applied === true, 'Have not applied yet.');
-    Utils.assert(shareholders[Chain.tx.sender] !== undefined, 'Sender is not involved in co-building.');
+function withdrawInput(role){
+    let application = {
+        'method' : 'withdraw',
+        'params':{
+            'role':role || 'kol'
+        }
+    };
 
-    let ballot = Chain.load(exitKey());
-    if(ballot !== false){
-        return;
-    }
+    return application;
+}
 
-    ballot.sum = shareholders[Chain.tx.sender][0];
-    ballot[Chain.tx.sender] = shareholders[Chain.tx.sender][0];
+function withdrawing(role, proposal){
+    proposal.withdrawed = true;
+    saveObj(withdrawKey, proposal);
+    triggerContract(dposContract, 0, withdrawInput(role));
+}
 
-    if(Utils.int64Div(cfg.pledged, ballot.sum) >= 2){
-        return saveObj(exitKey(), ballot);
-    } 
+function withdraw(role){
+    Utils.assert(stat.applied === true, 'Has not applied yet.');
+    Utils.assert(Chain.tx.sender === cfg.initiator, 'Only the initiator has the right to withdraw.');
 
-    if(ballot.withdrawed !== true){
-        ballot.withdrawed = true;
-        saveObj(exitKey(), ballot);
-        triggerContract(dposContract, 0, withdrawInput(role));
-    }
-    else{
-        takeback(exitKey(), role);
-    }
+    let proposal = withdrawProposal();
+    withdrawing(role, proposal);
 }
 
 function vote(role){
-    Utils.assert(stat.applied === true, 'Have not applied yet.');
+    Utils.assert(stat.applied === true, 'Has not applied yet.');
     Utils.assert(shareholders[Chain.tx.sender] !== undefined, 'Sender is not involved in co-building.');
 
-    let ballot = Chain.load(exitKey());
-    Utils.assert(ballot !== false, 'Failed to get ' + exitKey() + ' from metadata.');
-
-    if(ballot[Chain.tx.sender] === undefined){
-        ballot[Chain.tx.sender] = shareholders[Chain.tx.sender][0];
-        ballot.sum = Utils.int64Add(ballot.sum, shareholders[Chain.tx.sender][0]);
-    }
-
-    if(Utils.int64Div(cfg.pledged, ballot.sum) >= 2){
-        return saveObj(exitKey(), ballot);
-    } 
-
-    if(ballot.withdrawed !== true){
-        ballot.withdrawed = true;
-        saveObj(exitKey(), ballot);
-        triggerContract(dposContract, 0, withdrawInput(role));
+    let proposal = loadObj(withdrawKey);
+    if(proposal === false){
+        proposal = withdrawProposal();
     }
     else{
-        takeback(exitKey(), role);
+        if(proposal.ballot[Chain.tx.sender] !== undefined){
+            return Chain.msg.sender + ' has voted.';
+        }
     }
+
+    proposal.ballot[Chain.tx.sender] = shareholders[Chain.tx.sender][0];
+    proposal.sum = Utils.int64Add(proposal.sum, shareholders[Chain.tx.sender][0]);
+
+    if(Utils.int64Div(cfg.pledged, proposal.sum) >= 2){
+        return saveObj(withdrawKey, proposal);
+    } 
+
+    withdrawing(role, proposal);
+}
+
+function takeback(role){
+    let proposal = loadObj(withdrawKey);
+    assert(proposal !== false, 'Failed to get ' + withdrawKey + ' from metadata.');
+    assert(proposal.withdrawed && Chain.block.timestamp >= proposal.expiration, 'Insufficient conditions for recovering the deposit.');
+
+    Chain.del(withdrawKey);
+
+    stat.applied = false;
+    stat.pledged = '0';
+    saveObj(statusKey, stat);
+
+    triggerContract(dposContract, 0, withdrawInput(role));
 }
 
 function extract(){
@@ -368,9 +347,9 @@ function main(input_str){
     else if(input.method === 'extract'){
         extract();
     }
-    else if(input.method === 'initiateExit'){
+    else if(input.method === 'takeback'){
         Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
-    	initiateExit(params.role);
+    	takeback(params.role);
     }
     else if(input.method === 'vote'){
         Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
