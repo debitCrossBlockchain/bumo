@@ -14,8 +14,7 @@ let cfg  = {};
 let stat = {};
 let shareholders = {};
 
-function loadObj(key)
-{
+function loadObj(key){
     let data = Chain.load(key);
     if(data !== false){
         return JSON.parse(data);
@@ -24,15 +23,13 @@ function loadObj(key)
     return false;
 }
 
-function saveObj(key, value)
-{
+function saveObj(key, value){
     let str = JSON.stringify(value);
     Chain.store(key, str);
     Utils.log('Set key(' + key + '), value(' + str + ') in metadata succeed.');
 }
 
-function transferCoin(dest, amount)
-{
+function transferCoin(dest, amount){
     if(amount === '0'){
         return true; 
     }
@@ -41,8 +38,7 @@ function transferCoin(dest, amount)
     Utils.log('Pay coin( ' + amount + ') to dest account(' + dest + ') succeed.');
 }
 
-function triggerContract(dest, amount, input)
-{
+function triggerContract(dest, amount, input){
     Chain.payCoin(dest, String(amount), input);
     Utils.log('Pay coin( ' + amount + ') to dest account(' + dest + ') succeed.');
 }

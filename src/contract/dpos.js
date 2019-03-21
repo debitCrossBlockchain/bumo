@@ -35,8 +35,7 @@ function doubleSort(a, b){
     return com;
 }
 
-function loadObj(key)
-{
+function loadObj(key){
     let data = Chain.load(key);
     if(data !== false){
         return JSON.parse(data);
@@ -45,8 +44,7 @@ function loadObj(key)
     return false;
 }
 
-function saveObj(key, value)
-{
+function saveObj(key, value){
     let str = JSON.stringify(value);
     Chain.store(key, str);
     Utils.log('Set key(' + key + '), value(' + str + ') in metadata succeed.');
@@ -57,8 +55,7 @@ function minusStake(amount){
     Chain.store(stakeKey, stake);
 }
 
-function transferCoin(dest, amount)
-{
+function transferCoin(dest, amount){
     if(amount === '0'){
         return true; 
     }
