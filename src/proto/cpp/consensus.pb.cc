@@ -61,9 +61,6 @@ const ::google::protobuf::Descriptor* FeeConfig_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   FeeConfig_reflection_ = NULL;
 const ::google::protobuf::EnumDescriptor* FeeConfig_Type_descriptor_ = NULL;
-const ::google::protobuf::Descriptor* ElectionConfig_descriptor_ = NULL;
-const ::google::protobuf::internal::GeneratedMessageReflection*
-  ElectionConfig_reflection_ = NULL;
 const ::google::protobuf::EnumDescriptor* PbftMessageType_descriptor_ = NULL;
 const ::google::protobuf::EnumDescriptor* PbftValueType_descriptor_ = NULL;
 
@@ -303,21 +300,6 @@ void protobuf_AssignDesc_consensus_2eproto() {
       GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(FeeConfig, _internal_metadata_),
       GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(FeeConfig, _is_default_instance_));
   FeeConfig_Type_descriptor_ = FeeConfig_descriptor_->enum_type(0);
-  ElectionConfig_descriptor_ = file->message_type(13);
-  static const int ElectionConfig_offsets_[1] = {
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ElectionConfig, fee_allocation_share_),
-  };
-  ElectionConfig_reflection_ =
-    ::google::protobuf::internal::GeneratedMessageReflection::NewGeneratedMessageReflection(
-      ElectionConfig_descriptor_,
-      ElectionConfig::default_instance_,
-      ElectionConfig_offsets_,
-      -1,
-      -1,
-      -1,
-      sizeof(ElectionConfig),
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ElectionConfig, _internal_metadata_),
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ElectionConfig, _is_default_instance_));
   PbftMessageType_descriptor_ = file->enum_type(0);
   PbftValueType_descriptor_ = file->enum_type(1);
 }
@@ -359,8 +341,6 @@ void protobuf_RegisterTypes(const ::std::string&) {
       PbftProof_descriptor_, &PbftProof::default_instance());
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
       FeeConfig_descriptor_, &FeeConfig::default_instance());
-  ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
-      ElectionConfig_descriptor_, &ElectionConfig::default_instance());
 }
 
 }  // namespace
@@ -392,8 +372,6 @@ void protobuf_ShutdownFile_consensus_2eproto() {
   delete PbftProof_reflection_;
   delete FeeConfig::default_instance_;
   delete FeeConfig_reflection_;
-  delete ElectionConfig::default_instance_;
-  delete ElectionConfig_reflection_;
 }
 
 void protobuf_AddDesc_consensus_2eproto() GOOGLE_ATTRIBUTE_COLD;
@@ -443,16 +421,14 @@ void protobuf_AddDesc_consensus_2eproto() {
     "/\n\tPbftProof\022\"\n\007commits\030\001 \003(\0132\021.protocol"
     ".PbftEnv\"j\n\tFeeConfig\022\021\n\tgas_price\030\001 \001(\003"
     "\022\024\n\014base_reserve\030\002 \001(\003\"4\n\004Type\022\013\n\007UNKNOW"
-    "N\020\000\022\r\n\tGAS_PRICE\020\001\022\020\n\014BASE_RESERVE\020\002\".\n\016"
-    "ElectionConfig\022\034\n\024fee_allocation_share\030\001"
-    " \001(\t*\260\001\n\017PbftMessageType\022\030\n\024PBFT_TYPE_PR"
-    "EPREPARE\020\000\022\025\n\021PBFT_TYPE_PREPARE\020\001\022\024\n\020PBF"
-    "T_TYPE_COMMIT\020\002\022\030\n\024PBFT_TYPE_VIEWCHANGE\020"
-    "\003\022\025\n\021PBFT_TYPE_NEWVIEW\020\004\022%\n!PBFT_TYPE_VI"
-    "EWCHANG_WITH_RAWVALUE\020\005*8\n\rPbftValueType"
-    "\022\021\n\rPBFT_VALUE_TX\020\000\022\024\n\020PBFT_VALUE_TXSET\020"
-    "\001B\"\n io.bumo.sdk.core.extend.protobufb\006p"
-    "roto3", 1885);
+    "N\020\000\022\r\n\tGAS_PRICE\020\001\022\020\n\014BASE_RESERVE\020\002*\260\001\n"
+    "\017PbftMessageType\022\030\n\024PBFT_TYPE_PREPREPARE"
+    "\020\000\022\025\n\021PBFT_TYPE_PREPARE\020\001\022\024\n\020PBFT_TYPE_C"
+    "OMMIT\020\002\022\030\n\024PBFT_TYPE_VIEWCHANGE\020\003\022\025\n\021PBF"
+    "T_TYPE_NEWVIEW\020\004\022%\n!PBFT_TYPE_VIEWCHANG_"
+    "WITH_RAWVALUE\020\005*8\n\rPbftValueType\022\021\n\rPBFT"
+    "_VALUE_TX\020\000\022\024\n\020PBFT_VALUE_TXSET\020\001B\"\n io."
+    "bumo.sdk.core.extend.protobufb\006proto3", 1837);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "consensus.proto", &protobuf_RegisterTypes);
   PbftPrePrepare::default_instance_ = new PbftPrePrepare();
@@ -468,7 +444,6 @@ void protobuf_AddDesc_consensus_2eproto() {
   ValidatorSet::default_instance_ = new ValidatorSet();
   PbftProof::default_instance_ = new PbftProof();
   FeeConfig::default_instance_ = new FeeConfig();
-  ElectionConfig::default_instance_ = new ElectionConfig();
   PbftPrePrepare::default_instance_->InitAsDefaultInstance();
   PbftPrepare::default_instance_->InitAsDefaultInstance();
   PbftCommit::default_instance_->InitAsDefaultInstance();
@@ -482,7 +457,6 @@ void protobuf_AddDesc_consensus_2eproto() {
   ValidatorSet::default_instance_->InitAsDefaultInstance();
   PbftProof::default_instance_->InitAsDefaultInstance();
   FeeConfig::default_instance_->InitAsDefaultInstance();
-  ElectionConfig::default_instance_->InitAsDefaultInstance();
   ::google::protobuf::internal::OnShutdown(&protobuf_ShutdownFile_consensus_2eproto);
 }
 
@@ -5967,290 +5941,6 @@ void FeeConfig::clear_base_reserve() {
   
   base_reserve_ = value;
   // @@protoc_insertion_point(field_set:protocol.FeeConfig.base_reserve)
-}
-
-#endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
-
-// ===================================================================
-
-#if !defined(_MSC_VER) || _MSC_VER >= 1900
-const int ElectionConfig::kFeeAllocationShareFieldNumber;
-#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
-
-ElectionConfig::ElectionConfig()
-  : ::google::protobuf::Message(), _internal_metadata_(NULL) {
-  SharedCtor();
-  // @@protoc_insertion_point(constructor:protocol.ElectionConfig)
-}
-
-void ElectionConfig::InitAsDefaultInstance() {
-  _is_default_instance_ = true;
-}
-
-ElectionConfig::ElectionConfig(const ElectionConfig& from)
-  : ::google::protobuf::Message(),
-    _internal_metadata_(NULL) {
-  SharedCtor();
-  MergeFrom(from);
-  // @@protoc_insertion_point(copy_constructor:protocol.ElectionConfig)
-}
-
-void ElectionConfig::SharedCtor() {
-    _is_default_instance_ = false;
-  ::google::protobuf::internal::GetEmptyString();
-  _cached_size_ = 0;
-  fee_allocation_share_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-
-ElectionConfig::~ElectionConfig() {
-  // @@protoc_insertion_point(destructor:protocol.ElectionConfig)
-  SharedDtor();
-}
-
-void ElectionConfig::SharedDtor() {
-  fee_allocation_share_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  if (this != default_instance_) {
-  }
-}
-
-void ElectionConfig::SetCachedSize(int size) const {
-  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
-  _cached_size_ = size;
-  GOOGLE_SAFE_CONCURRENT_WRITES_END();
-}
-const ::google::protobuf::Descriptor* ElectionConfig::descriptor() {
-  protobuf_AssignDescriptorsOnce();
-  return ElectionConfig_descriptor_;
-}
-
-const ElectionConfig& ElectionConfig::default_instance() {
-  if (default_instance_ == NULL) protobuf_AddDesc_consensus_2eproto();
-  return *default_instance_;
-}
-
-ElectionConfig* ElectionConfig::default_instance_ = NULL;
-
-ElectionConfig* ElectionConfig::New(::google::protobuf::Arena* arena) const {
-  ElectionConfig* n = new ElectionConfig;
-  if (arena != NULL) {
-    arena->Own(n);
-  }
-  return n;
-}
-
-void ElectionConfig::Clear() {
-// @@protoc_insertion_point(message_clear_start:protocol.ElectionConfig)
-  fee_allocation_share_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-
-bool ElectionConfig::MergePartialFromCodedStream(
-    ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
-  ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:protocol.ElectionConfig)
-  for (;;) {
-    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
-    tag = p.first;
-    if (!p.second) goto handle_unusual;
-    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // optional string fee_allocation_share = 1;
-      case 1: {
-        if (tag == 10) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
-                input, this->mutable_fee_allocation_share()));
-          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-            this->fee_allocation_share().data(), this->fee_allocation_share().length(),
-            ::google::protobuf::internal::WireFormatLite::PARSE,
-            "protocol.ElectionConfig.fee_allocation_share"));
-        } else {
-          goto handle_unusual;
-        }
-        if (input->ExpectAtEnd()) goto success;
-        break;
-      }
-
-      default: {
-      handle_unusual:
-        if (tag == 0 ||
-            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
-          goto success;
-        }
-        DO_(::google::protobuf::internal::WireFormatLite::SkipField(input, tag));
-        break;
-      }
-    }
-  }
-success:
-  // @@protoc_insertion_point(parse_success:protocol.ElectionConfig)
-  return true;
-failure:
-  // @@protoc_insertion_point(parse_failure:protocol.ElectionConfig)
-  return false;
-#undef DO_
-}
-
-void ElectionConfig::SerializeWithCachedSizes(
-    ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:protocol.ElectionConfig)
-  // optional string fee_allocation_share = 1;
-  if (this->fee_allocation_share().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->fee_allocation_share().data(), this->fee_allocation_share().length(),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "protocol.ElectionConfig.fee_allocation_share");
-    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
-      1, this->fee_allocation_share(), output);
-  }
-
-  // @@protoc_insertion_point(serialize_end:protocol.ElectionConfig)
-}
-
-::google::protobuf::uint8* ElectionConfig::InternalSerializeWithCachedSizesToArray(
-    bool deterministic, ::google::protobuf::uint8* target) const {
-  // @@protoc_insertion_point(serialize_to_array_start:protocol.ElectionConfig)
-  // optional string fee_allocation_share = 1;
-  if (this->fee_allocation_share().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->fee_allocation_share().data(), this->fee_allocation_share().length(),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "protocol.ElectionConfig.fee_allocation_share");
-    target =
-      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
-        1, this->fee_allocation_share(), target);
-  }
-
-  // @@protoc_insertion_point(serialize_to_array_end:protocol.ElectionConfig)
-  return target;
-}
-
-int ElectionConfig::ByteSize() const {
-// @@protoc_insertion_point(message_byte_size_start:protocol.ElectionConfig)
-  int total_size = 0;
-
-  // optional string fee_allocation_share = 1;
-  if (this->fee_allocation_share().size() > 0) {
-    total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::StringSize(
-        this->fee_allocation_share());
-  }
-
-  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
-  _cached_size_ = total_size;
-  GOOGLE_SAFE_CONCURRENT_WRITES_END();
-  return total_size;
-}
-
-void ElectionConfig::MergeFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:protocol.ElectionConfig)
-  if (GOOGLE_PREDICT_FALSE(&from == this)) {
-    ::google::protobuf::internal::MergeFromFail(__FILE__, __LINE__);
-  }
-  const ElectionConfig* source = 
-      ::google::protobuf::internal::DynamicCastToGenerated<const ElectionConfig>(
-          &from);
-  if (source == NULL) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:protocol.ElectionConfig)
-    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
-  } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:protocol.ElectionConfig)
-    MergeFrom(*source);
-  }
-}
-
-void ElectionConfig::MergeFrom(const ElectionConfig& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:protocol.ElectionConfig)
-  if (GOOGLE_PREDICT_FALSE(&from == this)) {
-    ::google::protobuf::internal::MergeFromFail(__FILE__, __LINE__);
-  }
-  if (from.fee_allocation_share().size() > 0) {
-
-    fee_allocation_share_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.fee_allocation_share_);
-  }
-}
-
-void ElectionConfig::CopyFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:protocol.ElectionConfig)
-  if (&from == this) return;
-  Clear();
-  MergeFrom(from);
-}
-
-void ElectionConfig::CopyFrom(const ElectionConfig& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:protocol.ElectionConfig)
-  if (&from == this) return;
-  Clear();
-  MergeFrom(from);
-}
-
-bool ElectionConfig::IsInitialized() const {
-
-  return true;
-}
-
-void ElectionConfig::Swap(ElectionConfig* other) {
-  if (other == this) return;
-  InternalSwap(other);
-}
-void ElectionConfig::InternalSwap(ElectionConfig* other) {
-  fee_allocation_share_.Swap(&other->fee_allocation_share_);
-  _internal_metadata_.Swap(&other->_internal_metadata_);
-  std::swap(_cached_size_, other->_cached_size_);
-}
-
-::google::protobuf::Metadata ElectionConfig::GetMetadata() const {
-  protobuf_AssignDescriptorsOnce();
-  ::google::protobuf::Metadata metadata;
-  metadata.descriptor = ElectionConfig_descriptor_;
-  metadata.reflection = ElectionConfig_reflection_;
-  return metadata;
-}
-
-#if PROTOBUF_INLINE_NOT_IN_HEADERS
-// ElectionConfig
-
-// optional string fee_allocation_share = 1;
-void ElectionConfig::clear_fee_allocation_share() {
-  fee_allocation_share_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
- const ::std::string& ElectionConfig::fee_allocation_share() const {
-  // @@protoc_insertion_point(field_get:protocol.ElectionConfig.fee_allocation_share)
-  return fee_allocation_share_.GetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
- void ElectionConfig::set_fee_allocation_share(const ::std::string& value) {
-  
-  fee_allocation_share_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
-  // @@protoc_insertion_point(field_set:protocol.ElectionConfig.fee_allocation_share)
-}
- void ElectionConfig::set_fee_allocation_share(const char* value) {
-  
-  fee_allocation_share_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
-  // @@protoc_insertion_point(field_set_char:protocol.ElectionConfig.fee_allocation_share)
-}
- void ElectionConfig::set_fee_allocation_share(const char* value, size_t size) {
-  
-  fee_allocation_share_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
-      ::std::string(reinterpret_cast<const char*>(value), size));
-  // @@protoc_insertion_point(field_set_pointer:protocol.ElectionConfig.fee_allocation_share)
-}
- ::std::string* ElectionConfig::mutable_fee_allocation_share() {
-  
-  // @@protoc_insertion_point(field_mutable:protocol.ElectionConfig.fee_allocation_share)
-  return fee_allocation_share_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
- ::std::string* ElectionConfig::release_fee_allocation_share() {
-  // @@protoc_insertion_point(field_release:protocol.ElectionConfig.fee_allocation_share)
-  
-  return fee_allocation_share_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
- void ElectionConfig::set_allocated_fee_allocation_share(::std::string* fee_allocation_share) {
-  if (fee_allocation_share != NULL) {
-    
-  } else {
-    
-  }
-  fee_allocation_share_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), fee_allocation_share);
-  // @@protoc_insertion_point(field_set_allocated:protocol.ElectionConfig.fee_allocation_share)
 }
 
 #endif  // PROTOBUF_INLINE_NOT_IN_HEADERS

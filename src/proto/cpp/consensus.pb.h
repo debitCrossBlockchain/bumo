@@ -38,7 +38,6 @@ void protobuf_AddDesc_consensus_2eproto();
 void protobuf_AssignDesc_consensus_2eproto();
 void protobuf_ShutdownFile_consensus_2eproto();
 
-class ElectionConfig;
 class FeeConfig;
 class Pbft;
 class PbftCommit;
@@ -1515,93 +1514,6 @@ class FeeConfig : public ::google::protobuf::Message /* @@protoc_insertion_point
   void InitAsDefaultInstance();
   static FeeConfig* default_instance_;
 };
-// -------------------------------------------------------------------
-
-class ElectionConfig : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:protocol.ElectionConfig) */ {
- public:
-  ElectionConfig();
-  virtual ~ElectionConfig();
-
-  ElectionConfig(const ElectionConfig& from);
-
-  inline ElectionConfig& operator=(const ElectionConfig& from) {
-    CopyFrom(from);
-    return *this;
-  }
-
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const ElectionConfig& default_instance();
-
-  void Swap(ElectionConfig* other);
-
-  // implements Message ----------------------------------------------
-
-  inline ElectionConfig* New() const { return New(NULL); }
-
-  ElectionConfig* New(::google::protobuf::Arena* arena) const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const ElectionConfig& from);
-  void MergeFrom(const ElectionConfig& from);
-  void Clear();
-  bool IsInitialized() const;
-
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
-      bool deterministic, ::google::protobuf::uint8* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const {
-    return InternalSerializeWithCachedSizesToArray(false, output);
-  }
-  int GetCachedSize() const { return _cached_size_; }
-  private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const;
-  void InternalSwap(ElectionConfig* other);
-  private:
-  inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
-    return _internal_metadata_.arena();
-  }
-  inline void* MaybeArenaPtr() const {
-    return _internal_metadata_.raw_arena_ptr();
-  }
-  public:
-
-  ::google::protobuf::Metadata GetMetadata() const;
-
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-
-  // optional string fee_allocation_share = 1;
-  void clear_fee_allocation_share();
-  static const int kFeeAllocationShareFieldNumber = 1;
-  const ::std::string& fee_allocation_share() const;
-  void set_fee_allocation_share(const ::std::string& value);
-  void set_fee_allocation_share(const char* value);
-  void set_fee_allocation_share(const char* value, size_t size);
-  ::std::string* mutable_fee_allocation_share();
-  ::std::string* release_fee_allocation_share();
-  void set_allocated_fee_allocation_share(::std::string* fee_allocation_share);
-
-  // @@protoc_insertion_point(class_scope:protocol.ElectionConfig)
- private:
-
-  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
-  bool _is_default_instance_;
-  ::google::protobuf::internal::ArenaStringPtr fee_allocation_share_;
-  mutable int _cached_size_;
-  friend void  protobuf_AddDesc_consensus_2eproto();
-  friend void protobuf_AssignDesc_consensus_2eproto();
-  friend void protobuf_ShutdownFile_consensus_2eproto();
-
-  void InitAsDefaultInstance();
-  static ElectionConfig* default_instance_;
-};
 // ===================================================================
 
 
@@ -2792,57 +2704,7 @@ inline void FeeConfig::set_base_reserve(::google::protobuf::int64 value) {
   // @@protoc_insertion_point(field_set:protocol.FeeConfig.base_reserve)
 }
 
-// -------------------------------------------------------------------
-
-// ElectionConfig
-
-// optional string fee_allocation_share = 1;
-inline void ElectionConfig::clear_fee_allocation_share() {
-  fee_allocation_share_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-inline const ::std::string& ElectionConfig::fee_allocation_share() const {
-  // @@protoc_insertion_point(field_get:protocol.ElectionConfig.fee_allocation_share)
-  return fee_allocation_share_.GetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-inline void ElectionConfig::set_fee_allocation_share(const ::std::string& value) {
-  
-  fee_allocation_share_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
-  // @@protoc_insertion_point(field_set:protocol.ElectionConfig.fee_allocation_share)
-}
-inline void ElectionConfig::set_fee_allocation_share(const char* value) {
-  
-  fee_allocation_share_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
-  // @@protoc_insertion_point(field_set_char:protocol.ElectionConfig.fee_allocation_share)
-}
-inline void ElectionConfig::set_fee_allocation_share(const char* value, size_t size) {
-  
-  fee_allocation_share_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
-      ::std::string(reinterpret_cast<const char*>(value), size));
-  // @@protoc_insertion_point(field_set_pointer:protocol.ElectionConfig.fee_allocation_share)
-}
-inline ::std::string* ElectionConfig::mutable_fee_allocation_share() {
-  
-  // @@protoc_insertion_point(field_mutable:protocol.ElectionConfig.fee_allocation_share)
-  return fee_allocation_share_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-inline ::std::string* ElectionConfig::release_fee_allocation_share() {
-  // @@protoc_insertion_point(field_release:protocol.ElectionConfig.fee_allocation_share)
-  
-  return fee_allocation_share_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-inline void ElectionConfig::set_allocated_fee_allocation_share(::std::string* fee_allocation_share) {
-  if (fee_allocation_share != NULL) {
-    
-  } else {
-    
-  }
-  fee_allocation_share_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), fee_allocation_share);
-  // @@protoc_insertion_point(field_set_allocated:protocol.ElectionConfig.fee_allocation_share)
-}
-
 #endif  // !PROTOBUF_INLINE_NOT_IN_HEADERS
-// -------------------------------------------------------------------
-
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------
