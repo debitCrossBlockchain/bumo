@@ -229,14 +229,14 @@ function addCandidates(roleType, address, proposal, maxSize){
         candidates = candidates.slice(0, maxSize);
     }
 
+    let key = roleType === role.VALIDATOR ? validatorCandsKey : kolCandsKey;
+    saveObj(key, candidates);
+
     if(roleType === role.VALIDATOR && candidates.indexOf(found) < cfg.validator_size){
         let validators = candidates.slice(0, cfg.validator_size);
         validators     = getNodeSet(validators);
         setValidators(JSON.stringify(validators));
     }
-
-    let key = roleType === role.VALIDATOR ? validatorCandsKey : kolCandsKey;
-    return saveObj(key, candidates);
 }
 
 function deleteCandidate(roleType, address){
@@ -252,14 +252,14 @@ function deleteCandidate(roleType, address){
     candidates.splice(index, 1);
     candidates.sort(doubleSort);
 
+    let key = roleType === role.VALIDATOR ? validatorCandsKey : kolCandsKey;
+    saveObj(key, candidates);
+
     if(roleType === role.VALIDATOR && index < cfg.validator_size){
         let validators = candidates.slice(0, cfg.validator_size);
         validators     = getNodeSet(validators);
         setValidators(JSON.stringify(validators));
     }
-
-    let key = roleType === role.VALIDATOR ? validatorCandsKey : kolCandsKey;
-    saveObj(key, candidates);
 }
 
 function updateStake(roleType, candidate, formalSize, amount){
@@ -269,6 +269,9 @@ function updateStake(roleType, candidate, formalSize, amount){
     candidate[1] = Utils.int64Add(candidate[1], amount);
     candidates.sort(doubleSort);
     let newPos = candidates.indexOf(candidate);
+
+    let key = roleType === role.VALIDATOR ? validatorCandsKey : kolCandsKey;
+    saveObj(key, candidates);
 
     if((oldPos > formalSize && newPos <= formalSize) ||
        (oldPos <= formalSize && newPos > formalSize)){
@@ -280,9 +283,6 @@ function updateStake(roleType, candidate, formalSize, amount){
             setValidators(JSON.stringify(validators));
         }
     }
-
-    let key = roleType === role.VALIDATOR ? validatorCandsKey : kolCandsKey;
-    return saveObj(key, candidates);
 }
 
 function roleValid(roleType){
