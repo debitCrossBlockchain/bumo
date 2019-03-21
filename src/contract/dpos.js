@@ -417,7 +417,7 @@ function operateValid(operate){
 function approve(operate, item, address){
     Utils.assert(operateValid(operate), 'Unknown approve operation');
     Utils.assert(roleValid(item) || cfg[item] !== undefined, 'Unknown approve item.');
-    Utils.assert(Utils.addressCheck(address), address + ' is not valid adress.');
+    Utils.assert(Utils.addressCheck(address), address + ' is not valid address.');
 
     let committee = loadObj(committeeKey);
     Utils.assert(committee !== false, 'Failed to get ' + committeeKey + ' from metadata.');
@@ -464,7 +464,7 @@ function voterKey(roleType, candidate, voter){
 
 function vote(roleType, address){
     Utils.assert(roleType === role.VALIDATOR || roleType === role.KOL, 'Can only vote for validator or KOL.');
-    Utils.assert(Utils.addressCheck(address), address + ' is not valid adress.');
+    Utils.assert(Utils.addressCheck(address), address + ' is not valid address.');
     Utils.assert(Utils.int64Mod(Chain.msg.coinAmount, cfg.vote_unit) === '0', 'The number of votes must be an integer multiple of ' + cfg.vote_unit);
 
     let key        = voterKey(roleType, address);
@@ -490,7 +490,7 @@ function vote(roleType, address){
 
 function unVote(roleType, address){
     Utils.assert(roleType === role.VALIDATOR || roleType === role.KOL, 'Can only vote for validator or KOL.');
-    Utils.assert(Utils.addressCheck(address), address + ' is not valid adress.');
+    Utils.assert(Utils.addressCheck(address), address + ' is not valid address.');
 
     let key    = voterKey(roleType, address);
     let amount = Chain.load(key);
@@ -555,7 +555,7 @@ function reportPermission(roleType){
 }
 
 function abolish(roleType, address, proof){
-    Utils.assert(Utils.addressCheck(address), address + ' is not valid adress.');
+    Utils.assert(Utils.addressCheck(address), address + ' is not valid address.');
     Utils.assert(reportPermission(roleType), Chain.msg.sender + ' has no permission to report.');
     Utils.assert(typeof proof === 'string', 'Args type error, proof must be a string.');
 
@@ -645,7 +645,7 @@ function configure(item, value){
 }
 
 function switchNode(address){
-    Utils.assert(Utils.addressCheck(address), address + ' is not valid adress.');
+    Utils.assert(Utils.addressCheck(address), address + ' is not valid address.');
 
     let key      = proposalKey(motion.APPLY, role.VALIDATOR, Chain.msg.sender);
     let proposal = loadObj(key);
@@ -675,7 +675,7 @@ function switchNode(address){
 function clean(operate, item, address){
     Utils.assert(operateValid(operate), 'Unknown approve operation');
     Utils.assert(roleValid(item) || cfg[item] !== undefined, 'Unknown approve item.');
-    Utils.assert(Utils.addressCheck(address), address + ' is not valid adress.');
+    Utils.assert(Utils.addressCheck(address), address + ' is not valid address.');
 
     let key = proposalKey(operate, item, address);
     let proposal = loadObj(key);
@@ -788,7 +788,7 @@ function initialization(params){
 
     let i = 0;
     for(i = 0; i < params.committee.length; i += 1){
-        Utils.assert(Utils.addressCheck(params.committee[i]), 'Committee member(' + params.committee[i] + ') is not valid adress.');
+        Utils.assert(Utils.addressCheck(params.committee[i]), 'Committee member(' + params.committee[i] + ') is not valid address.');
         saveObj(proposalKey(motion.APPLY, role.COMMITTEE, params.committee[i]), foundingProposal());
     }
     saveObj(committeeKey, params.committee);
