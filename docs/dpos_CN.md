@@ -90,8 +90,9 @@ dpos 合约账户创建成功后，才可以进行后续的操作，且该账户
     {
       "payload" : "拷贝 src\contract\dpos_delegate.js 中全部代码至此处"
     },
-    "init_balance": 10000000,
+    "init_balance": 1000000,
     "init_input" : "{
+      \"method\": \"init\",
       \"params\": {
         \"logic_contract\": \"此处填入逻辑合约地址\",
         \"committee\": [\"此处填入委员会地址列表\"]
