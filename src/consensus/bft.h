@@ -51,6 +51,9 @@ namespace bumo {
 		//For change view timer
 		int64_t new_view_repond_timer_;
 
+		//For abnormal records
+		std::unordered_map<std::string, int64_t> abnormal_records_;
+
 		PbftEnvPointer NewPrePrepare(const std::string &value, int64_t sequence);
 		protocol::PbftEnv NewPrePrepare(const protocol::PbftPrePrepare &pre_prepare);
 		PbftEnvPointer NewPrepare(const protocol::PbftPrePrepare &pre_prepare, int64_t round_number);
@@ -79,6 +82,7 @@ namespace bumo {
 		void TryDoTraceOut(const PbftInstanceIndex &index, const PbftInstance &instance);
 		static size_t GetQuorumSize(size_t size);
 		void ClearNotCommitedInstance();
+		std::string CurrentLeader();
 
 		void LoadValues();
 		int32_t LoadVcInstance();

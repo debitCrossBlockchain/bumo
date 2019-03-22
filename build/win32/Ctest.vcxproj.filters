@@ -67,9 +67,6 @@
     <ClCompile Include="..\..\src\proto\cpp\consensus.pb.cc">
       <Filter>bumo</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\proto\cpp\helloworld.pb.cc">
-      <Filter>bumo</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\proto\cpp\merkeltrie.pb.cc">
       <Filter>bumo</Filter>
     </ClCompile>
@@ -238,9 +235,6 @@
       <Filter>bumo</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\proto\cpp\consensus.pb.h">
-      <Filter>bumo</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\proto\cpp\helloworld.pb.h">
       <Filter>bumo</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\proto\cpp\merkeltrie.pb.h">

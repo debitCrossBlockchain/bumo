@@ -30,7 +30,8 @@ namespace bumo {
 	*/
 	const uint32_t General::LEDGER_VERSION_HISTORY_1000 = 1000;
 	const uint32_t General::LEDGER_VERSION_HISTORY_1001 = 1001;
-	const uint32_t General::LEDGER_VERSION = 1002;
+	const uint32_t General::LEDGER_VERSION_HISTORY_1002 = 1002;
+	const uint32_t General::LEDGER_VERSION = 1003;
 	const uint32_t General::LEDGER_MIN_VERSION = 1000;
 	const uint32_t General::MONITOR_VERSION = 1000;
 	const char *General::BUMO_VERSION = "1.2.0";
@@ -93,6 +94,7 @@ namespace bumo {
 
 	const char *General::CONTRACT_VALIDATOR_ADDRESS = "buQtxgoaDrVJGtoPT66YnA2S84yE8FbBqQDJ";
 	const char *General::CONTRACT_FEE_ADDRESS = "buQiQgRerQM1fUM3GkqUftpNxGzNg2AdJBpe";
+	const char *General::CONTRACT_DPOS_ADDRESS = "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss";
 
 	const int32_t General::TRANSACTION_LIMIT_SIZE = utils::BYTES_PER_MEGA;
 	const int32_t General::TXSET_LIMIT_SIZE = 16 * utils::BYTES_PER_MEGA;

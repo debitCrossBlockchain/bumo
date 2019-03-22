@@ -196,7 +196,7 @@ message TransactionEnv {
 	Trigger trigger = 3;
 }
 
-message TransactionEnvStore{
+message TransactionEnvStore {
 	TransactionEnv transaction_env = 1;
 	int32 error_code = 2;
 	string error_desc = 3;

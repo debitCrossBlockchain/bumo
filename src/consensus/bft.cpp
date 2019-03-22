@@ -15,6 +15,7 @@
 
 #include <utils/headers.h>
 #include <common/pb2json.h>
+#include "proto/cpp/chain.pb.h"
 #include "bft.h"
 
 namespace bumo {
@@ -230,11 +231,8 @@ namespace bumo {
 	}
 
 	void Pbft::OnTimer(int64_t current_time) {
-
-		
 		utils::MutexGuard guard(lock_);
 
-		
 		PbftInstance *last_prepared_instance = NULL;
 		const PbftInstanceIndex *index = NULL;
 		PbftInstanceMap::iterator last_prepared_iter = instances_.end();
@@ -822,7 +820,6 @@ namespace bumo {
 
 		LOG_INFO("Send prepare message: view number(" FMT_I64 "), replica id(" FMT_I64 "), sequence(" FMT_I64 "), round number(1), value(%s)",
 			pre_prepare.view_number(), replica_id_, pre_prepare.sequence(), notify_->DescConsensusValue(pre_prepare.value()).c_str());
-
 		PbftEnvPointer prepare_msg = NewPrepare(pre_prepare, 1);
 		if (!SendMessage(prepare_msg)) {
 			return false;
@@ -1091,6 +1088,26 @@ namespace bumo {
 
 	bool Pbft::ProcessQuorumViewChange(PbftVcInstance &vc_instance) {
 		LOG_INFO("Process quorum view-change, new view (number:" FMT_I64 ")", vc_instance.view_number_);
+		
+		std::string abnormal_node;
+		int32_t vsize = validators_.size();
+		for (std::map<std::string, int64_t>::iterator iter = validators_.begin();
+			iter != validators_.end();
+			iter++) {
+			if (iter->second == view_number_ % vsize) {
+				abnormal_node = iter->first;
+				std::unordered_map<std::string, int64_t>::iterator it = abnormal_records_.find(abnormal_node);
+				if (it != abnormal_records_.end())
+				{
+					it->second++;
+				}
+				else {
+					abnormal_records_.insert(std::make_pair(abnormal_node, 1));
+				}
+				break;
+			}
+		}
+
 		if (vc_instance.view_number_ % validators_.size() != replica_id_) { // we must be the leader
 
 			protocol::PbftPreparedSet temp_set = vc_instance.pre_prepared_env_set;
@@ -1130,7 +1147,7 @@ namespace bumo {
 			LOG_INFO("View-change instance got the prepared value, desc(%s)", PbftDesc::GetPbft(pbft).c_str());
 		}
 
-		//Delete uncommited instances
+		//Delete uncommitted instances
 		for (PbftInstanceMap::iterator iter_inst = instances_.begin();
 			iter_inst != instances_.end();
 			) {
@@ -1146,6 +1163,7 @@ namespace bumo {
 
 		ValueSaver saver;
 		//Enter the new view
+
 		view_number_ = vc_instance.view_number_;
 		view_active_ = true;
 		saver.SaveValue(PbftDesc::VIEW_ACTIVE, view_active_ ? 1 : 0);
@@ -1536,6 +1554,7 @@ namespace bumo {
 		data["view_active"] = view_active_;
 		data["is_leader"] = (replica_id_ == view_number_ % validators_.size());
 		data["validator_address"] = replica_id_ >= 0 ? private_key_.GetEncAddress() : "none";
+		data["leader"] = CurrentLeader();
 		Json::Value &instances = data["instances"];
 		for (PbftInstanceMap::const_iterator iter = instances_.begin(); iter != instances_.end(); iter++) {
 			const PbftInstance &instance = iter->second;
@@ -1596,6 +1615,15 @@ namespace bumo {
 			validators[validators.size()] = set.validators(i).address();
 		}
 		data["quorum_size"] = (Json::UInt64)quorum_size;
+
+		Json::Value records_json;
+		std::unordered_map<std::string, int64_t>::iterator it = abnormal_records_.begin();
+		for (; it != abnormal_records_.end(); it++)
+		{
+			records_json["address"] = it->first;
+			records_json["count"] = it->second;
+		}
+		data["abnormal_records"] = records_json;
 	}
 
 	int32_t Pbft::IsLeader() {
@@ -1619,6 +1647,19 @@ namespace bumo {
 				iter_inst++;
 			}
 		}
+	}
+
+	std::string Pbft::CurrentLeader(){
+		std::string leader;
+		int64_t leaderId = view_number_ % validators_.size();
+
+		for (auto validator : validators_){
+			if (validator.second == leaderId){
+				leader = validator.first;
+			}
+		}
+
+		return leader;
 	}
 
 	//update
@@ -1684,6 +1725,9 @@ namespace bumo {
 			
 			ClearNotCommitedInstance();
 			notify_->OnResetCloseTimer();
+
+			//Clear abnormal records
+			abnormal_records_.clear();
 		} 
 		
 		if (new_seq > 0) {

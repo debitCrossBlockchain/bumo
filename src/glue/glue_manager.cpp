@@ -102,10 +102,11 @@ namespace bumo {
 			if (CheckValue(last_consavlue) == Consensus::CHECK_VALUE_VALID) {
 				protocol::ConsensusValue propose_value;
 				propose_value.ParseFromString(last_consavlue);
+
 				LOG_INFO("Take the last consensus value as the proposal. The number of transactions in consensus value is %d, and the last closed ledger's hash is %s.", propose_value.txset().txs_size(),
 					utils::String::Bin4ToHexString(lcl.hash()).c_str());
 
-				return consensus_->Request(last_consavlue);
+				return consensus_->Request(propose_value.SerializeAsString());
 			}
 		}
 
