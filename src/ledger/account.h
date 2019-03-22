@@ -84,10 +84,6 @@ namespace bumo {
 			return account_info_.nonce();
 		}
 
-		std::string GetAccountCreator() const {
-			return account_info_.creator();
-		}
-
 		const int64_t GetProtoMasterWeight() const {
 			return account_info_.priv().master_weight();
 		}
