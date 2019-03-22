@@ -339,6 +339,10 @@ function append(roleType){
     }
 }
 
+function penaltyKey(evil, roleType){
+    return 'penalty_' + roleType + '_' + evil;
+}
+
 function penalty(evil, roleType){
     let key = proposalKey(motion.APPLY, roleType, evil);
     let proposal = loadObj(key);
@@ -358,9 +362,7 @@ function penalty(evil, roleType){
         distributed = true;
     }
 
-    if(allAsset !== '0'){
-        Chain.store('penalty_' + evil, allAsset);
-    }
+    Chain.store(penaltyKey(evil, roleType), allAsset);
 }
 
 function updateCfg(key, proposal, item){
