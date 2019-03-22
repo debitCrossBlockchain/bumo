@@ -91,9 +91,7 @@ function subscribe(shares){
         cobuilders[Chain.tx.sender][0] = Utils.int64Add(cobuilders[Chain.tx.sender][0], shares);
     }
 
-    states.funding = Utils.int64Add(states.funding, Chain.msg.coinAmount);
     states.realShares = Utils.int64Add(states.realShares, shares);
-
     saveObj(statesKey, states);
     saveObj(cobuildersKey, cobuilders);
 }
@@ -107,7 +105,6 @@ function revoke(){
     saveObj(cobuildersKey, cobuilders);
 
     let amount = Utils.int64Mul(cfg.unit, stake[0]);
-    states.funding = Utils.int64Sub(states.funding, amount);
     states.realShares = Utils.int64Sub(states.realShares, stake[0]);
     saveObj(statesKey, states);
 
@@ -136,12 +133,12 @@ function apply(role, node){
     Utils.assert(Chain.tx.sender === cfg.initiator, 'Only the initiator has the right to apply.');
     Utils.assert(Utils.int64Compare(states.realShares, cfg.raiseShares) >= 0, 'Co-building fund is not enough.');
 
-    states.pledged = states.realShares;
     states.applied = true;
     saveObj(statesKey, states);
    
     let application = applyInput(role, node);
-    triggerContract(dposContract, states.funding, application);
+    let pledgeAmount = Utils.int64Mul(cfg.unit, states.realShares);
+    triggerContract(dposContract, pledgeAmount, application);
 }
 
 function transferKey(from, to){
@@ -245,7 +242,7 @@ function vote(role){
     proposal.ballot[Chain.tx.sender] = cobuilders[Chain.tx.sender][0];
     proposal.sum = Utils.int64Add(proposal.sum, cobuilders[Chain.tx.sender][0]);
 
-    if(Utils.int64Div(cfg.pledged, proposal.sum) >= 2){
+    if(Utils.int64Div(states.realShares, proposal.sum) >= 2){
         return saveObj(withdrawKey, proposal);
     } 
 
@@ -260,9 +257,7 @@ function takeback(role){
     Chain.del(withdrawKey);
 
     states.applied = false;
-    states.pledged = '0';
     saveObj(statesKey, states);
-
     triggerContract(dposContract, 0, withdrawInput(role));
 }
 
@@ -382,10 +377,7 @@ function init(input_str){
 
     states = {
         'applied' : false,
-        'pledged' : '0',
-        'funding' : Chain.msg.coinAmount,
-        'realShares' : initShare,
-        'distributed': '0'
+        'realShares' : initShare
     };
     saveObj(statesKey, states);
 
