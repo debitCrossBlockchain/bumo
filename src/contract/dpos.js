@@ -802,7 +802,7 @@ function initialization(params){
     }
     saveObj(validatorCandsKey, validators.sort(doubleSort));
 
-    saveObj(stakeKey, 10000000); /* 0.1BU */
+    saveObj(stakeKey, Chain.getBalance(Chain.thisAddress));
     saveObj(kolCandsKey, []);
     saveObj(rewardKey, {});
 
