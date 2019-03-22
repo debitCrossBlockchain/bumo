@@ -39,8 +39,8 @@ function transferCoin(dest, amount){
     Utils.log('Pay coin( ' + amount + ') to dest account(' + dest + ') succeed.');
 }
 
-function triggerContract(dest, amount, input){
-    Chain.payCoin(dest, String(amount), input);
+function callDPOS(amount, input){
+    Chain.payCoin(dposContract, amount, input);
     Utils.log('Pay coin( ' + amount + ') to dest account(' + dest + ') succeed.');
 }
 
@@ -70,12 +70,17 @@ function rewardCobuilders(reward, shares){
     return Utils.int64Mod(reward, shares);
 }
 
-function distribute(){
+function getReward(){
     let before = Chain.getBalance(Chain.thisAddress);
-    triggerContract(dposContract, 0, extractInput());
+    let input  = extractInput(); 
+    callDPOS('0', input);
     let after = Chain.getBalance(Chain.thisAddress);
 
-    let reward = Utils.int64Sub(after, before);
+    return Utils.int64Sub(after, before);
+}
+
+function distribute(){
+    let reward = getReward();
     if(reward === '0'){
         return;
     }
@@ -157,7 +162,7 @@ function apply(role, node){
    
     let application = applyInput(role, node);
     let pledgeAmount = Utils.int64Mul(cfg.unit, states.realShares);
-    triggerContract(dposContract, pledgeAmount, application);
+    callDPOS(pledgeAmount, application);
 }
 
 function transferKey(from, to){
@@ -233,7 +238,9 @@ function withdrawInput(role){
 function withdrawing(role, proposal){
     proposal.withdrawed = true;
     saveObj(withdrawKey, proposal);
-    triggerContract(dposContract, 0, withdrawInput(role));
+
+    let input = withdrawInput(role);
+    callDPOS('0', input);
 }
 
 function withdraw(role){
@@ -277,7 +284,9 @@ function takeback(role){
 
     states.applied = false;
     saveObj(statesKey, states);
-    triggerContract(dposContract, 0, withdrawInput(role));
+
+    let input = withdrawInput(role);
+    callDPOS('0', input);
 }
 
 function extract(){
