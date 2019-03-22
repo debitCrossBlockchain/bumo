@@ -59,6 +59,17 @@ function extractInput(){
     return { 'method' : 'extract' };
 }
 
+function rewardCobuilders(reward, shares){
+    let unitReward = Utils.int64Div(reward, shares);
+
+    Object.keys(cobuilders).forEach(function(key){
+        let keyReward = Utils.int64Mul(unitReward, cobuilders[key][0]);
+        cobuilders[key][1] = Utils.int64Add(cobuilders[key][1], keyReward);
+    });
+
+    return Utils.int64Mod(reward, shares);
+}
+
 function distribute(){
     let before = Chain.getBalance(Chain.thisAddress);
     triggerContract(dposContract, 0, extractInput());
@@ -69,13 +80,21 @@ function distribute(){
         return;
     }
 
-    let unitReward = Utils.int64Div(reward, states.realShares);
-    Object.keys(cobuilders).forEach(function(key){
-        let keyReward = Utils.int64Mul(unitReward, cobuilders[key][0]);
-        cobuilders[key][1] = Utils.int64Add(cobuilders[key][1], keyReward);
-    });
+    let left = 0;
+    if(cfg.rewardRatio === 100){
+        left = rewardCobuilders(reward, states.realShares);
+    }
+    else{
+        let initiator = cobuilders[cfg.initiator];
+        delete cobuilders[cfg.initiator];
 
-    let left = Utils.int64Mod(reward, states.realShares);
+        let cobuildersReward = Utils.int64Mul(Utils.int64Div(reward, 100), cfg.rewardRatio); 
+        left = rewardCobuilders(cobuildersReward, Utils.int64Sub(states.realShares, initiator[0]));
+
+        initiator[1] = Utils.int64Add(initiator[1], Utils.int64Sub(reward, cobuildersReward));
+        cobuilders[cfg.initiator] = initiator;
+    }
+
     cobuilders[cfg.initiator][1] = Utils.int64Add(cobuilders[cfg.initiator][1], left);
 }
 
@@ -361,6 +380,7 @@ function init(input_str){
 
     let mul = Utils.int64Mul(params.unit, params.shares);
     Utils.assert(Utils.int64Compare(mul, minApplyPledge) >= 0, 'Crowdfunding < minimum application pledge.');
+    Utils.assert(params.ratio > 0 && params.ratio <= 100, 'The reward ratio should be > 0 and <= 100.');
     Utils.assert(Utils.int64Compare(Chain.msg.coinAmount, minInitAmount) >= 0 && Utils.int64Mod(Chain.msg.coinAmount, params.unit) === '0', 'Initiator subscription amount is illegal.');
 
     cfg = {
