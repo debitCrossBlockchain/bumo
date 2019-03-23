@@ -41,7 +41,7 @@ function transferCoin(dest, amount){
 
 function callDPOS(amount, input){
     Chain.payCoin(dposContract, amount, input);
-    Utils.log('Pay coin( ' + amount + ') to dest account(' + dest + ') succeed.');
+    Utils.log('Call DPOS contract(address: ' + dposContract + ', input: ' + input +') succeed.');
 }
 
 function prepare(){
@@ -251,7 +251,7 @@ function withdraw(role){
     withdrawing(role, proposal);
 }
 
-function vote(role){
+function poll(role){
     Utils.assert(states.applied === true, 'Has not applied yet.');
     Utils.assert(cobuilders[Chain.tx.sender] !== undefined, 'Sender is not involved in co-building.');
 
@@ -261,7 +261,7 @@ function vote(role){
     }
     else{
         if(proposal.ballot[Chain.tx.sender] !== undefined){
-            return Chain.msg.sender + ' has voted.';
+            return Chain.msg.sender + ' has polled.';
         }
     }
 
@@ -329,10 +329,14 @@ function query(input_str){
         result.states = getStatus();
     }
     else if(input.method === 'getConfiguration'){
-        result = getConfiguration();
+        result.cfg = getConfiguration();
     }
     else if(input.method === 'getWithdrawInfo'){
-        result = getWithdrawInfo();
+        result.withdrawInfo = getWithdrawInfo();
+    }
+    else if(input.method === 'getTransferInfo'){
+        let key = transferKey(params.from, params.to);
+        result.transferInfo = Chain.load(key);
     }
 
     Utils.log(result);
@@ -374,9 +378,9 @@ function main(input_str){
         Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
     	takeback(params.role);
     }
-    else if(input.method === 'vote'){
+    else if(input.method === 'poll'){
         Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
-	    vote(params.role);
+	    poll(params.role);
     }
     else{
         throw '<undidentified operation type>';
