@@ -17,7 +17,7 @@
   - [公投退出](#公投退出)
   - [收回押金](#收回押金)
 - [查询接口](#查询接口)
-  - [查询配置](#查询配置)
+  - [查询配置信息](#查询配置信息)
   - [查询共建状态](#查询共建状态)
   - [查询转让信息](#查询转让信息)
   - [查询退出详情](#查询退出详情)
@@ -29,7 +29,7 @@
 
 ## 简介
 
-当用户参与 BuChain 超级节点竞选时，可以单独申请；如果资金实力不足，也可以发起节点共建计划，由众多用户共同认购共建资金，一起申请。co-build 是 BuChain 为用户发起节点共建提供的合约模板，任意用户可以使用 co-build 发起自己的超级节点共建计划，发起共建的用户称为共建**发起者**。
+当用户参与 BuChain 超级节点竞选时，可以单独申请；如果资金实力不足，也可以发起节点共建计划，由众多用户共同认购共建资金，一起申请。co-build 是 BuChain 为用户发起节点共建提供的合约模板，任意用户可以使用 co-build 创建自己的共建合约，发起超级节点共建计划，发起共建的用户称为共建**发起者**。
 
 在共建计划中，参选超级节点所需的质押金将被划分为等额的若干份，称为**共建目标总份额**。每份所需的 BU 数，称为**共建单位**。任何用户可认购一份或多份，参与认购的用户称为**共建者**。认购额达到或超过参选超级节点所需的质押金后，发起者可以**以共建合约地址为参选地址，申请成为超级节点**。
 
@@ -284,15 +284,101 @@
 ```
 
 ## 查询接口
+co-build 为发起者和共建者提供了多项查询接口，供用户查询共建相关内容。
 
-### 查询配置
+### 查询配置信息
+调用`getConfiguration`接口可以查询共建合约所有的配置项和配置值。
+- 共建者或发起者向共建合约转移 0 BU 用于触发共建合约；
+- 转账操作的 input 字段填入`{ "method" : "getConfiguration"}}`作为参数。
+- 调用`getConfiguration`接口时不需要指定参数。
+
+>例
+```json
+  {
+    "contract_address" : "buQo8w52g2nQgxnfKWovUUEFQzMCTX5TRpZD",
+    "code" : "",
+    "input" : "{\"method\": \"getConfiguration\"}",
+    "opt_type" : 2,
+    "source_address" : ""
+  }
+```
 
 ### 查询共建状态
+调用`getStatus`接口可以查询共建合约所有的状态内容。
+- 共建者或发起者向共建合约转移 0 BU 用于触发共建合约；
+- 转账操作的 input 字段填入`{ "method" : "getStatus"}}`作为参数。
+- 调用`getStatus`接口时不需要指定参数。
+
+>例
+```json
+  {
+    "contract_address" : "buQo8w52g2nQgxnfKWovUUEFQzMCTX5TRpZD",
+    "code" : "",
+    "input" : "{\"method\": \"getStatus\"}",
+    "opt_type" : 2,
+    "source_address" : ""
+  }
+```
 
 ### 查询转让信息
+调用`getTransferInfo`接口可以查询指定的共建份额转让信息。
+- 共建者或发起者向共建合约转移 0 BU 用于触发共建合约；
+- 转账操作的 input 字段填入`{ "method" : "getTransferInfo", "params":{"form":"此处填入转让者的地址", "to":"此处填入接收转让者的地址"}}`作为参数。
+
+
+|参数|描述
+|:--- | ---
+|from | 转让者的地址。
+|to   | 接收转让者的地址。
+
+>例
+```json
+  {
+    "contract_address" : "buQo8w52g2nQgxnfKWovUUEFQzMCTX5TRpZD",
+    "code" : "",
+    "input" : "{
+        \"method\": \"getStatus\"，
+        \"params\":{
+          \"from\":\"buQaKYwkqP4vq4Up6nqjfukBFYUWPCkAD84F\",
+          \"to\":\"buQop4UtJJNPKSHNCt9LKYs1kDNQ4Bdz52a3\"  
+      }
+    }",
+    "opt_type" : 2,
+    "source_address" : ""
+  }
+```
 
 ### 查询退出详情
+调用`getWithdrawInfo`接口可以查询发起者发起的，或共建者公投的退出提案。
+- 共建者或发起者向共建合约转移 0 BU 用于触发共建合约；
+- 转账操作的 input 字段填入`{ "method" : "getWithdrawInfo"}}`作为参数。
+- 调用`getWithdrawInfo`接口时不需要指定参数。
+
+>例
+```json
+  {
+    "contract_address" : "buQo8w52g2nQgxnfKWovUUEFQzMCTX5TRpZD",
+    "code" : "",
+    "input" : "{\"method\": \"getWithdrawInfo\"}",
+    "opt_type" : 2,
+    "source_address" : ""
+  }
+```
+注：如果是发起者发起的退出提案，则没投票者列表。
 
 ### 查询共建者集合详情
+调用`getCobuilders`接口可以获取包括发起者在内的所有共建者的认购份额和未分配区块奖励信息。
+- 共建者或发起者向共建合约转移 0 BU 用于触发共建合约；
+- 转账操作的 input 字段填入`{ "method" : "getCobuilders"}}`作为参数。
+- 调用`getCobuilders`接口时不需要指定参数。
 
-
+>例
+```json
+  {
+    "contract_address" : "buQo8w52g2nQgxnfKWovUUEFQzMCTX5TRpZD",
+    "code" : "",
+    "input" : "{\"method\": \"getCobuilders\"}",
+    "opt_type" : 2,
+    "source_address" : ""
+  }
+```
