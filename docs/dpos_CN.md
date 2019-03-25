@@ -1141,7 +1141,7 @@ motion = [
     "dest_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
     "amount" :0,
     "input":"{
-      \"method\":\"approve\",
+      \"method\":\"clean\",
       \"params\" : {
         \"item\":\"kol_min_pledge\",
         \"address\": \"buQZoJk8bq6A1AtsmfRw3rYJ79eMHUyct9i2\"，
