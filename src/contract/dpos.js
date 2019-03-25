@@ -22,7 +22,7 @@ const motion = {
 
 let elect  = {};
 let cfg    = {};
-let feeCfg = ['1', '2']; /* 1 : gas_price, 2 : base_reserve */
+let feeCfg ={'gas_price': 1, 'base_reserve': 2};
 let distributed = false;
 
 function doubleSort(a, b){
@@ -370,9 +370,9 @@ function updateCfg(key, proposal, item){
     cfg[item] = proposal.value;
     saveObj(configKey, cfg);
 
-    if(feeCfg.includes(item)){
+    if(feeCfg[item] !== undefined){
         let sys = {};
-        sys[item] = proposal.value;
+        sys[feeCfg[item]] = proposal.value;
         configFee(JSON.stringify(sys));
     }
 }
@@ -764,8 +764,8 @@ function foundingProposal(node){
 
 function initialization(params){
     cfg = {
-        '1'                        : 1000,     /* 1 : gas_price, 1000 MO */
-        '2'                        : 1000000,  /* 2 : base_reserve, 100 0000 MO or 0.01 BU */
+        'gas_price'                : 1000,     /* 1 : gas_price, 1000 MO */
+        'base_reserve'             : 1000000,  /* 2 : base_reserve, 100 0000 MO or 0.01 BU */
         'committee_size'           : 10,
         'kol_size'                 : 21,
         'kol_candidate_size'       : 100,
