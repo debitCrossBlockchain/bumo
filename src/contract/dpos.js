@@ -778,7 +778,6 @@ function initialization(params){
         'valid_period'             : 1296000000000,  /* 15 * 24 * 60 * 60 * 1000 * 1000 */
         'vote_unit'                : 1000000000,     /* 10 0000 0000 */
         'reward_allocation_share'  : [50,6,40,4],    /* validators 50%, validator candidates 6%, kols 40%, kol candidates 4% */
-        'fee_allocation_share'     : '70:20:10',     /* DAPP_70% : blockReward_20% : creator_10% */
         'logic_contract'           : params.logic_contract
     };
     saveObj(configKey, cfg);
