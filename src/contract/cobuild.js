@@ -139,12 +139,14 @@ function revoke(){
     transferCoin(Chain.tx.sender, amount);
 }
 
-function applyInput(role, node){
-    let application = { 'method' : 'apply', 'params':{ 'role': 'kol' } };
+function applyInput(node){
+    let application = {
+        'method' : 'apply',
+        'params':{
+            'role': states.role || 'kol'
+        }
+    };
 
-    if(role === 'validator'){
-        application.params.role = role;
-    }
     if(node !== undefined && Utils.addressCheck(node)){
         application.params.node = node;
     }
@@ -158,9 +160,10 @@ function apply(role, node){
     Utils.assert(Utils.int64Compare(states.realShares, cfg.raiseShares) >= 0, 'Co-building fund is not enough.');
 
     states.applied = true;
+    states.role = role;
     saveObj(statesKey, states);
    
-    let application = applyInput(role, node);
+    let application = applyInput(node);
     let pledgeAmount = Utils.int64Mul(cfg.unit, states.realShares);
     callDPOS(pledgeAmount, application);
 }
@@ -224,34 +227,34 @@ function withdrawProposal(){
     return proposal;
 }
 
-function withdrawInput(role){
+function withdrawInput(){
     let application = {
         'method' : 'withdraw',
         'params':{
-            'role':role || 'kol'
+            'role':states.role || 'kol'
         }
     };
 
     return application;
 }
 
-function withdrawing(role, proposal){
+function withdrawing(proposal){
     proposal.withdrawed = true;
     saveObj(withdrawKey, proposal);
 
-    let input = withdrawInput(role);
+    let input = withdrawInput();
     callDPOS('0', input);
 }
 
-function withdraw(role){
+function withdraw(){
     Utils.assert(states.applied === true, 'Has not applied yet.');
     Utils.assert(Chain.tx.sender === cfg.initiator, 'Only the initiator has the right to withdraw.');
 
     let proposal = withdrawProposal();
-    withdrawing(role, proposal);
+    withdrawing(proposal);
 }
 
-function poll(role){
+function poll(){
     Utils.assert(states.applied === true, 'Has not applied yet.');
     Utils.assert(cobuilders[Chain.tx.sender] !== undefined, 'Sender is not involved in co-building.');
 
@@ -272,10 +275,10 @@ function poll(role){
         return saveObj(withdrawKey, proposal);
     } 
 
-    withdrawing(role, proposal);
+    withdrawing(proposal);
 }
 
-function takeback(role){
+function takeback(){
     let proposal = loadObj(withdrawKey);
     assert(proposal !== false, 'Failed to get ' + withdrawKey + ' from metadata.');
     assert(proposal.withdrawed && Chain.block.timestamp >= proposal.expiration, 'Insufficient conditions for recovering the deposit.');
@@ -283,9 +286,10 @@ function takeback(role){
     Chain.del(withdrawKey);
 
     states.applied = false;
+    delete states.role;
     saveObj(statesKey, states);
 
-    let input = withdrawInput(role);
+    let input = withdrawInput();
     callDPOS('0', input);
 }
 
@@ -362,7 +366,7 @@ function main(input_str){
     }
     else if(input.method === 'withdraw'){
         Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
-    	withdraw(params.role);
+    	withdraw();
     }
     else if(input.method === 'transfer'){
         Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
@@ -376,11 +380,11 @@ function main(input_str){
     }
     else if(input.method === 'takeback'){
         Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
-    	takeback(params.role);
+    	takeback();
     }
     else if(input.method === 'poll'){
         Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
-	    poll(params.role);
+	    poll();
     }
     else{
         throw '<undidentified operation type>';
