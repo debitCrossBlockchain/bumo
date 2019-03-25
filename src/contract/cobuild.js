@@ -35,7 +35,7 @@ function transferCoin(dest, amount){
         return true; 
     }
 
-    Chain.payCoin(dest, String(amount));
+    Chain.payCoin(dest, amount);
     Utils.log('Pay coin( ' + amount + ') to dest account(' + dest + ') succeed.');
 }
 
@@ -56,7 +56,7 @@ function prepare(){
 }
 
 function extractInput(){
-    return { 'method' : 'extract' };
+    return JSON.stringify({ 'method' : 'extract' });
 }
 
 function rewardCobuilders(reward, shares){
@@ -151,7 +151,7 @@ function applyInput(node){
         application.params.node = node;
     }
 
-    return application;
+    return JSON.stringify(application);
 }
 
 function apply(role, node){
@@ -235,7 +235,7 @@ function withdrawInput(){
         }
     };
 
-    return application;
+    return JSON.stringify(application);
 }
 
 function withdrawing(proposal){
@@ -291,6 +291,16 @@ function takeback(){
 
     let input = withdrawInput();
     callDPOS('0', input);
+}
+
+function received(){
+    states.applied = false;
+    delete states.role;
+    saveObj(statesKey, states);
+
+    if(false !== loadObj(withdrawKey)){
+        Chain.del(withdrawKey);
+    }
 }
 
 function extract(){
@@ -386,8 +396,8 @@ function main(input_str){
         Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
 	    poll();
     }
-    else{
-        throw '<undidentified operation type>';
+    else if(input.method === 'refund'){
+        received();
     }
 }
 

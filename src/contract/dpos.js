@@ -55,13 +55,13 @@ function minusStake(amount){
     Chain.store(stakeKey, stake);
 }
 
-function transferCoin(dest, amount){
+function transferCoin(dest, amount, input){
     if(amount === '0'){
         return true; 
     }
 
     minusStake(amount);
-    Chain.payCoin(dest, String(amount));
+    Chain.payCoin(dest, amount, input);
 
     Utils.log('Pay coin( ' + amount + ') to dest account(' + dest + ') succeed.');
 }
@@ -137,13 +137,17 @@ function rewardDistribution(){
     saveObj(stakeKey, elect.allStake);
 }
 
+function rewardInput(){
+    return JSON.stringify({ 'method' : 'reward' });
+}
+
 function extract(){
     electInit();
     rewardDistribution();
 
     let income = elect.distribution[Chain.msg.sender];
     elect.distribution[Chain.msg.sender] = '0';
-    transferCoin(Chain.msg.sender, income);
+    transferCoin(Chain.msg.sender, income, rewardInput());
 
     if(elect.validatorCands.find(function(x){ return x[0] === Chain.msg.sender; }) === undefined &&
        elect.kols.find(function(x){ return x[0] === Chain.msg.sender; }) === undefined){
@@ -413,6 +417,10 @@ function operateValid(operate){
     return operate === motion.APPLY || operate === motion.ABOLISH || operate === motion.CONFIG;
 }
 
+function refundInput(){
+    return JSON.stringify({ 'method' : 'refund' });
+}
+
 function approve(operate, item, address){
     Utils.assert(operateValid(operate), 'Unknown approve operation');
     Utils.assert(roleValid(item) || cfg[item] !== undefined, 'Unknown approve item.');
@@ -429,7 +437,7 @@ function approve(operate, item, address){
     if(Chain.block.timestamp >= proposal.expiration){
         Chain.del(key);
         if(operate === motion.APPLY && proposal.pledge > 0){
-            transferCoin(address, proposal.pledge);
+            transferCoin(address, proposal.pledge, refundInput());
         }
 
         return;
@@ -612,7 +620,7 @@ function withdraw(roleType){
     Utils.assert(Chain.block.timestamp >= exitInfo.expiration, 'Buffer period is not over.');
 
     Chain.del(exitKey);
-    transferCoin(Chain.msg.sender, exitInfo.pledge);
+    transferCoin(Chain.msg.sender, exitInfo.pledge, refundInput());
 }
 
 function configProposal(item, value){
@@ -683,7 +691,7 @@ function clean(operate, item, address){
 
     Chain.del(key);
     if((operate === motion.APPLY || operate === motion.WITHDRAW) && proposal.pledge > 0){
-        transferCoin(address, proposal.pledge);
+        transferCoin(address, proposal.pledge, refundInput());
     }
 
     return true;
