@@ -698,7 +698,7 @@ motion = [
     "input":"{
       \"method\":\"approve\",
       \"params\" : {
-        \"role\":\"committee\",
+        \"item\":\"committee\",
         \"address\": \"buQZoJk8bq6A1AtsmfRw3rYJ79eMHUyct9i2\"，
         \"operate\": \"apply\"
       }
