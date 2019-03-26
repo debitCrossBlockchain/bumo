@@ -11,6 +11,10 @@ const withdrawKey   = 'withdraw';
 const cobuildersKey = 'cobuilders';
 const dposContract  = 'buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss';
 
+const share   = 'share';
+const gain    = 'gain';
+const pledged = 'pledged';
+
 let cfg  = {};
 let states = {};
 let cobuilders = {};
@@ -59,24 +63,25 @@ function extractInput(){
     return JSON.stringify({ 'method' : 'extract' });
 }
 
+function getReward(){
+    let before = Chain.getBalance(Chain.thisAddress);
+    callDPOS('0', extractInput());
+    let after = Chain.getBalance(Chain.thisAddress);
+
+    return Utils.int64Sub(after, before);
+}
+
 function rewardCobuilders(reward, shares){
     let unitReward = Utils.int64Div(reward, shares);
 
     Object.keys(cobuilders).forEach(function(key){
-        let keyReward = Utils.int64Mul(unitReward, cobuilders[key][0]);
-        cobuilders[key][1] = Utils.int64Add(cobuilders[key][1], keyReward);
+        if(cobuilders[key][pledged]){
+            let keyReward = Utils.int64Mul(unitReward, cobuilders[key][share]);
+            cobuilders[key][gain] = Utils.int64Add(cobuilders[key][gain], keyReward);
+        }
     });
 
     return Utils.int64Mod(reward, shares);
-}
-
-function getReward(){
-    let before = Chain.getBalance(Chain.thisAddress);
-    let input  = extractInput(); 
-    callDPOS('0', input);
-    let after = Chain.getBalance(Chain.thisAddress);
-
-    return Utils.int64Sub(after, before);
 }
 
 function distribute(){
@@ -87,53 +92,62 @@ function distribute(){
 
     let left = 0;
     if(cfg.rewardRatio === 100){
-        left = rewardCobuilders(reward, states.realShares);
+        left = rewardCobuilders(reward, states.pledgedShares);
     }
     else{
         let initiator = cobuilders[cfg.initiator];
         delete cobuilders[cfg.initiator];
 
         let cobuildersReward = Utils.int64Mul(Utils.int64Div(reward, 100), cfg.rewardRatio); 
-        left = rewardCobuilders(cobuildersReward, Utils.int64Sub(states.realShares, initiator[0]));
+        let cobuildersShares = Utils.int64Sub(states.pledgedShares, initiator[share]);
+        left = rewardCobuilders(cobuildersReward, cobuildersShares);
 
-        initiator[1] = Utils.int64Add(initiator[1], Utils.int64Sub(reward, cobuildersReward));
+        initiator[gain] = Utils.int64Add(initiator[gain], Utils.int64Sub(reward, cobuildersReward));
         cobuilders[cfg.initiator] = initiator;
     }
 
-    cobuilders[cfg.initiator][1] = Utils.int64Add(cobuilders[cfg.initiator][1], left);
+    cobuilders[cfg.initiator][gain] = Utils.int64Add(cobuilders[cfg.initiator][gain], left);
+}
+
+function cobuilder(shares, isPledge){
+    return {
+        share   :shares,
+        pledged :isPledge || false,
+        gain    :'0'
+    };
 }
 
 function subscribe(shares){
-    Utils.assert(states.applied === false, 'Already applied.');
     Utils.assert(typeof shares === 'number', 'Illegal parameter type.');
     Utils.assert(Utils.int64Compare(Utils.int64Mul(cfg.unit, shares), Chain.msg.coinAmount) === 0, 'unit * shares !== Chain.msg.coinAmount.');
 
     if(cobuilders[Chain.tx.sender] === undefined){
-        cobuilders[Chain.tx.sender] = [shares, '0'];
+        cobuilders[Chain.tx.sender] = cobuilder(shares);
     }
     else{
-        cobuilders[Chain.tx.sender][0] = Utils.int64Add(cobuilders[Chain.tx.sender][0], shares);
+        cobuilders[Chain.tx.sender][share] = Utils.int64Add(cobuilders[Chain.tx.sender][share], shares);
     }
 
-    states.realShares = Utils.int64Add(states.realShares, shares);
+    states.allShares = Utils.int64Add(states.allShares, shares);
+    Utils.assert(Utils.int64Compare(states.allShares, maxShare) <= 0, 'Share overrun.');
+
     saveObj(statesKey, states);
     saveObj(cobuildersKey, cobuilders);
 }
 
 function revoke(){
-    Utils.assert(states.applied === false, 'Already applied.');
-    Utils.assert(cobuilders[Chain.tx.sender] !== undefined, 'Sender is not involved in co-building.');
+    Utils.assert(cobuilders[Chain.tx.sender][pledged] === false, 'The share of '+ Chain.tx.sender + ' has been pledged.');
 
     let stake = cobuilders[Chain.tx.sender];
     delete cobuilders[Chain.tx.sender];
     saveObj(cobuildersKey, cobuilders);
 
-    let amount = Utils.int64Mul(cfg.unit, stake[0]);
-    states.realShares = Utils.int64Sub(states.realShares, stake[0]);
+    states.allShares = Utils.int64Sub(states.allShares, stake[share]);
     saveObj(statesKey, states);
 
-    if(stake[1] !== '0'){
-        amount = Utils.int64Add(amount, stake[1]);
+    let amount = Utils.int64Mul(cfg.unit, stake[share]);
+    if(stake[gain] !== '0'){
+        amount = Utils.int64Add(amount, stake[gain]);
     }
 
     transferCoin(Chain.tx.sender, amount);
@@ -157,15 +171,43 @@ function applyInput(node){
 function apply(role, node){
     Utils.assert(states.applied === false, 'Already applied.');
     Utils.assert(Chain.tx.sender === cfg.initiator, 'Only the initiator has the right to apply.');
-    Utils.assert(Utils.int64Compare(states.realShares, cfg.raiseShares) >= 0, 'Co-building fund is not enough.');
+    Utils.assert(Utils.int64Compare(states.allShares, cfg.raiseShares) >= 0, 'Co-building fund is not enough.');
 
+    states.role    = role;
     states.applied = true;
-    states.role = role;
+    states.pledgedShares = states.allShares;
     saveObj(statesKey, states);
+
+    Object.keys(cobuilders).forEach(function(key){ cobuilders[key][pledged] = true; });
+    saveObj(cobuildersKey, cobuilders);
    
-    let application = applyInput(node);
-    let pledgeAmount = Utils.int64Mul(cfg.unit, states.realShares);
-    callDPOS(pledgeAmount, application);
+    let pledgeAmount = Utils.int64Mul(cfg.unit, states.allShares);
+    callDPOS(pledgeAmount, applyInput(node));
+}
+
+function appendInput(){
+    let addition = {
+        'method' : 'append',
+        'params':{ 'role': states.role }
+    };
+
+    return JSON.stringify(addition);
+}
+
+function append(){
+    Utils.assert(states.applied === true, 'Has not applied.');
+    Utils.assert(Chain.tx.sender === cfg.initiator, 'Only the initiator has the right to append.');
+
+    let appendShares = Utils.int64Sub(states.allShares, states.pledgedShares);
+
+    states.pledgedShares = states.allShares;
+    saveObj(statesKey, states);
+
+    Object.keys(cobuilders).forEach(function(key){ cobuilders[key][pledged] = true; });
+    saveObj(cobuildersKey, cobuilders);
+   
+    let appendAmount = Utils.int64Mul(cfg.unit, appendShares);
+    callDPOS(appendAmount, appendInput());
 }
 
 function transferKey(from, to){
@@ -173,19 +215,18 @@ function transferKey(from, to){
 }
 
 function transfer(to, shares){
-    Utils.assert(states.applied === true, 'Has not applied yet.');
     Utils.assert(Utils.addressCheck(to), 'Arg-to is not a valid address.');
     Utils.assert(Utils.int64Compare(shares, '0') >= 0, 'Arg-shares must be >= 0.');
-    Utils.assert(cobuilders[Chain.tx.sender] !== undefined, 'Sender is not involved in co-building.');
-    Utils.assert(Utils.int64Compare(shares, cobuilders[Chain.tx.sender][0]) <= 0, 'Transfer shares > holding shares.');
+    Utils.assert(cobuilders[Chain.tx.sender][pledged] === true, 'Unpled shares can be withdrawn directly.');
+    Utils.assert(Utils.int64Compare(shares, cobuilders[Chain.tx.sender][share]) <= 0, 'Transfer shares > holding shares.');
 
     let key = transferKey(Chain.tx.sender, to);
     Chain.store(key, shares);
 }
 
 function accept(transferor){
-    Utils.assert(states.applied === true, 'Has not applied yet.');
     Utils.assert(Utils.addressCheck(transferor), 'Arg-to is not a valid address.');
+    Utils.assert(cobuilders[transferor][pledged] === true, 'Unpled shares can be revoked directly.');
 
     let key = transferKey(transferor, Chain.tx.sender);
     let shares = Chain.load(key);
@@ -195,20 +236,19 @@ function accept(transferor){
     distribute();
 
     if(cobuilders[Chain.tx.sender] === undefined){
-        cobuilders[Chain.tx.sender] = [cobuilders[transferor][0], '0'];
+        cobuilders[Chain.tx.sender] = cobuilder(shares, true);
     }
     else{
-        cobuilders[Chain.tx.sender][0] = Utils.int64Add(cobuilders[Chain.tx.sender][0], cobuilders[transferor][0]);
+        cobuilders[Chain.tx.sender][share] = Utils.int64Add(cobuilders[Chain.tx.sender][share], shares);
     }
 
     let reward = '0';
-    if(Utils.int64Sub(cobuilders[transferor][0], shares) === 0){
-        reward = cobuilders[transferor][1];
+    if(Utils.int64Sub(cobuilders[transferor][share], shares) === 0){
+        reward = cobuilders[transferor][gain];
         delete cobuilders[transferor];
     }
     else{
-        Utils.assert(Utils.int64Compare(states.realShares, maxShare) < 0, 'Share overrun.');
-        cobuilders[transferor][0] = Utils.int64Sub(cobuilders[transferor][0], shares);
+        cobuilders[transferor][share] = Utils.int64Sub(cobuilders[transferor][share], shares);
     }
 
     saveObj(cobuildersKey, cobuilders);
@@ -241,9 +281,7 @@ function withdrawInput(){
 function withdrawing(proposal){
     proposal.withdrawed = true;
     saveObj(withdrawKey, proposal);
-
-    let input = withdrawInput();
-    callDPOS('0', input);
+    callDPOS('0', withdrawInput());
 }
 
 function withdraw(){
@@ -256,7 +294,7 @@ function withdraw(){
 
 function poll(){
     Utils.assert(states.applied === true, 'Has not applied yet.');
-    Utils.assert(cobuilders[Chain.tx.sender] !== undefined, 'Sender is not involved in co-building.');
+    Utils.assert(cobuilders[Chain.tx.sender][pledged], Chain.tx.sender + ' is not involved in application.');
 
     let proposal = loadObj(withdrawKey);
     if(proposal === false){
@@ -268,10 +306,10 @@ function poll(){
         }
     }
 
-    proposal.ballot[Chain.tx.sender] = cobuilders[Chain.tx.sender][0];
-    proposal.sum = Utils.int64Add(proposal.sum, cobuilders[Chain.tx.sender][0]);
+    proposal.ballot[Chain.tx.sender] = cobuilders[Chain.tx.sender][share];
+    proposal.sum = Utils.int64Add(proposal.sum, cobuilders[Chain.tx.sender][share]);
 
-    if(Utils.int64Div(states.realShares, proposal.sum) >= 2){
+    if(Utils.int64Div(states.pledgedShares, proposal.sum) >= 2){
         return saveObj(withdrawKey, proposal);
     } 
 
@@ -285,34 +323,41 @@ function takeback(){
 
     Chain.del(withdrawKey);
 
-    states.applied = false;
     delete states.role;
+    states.applied = false;
+    states.pledgedShares = '0';
     saveObj(statesKey, states);
 
-    let input = withdrawInput();
-    callDPOS('0', input);
+    Object.keys(cobuilders).forEach(function(key){ cobuilders[key][pledged] = false; });
+    saveObj(cobuildersKey, cobuilders);
+   
+    callDPOS('0', withdrawInput());
 }
 
 function received(){
-    states.applied = false;
     delete states.role;
+    states.applied = false;
+    states.pledgedShares = '0';
     saveObj(statesKey, states);
 
+    Object.keys(cobuilders).forEach(function(key){ cobuilders[key][pledged] = false; });
+    saveObj(cobuildersKey, cobuilders);
+   
     if(false !== loadObj(withdrawKey)){
         Chain.del(withdrawKey);
     }
 }
 
 function extract(){
-    Utils.assert(cobuilders[Chain.tx.sender] !== undefined, 'Sender is not involved in co-building.');
+    Utils.assert(cobuilders[Chain.tx.sender] !== undefined, Chain.tx.sender + ' is not involved in co-building.');
 
     distribute();
-    let reward = cobuilders[Chain.msg.sender][1];
+    let reward = cobuilders[Chain.tx.sender][gain];
 
-    cobuilders[Chain.msg.sender][1] = '0';
+    cobuilders[Chain.tx.sender][gain] = '0';
     saveObj(cobuildersKey, cobuilders);
 
-    transferCoin(Chain.msg.sender, reward);
+    transferCoin(Chain.tx.sender, reward);
 }
 
 function getCobuilders(){
@@ -374,6 +419,10 @@ function main(input_str){
         Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
         apply(params.role, params.node);
     }
+    else if(input.method === 'append'){
+        Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
+        append();
+    }
     else if(input.method === 'withdraw'){
         Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
     	withdraw();
@@ -419,12 +468,13 @@ function init(input_str){
     saveObj(configKey, cfg);
 
     let initShare = Utils.int64Div(Chain.msg.coinAmount, cfg.unit);
-    cobuilders[Chain.tx.sender] = [initShare, '0'];
+    cobuilders[Chain.tx.sender] = {share:initShare, pledged:false, gain:'0'};
     saveObj(cobuildersKey, cobuilders);
 
     states = {
-        'applied' : false,
-        'realShares' : initShare
+        'applied': false,
+        'allShares': initShare,
+        'pledgedShares': '0'
     };
     saveObj(statesKey, states);
 
