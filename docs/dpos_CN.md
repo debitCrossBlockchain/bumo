@@ -298,13 +298,13 @@ motion = [
   "payCoin" :
   {
     "dest_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
-    "amount" :10000000000000,
+    "amount" :0,
     "input":
     "{
       \"method\":\"switchNode\",
       \"params\":
       {
-        \"node\":\"buQo8w52g2nQgxnfKWovUUEFQzMCTX5TRpZD\"
+        \"address\":\"buQo8w52g2nQgxnfKWovUUEFQzMCTX5TRpZD\"
       }
     }"
   }
