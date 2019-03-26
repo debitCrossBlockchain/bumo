@@ -168,18 +168,22 @@ function applyInput(node){
     return JSON.stringify(application);
 }
 
-function apply(role, node){
-    Utils.assert(states.applied === false, 'Already applied.');
-    Utils.assert(Chain.tx.sender === cfg.initiator, 'Only the initiator has the right to apply.');
-    Utils.assert(Utils.int64Compare(states.allShares, cfg.raiseShares) >= 0, 'Co-building fund is not enough.');
-
-    states.role    = role;
+function setStatus(){
     states.applied = true;
     states.pledgedShares = states.allShares;
     saveObj(statesKey, states);
 
     Object.keys(cobuilders).forEach(function(key){ cobuilders[key][pledged] = true; });
     saveObj(cobuildersKey, cobuilders);
+}
+
+function apply(role, node){
+    Utils.assert(states.applied === false, 'Already applied.');
+    Utils.assert(Chain.tx.sender === cfg.initiator, 'Only the initiator has the right to apply.');
+    Utils.assert(Utils.int64Compare(states.allShares, cfg.raiseShares) >= 0, 'Co-building fund is not enough.');
+
+    states.role = role;
+    setStatus();
    
     let pledgeAmount = Utils.int64Mul(cfg.unit, states.allShares);
     callDPOS(pledgeAmount, applyInput(node));
@@ -199,14 +203,9 @@ function append(){
     Utils.assert(Chain.tx.sender === cfg.initiator, 'Only the initiator has the right to append.');
 
     let appendShares = Utils.int64Sub(states.allShares, states.pledgedShares);
-
-    states.pledgedShares = states.allShares;
-    saveObj(statesKey, states);
-
-    Object.keys(cobuilders).forEach(function(key){ cobuilders[key][pledged] = true; });
-    saveObj(cobuildersKey, cobuilders);
-   
     let appendAmount = Utils.int64Mul(cfg.unit, appendShares);
+
+    setStatus();
     callDPOS(appendAmount, appendInput());
 }
 
@@ -316,33 +315,30 @@ function poll(){
     withdrawing(proposal);
 }
 
+function resetStatus(){
+    delete states.role;
+
+    states.applied = false;
+    states.pledgedShares = '0';
+    saveObj(statesKey, states);
+
+    Object.keys(cobuilders).forEach(function(key){ cobuilders[key][pledged] = false; });
+    saveObj(cobuildersKey, cobuilders);
+}
+
 function takeback(){
     let proposal = loadObj(withdrawKey);
     assert(proposal !== false, 'Failed to get ' + withdrawKey + ' from metadata.');
     assert(proposal.withdrawed && Chain.block.timestamp >= proposal.expiration, 'Insufficient conditions for recovering the deposit.');
 
+    resetStatus();
     Chain.del(withdrawKey);
-
-    delete states.role;
-    states.applied = false;
-    states.pledgedShares = '0';
-    saveObj(statesKey, states);
-
-    Object.keys(cobuilders).forEach(function(key){ cobuilders[key][pledged] = false; });
-    saveObj(cobuildersKey, cobuilders);
-   
     callDPOS('0', withdrawInput());
 }
 
 function received(){
-    delete states.role;
-    states.applied = false;
-    states.pledgedShares = '0';
-    saveObj(statesKey, states);
+    resetStatus(); 
 
-    Object.keys(cobuilders).forEach(function(key){ cobuilders[key][pledged] = false; });
-    saveObj(cobuildersKey, cobuilders);
-   
     if(false !== loadObj(withdrawKey)){
         Chain.del(withdrawKey);
     }
