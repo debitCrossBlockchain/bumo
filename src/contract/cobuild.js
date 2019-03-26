@@ -109,10 +109,10 @@ function distribute(){
     cobuilders[cfg.initiator][gain] = Utils.int64Add(cobuilders[cfg.initiator][gain], left);
 }
 
-function cobuilder(shares, isPledge){
+function cobuilder(shares, isPledged){
     return {
         share   :shares,
-        pledged :isPledge || false,
+        pledged :isPledged || false,
         gain    :'0'
     };
 }
@@ -464,7 +464,7 @@ function init(input_str){
     saveObj(configKey, cfg);
 
     let initShare = Utils.int64Div(Chain.msg.coinAmount, cfg.unit);
-    cobuilders[Chain.tx.sender] = {share:initShare, pledged:false, gain:'0'};
+    cobuilders[Chain.tx.sender] = cobuilder(initShare);
     saveObj(cobuildersKey, cobuilders);
 
     states = {

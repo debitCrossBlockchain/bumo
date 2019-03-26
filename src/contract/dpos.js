@@ -146,6 +146,8 @@ function extract(){
     rewardDistribution();
 
     let income = elect.distribution[Chain.msg.sender];
+    assert(income !== undefined, Chain.msg.sender + ' is not on the reward table.');
+
     elect.distribution[Chain.msg.sender] = '0';
     transferCoin(Chain.msg.sender, income, rewardInput());
 
