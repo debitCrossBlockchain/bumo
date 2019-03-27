@@ -606,7 +606,7 @@ function withdraw(roleType){
     }
 
     let exitKey = proposalKey(motion.WITHDRAW, roleType, Chain.msg.sender);
-    let exitInfo = Chain.load(exitKey);
+    let exitInfo = loadObj(exitKey);
     if(exitInfo === false){
         electInit();
         deleteCandidate(roleType, Chain.msg.sender);

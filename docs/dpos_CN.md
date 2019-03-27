@@ -123,6 +123,7 @@ config = {
   'validator_size'           : 19,
   'validator_candidate_size' : 100,
   'validator_min_pledge'     : 500000000000000,/* 500 0000 0000 0000 */
+  'pledge_magnification'     : 2,
   'pass_rate'                : 0.5,
   'valid_period'             : 1296000000000,  /* 15 * 24 * 60 * 60 * 1000 * 1000 */
   'vote_unit'                : 1000000000, /*10 00000 00000*/
@@ -142,6 +143,7 @@ config = {
 | validator_size              | 共识节点集合数目          |19|
 | validator_candidate_size    | 共识节点候选人集合数目     |100|
 | validator_min_pledge        | 共识节点候选人最小质押金额  |500000000000000|
+| pledge_magnification        | 质押金权益倍率             |2              |
 | pass_rate                | 审核投票通过率。在有效审核期内，投票支持提案的委员的个数超过通过率，提案才会被执行。投票数 > (可投总数 * pass_rate) 则投票通过，例如，假设总共有4个节点，4 * 0.5 = 2, 投票数 > 2，那么至少要有3个投票才能通过。|0.5|
 | valid_period                | 有效期，单位为微秒，应用在投票有效期以及退出锁定期|1296000000000|
 |vote_unit                    |投票单元，每次投票、追加投票或竞选者追加质押金额必须为该值的整数倍。| 10 0000 0000|
