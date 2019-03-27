@@ -197,14 +197,16 @@ function checkPledge(roleType){
     }
 }
 
-function getNodeSet(validators){
+function updateValidators(candidates){
+    let validators = candidates.slice(0, cfg.validator_size);
+
     let i = 0;
     for(i = 0; i < validators.length; i += 1){
         validators[i][0] = validators[i][2];
         validators[i].splice(2, 1);
     }
 
-    return validators;
+    setValidators(JSON.stringify(validators));
 }
 
 function addCandidates(roleType, address, proposal, maxSize){
@@ -239,9 +241,7 @@ function addCandidates(roleType, address, proposal, maxSize){
     saveObj(key, candidates);
 
     if(roleType === role.VALIDATOR && candidates.indexOf(found) < cfg.validator_size){
-        let validators = candidates.slice(0, cfg.validator_size);
-        validators     = getNodeSet(validators);
-        setValidators(JSON.stringify(validators));
+        updateValidators(candidates);
     }
 }
 
@@ -262,9 +262,7 @@ function deleteCandidate(roleType, address){
     saveObj(key, candidates);
 
     if(roleType === role.VALIDATOR && index < cfg.validator_size){
-        let validators = candidates.slice(0, cfg.validator_size);
-        validators     = getNodeSet(validators);
-        setValidators(JSON.stringify(validators));
+        updateValidators(candidates);
     }
 }
 
@@ -284,9 +282,7 @@ function updateStake(roleType, candidate, formalSize, amount){
         rewardDistribution();
 
         if(roleType === role.VALIDATOR){
-            let validators = candidates.slice(0, cfg.validator_size);
-            validators     = getNodeSet(validators);
-            setValidators(JSON.stringify(validators));
+            updateValidators(candidates);
         }
     }
 }
@@ -676,9 +672,7 @@ function switchNode(address){
     saveObj(validatorCandsKey, candidates);
 
     if(candidates.indexOf(found) < cfg.validator_size){
-        let validators = candidates.slice(0, cfg.validator_size);
-        validators     = getNodeSet(validators);
-        setValidators(JSON.stringify(validators));
+        updateValidators(candidates);
     }
 }
 
