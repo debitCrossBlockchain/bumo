@@ -435,6 +435,7 @@ function approve(operate, item, address){
     let key = proposalKey(operate, item, address);
     let proposal = loadObj(key);
     Utils.assert(proposal !== false, 'failed to get metadata: ' + key + '.');
+    Utils.assert(proposal.passTime === undefined, 'Has been approved.');
 
     if(Chain.block.timestamp >= proposal.expiration){
         Chain.del(key);
@@ -762,7 +763,7 @@ function foundingProposal(node){
         'pledge': '0',
         'expiration':Chain.block.timestamp,
         'passTime' : Chain.block.timestamp,
-        'ballot':['foundings']
+        'ballot':[]
     };
 
     if(node !== undefined && Utils.addressCheck(node)){

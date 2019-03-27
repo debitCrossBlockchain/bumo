@@ -125,6 +125,7 @@ function subscribe(shares){
         cobuilders[Chain.tx.sender] = cobuilder(shares);
     }
     else{
+        assert(cobuilders[Chain.tx.sender][pledged] === false, Chain.tx.sender + ' has already participated in the application.');
         cobuilders[Chain.tx.sender][share] = Utils.int64Add(cobuilders[Chain.tx.sender][share], shares);
     }
 
