@@ -163,7 +163,7 @@ namespace bumo {
 		args.GetReturnValue().Set(false);
 	}
 
-	void V8Contract::CallBackContractQueryGt11(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	void V8Contract::CallBackContractQueryGt1001(const v8::FunctionCallbackInfo<v8::Value>& args) {
 		v8::HandleScope handle_scope(args.GetIsolate());
 		v8::Local<v8::Object> obj = v8::Object::New(args.GetIsolate());
 		std::string error_desc;
@@ -205,11 +205,6 @@ namespace bumo {
 			protocol::Contract contract = account_frm->GetProtoAccount().contract();
 			if (contract.payload().size() == 0) {
 				error_desc = utils::String::Format("The account(%s) has no contract.", address.c_str());
-				break;
-			}
-
-			if (ledger_context->transaction_stack_.size() > General::CONTRACT_MAX_RECURSIVE_DEPTH) {
-				error_desc = "Too many recursion";
 				break;
 			}
 
@@ -257,7 +252,7 @@ namespace bumo {
 
 	void V8Contract::CallBackContractQuery(const v8::FunctionCallbackInfo<v8::Value>& args) {
 		if (CHECK_VERSION_GT_1001) {
-			CallBackContractQueryGt11(args);
+			CallBackContractQueryGt1001(args);
 			return;
 		} 
 
@@ -390,11 +385,6 @@ namespace bumo {
 			protocol::Contract contract = account_frm->GetProtoAccount().contract();
 			if (contract.payload().size() == 0) {
 				error_desc = utils::String::Format("The account(%s) has no contract.", address.c_str());
-				break;
-			}
-
-			if (ledger_context->transaction_stack_.size() > General::CONTRACT_MAX_RECURSIVE_DEPTH) {
-				error_desc = "Too many recursion";
 				break;
 			}
 

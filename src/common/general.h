@@ -42,9 +42,9 @@ namespace bumo {
 		const static int ASSET_CODE_MAX_SIZE = 64;
 		const static int EXPRCONDITION_MAXSIZE = 256;
 
-		//Contract A can invoke contract B, and contract B can invoke contract C...
-		// The max RECURSIVE DEPTH is 3.
-		const static int CONTRACT_MAX_RECURSIVE_DEPTH = 3;
+		//Contract tx->A(1), A->B(2), B->C(3), C->D(4), D can do anything but call contract.
+		// The max RECURSIVE DEPTH is 4, the 4th can't call contract.
+		const static int CONTRACT_MAX_RECURSIVE_DEPTH = 4;
 
 		//At most 512 transactions can be created when a contract is executed.
 		const static int CONTRACT_TRANSACTION_LIMIT = 512;

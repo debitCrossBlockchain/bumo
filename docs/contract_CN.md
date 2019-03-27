@@ -327,14 +327,14 @@ Chain.issueAsset("CNY", 10000);
     - contractAddress: 被调用的合约地址。
     - input：调用参数。
     
-    Chain.delegateCall 函数会触发被调用的合约main函数入口，并且把当前合约的执行环境赋予被调用的合约。
+    Chain.delegateCall 函数会触发被调用的合约main函数入口，并且把当前合约的执行环境赋予被调用的合约。如合约A委托调用合约B，即执行B(main入口)的代码，读写A的数据。
     
     例如
     ```javascript
     let ret = Chain.delegateCall('buQBwe7LZYCYHfxiEGb1RE9XC9kN2qrGXWCY'，'{}');
     /*
       权限：可写
-      返回：成功会返回结果，失败抛出异常
+      返回：成功会返回被委托者合约main函数执行的结果，失败抛出异常
     */
 
     ```
@@ -345,14 +345,14 @@ Chain.issueAsset("CNY", 10000);
     - contractAddress: 被调用的合约地址。
     - input：调用参数。
     
-    Chain.delegateQuery 函数会触发被调用的合约query函数入口，且把当前合约的执行环境赋予被调用的合约
+    Chain.delegateQuery 函数会触发被调用的合约query函数入口，且把当前合约的执行环境赋予被调用的合约。如合约A委托查询合约B，即执行B(query入口)的代码，读取A的数据。
     
     例如
     ```javascript
     let ret = Chain.delegateQuery('buQBwe7LZYCYHfxiEGb1RE9XC9kN2qrGXWCY'，"");
     /*
       权限：只读
-      返回：如果目标账户为普通账户，则返回true，如果目标账户为合约，调用成功则返回字符串 {"result":"4"}，其中 result 字段的值即查询的具体结果，调用失败返回 {"error":true} 字符串。
+      返回：调用成功则返回JSON对象 {"result":"4"}，其中 result 字段的值即查询的具体结果，调用失败返回JSON对象 {"error":true} 。
     */
 
     ```
@@ -373,7 +373,7 @@ Chain.issueAsset("CNY", 10000);
     let ret = Chain.contractCall('buQBwe7LZYCYHfxiEGb1RE9XC9kN2qrGXWCY'，true, toBaseUnit("10"), "");
     /*
       权限：可写
-      返回：如果目标账户为普通账户，则返回true，如果目标账户为合约，调用成功则返回main函数的返回值，调用失败则抛出异常
+      返回：如果目标账户为普通账户，则返回true，如果目标账户为合约，成功会返回被委托者合约main函数执行的结果，调用失败则抛出异常
     */
 
     ```
@@ -393,7 +393,7 @@ Chain.issueAsset("CNY", 10000);
     let ret = Chain.contractQuery('buQBwe7LZYCYHfxiEGb1RE9XC9kN2qrGXWCY'，"");
     /*
       权限：只读
-      返回：调用成功则返回字符串 {"result":"xxx"}，其中 result 字段的值即查询的具体结果，调用失败返回 {"error":true} 字符串。
+      返回：调用成功则返回JSON对象 {"result":"xxx"}，其中 result 字段的值即查询的具体结果，调用失败返回JSON对象 {"error":true}。
     */
 
     ```
@@ -413,7 +413,7 @@ Chain.issueAsset("CNY", 10000);
     let ret = Chain.contractCreate(toBaseUnit("10"), 0, "'use strict';function init(input){return input;} function main(input){return input;} function query(input){return input;} ", "");
     /*
       权限：可写
-      返回：创建成功返回合约地址，失败则抛出异常
+      返回：创建成功返回合约地址字符串，失败则抛出异常
     */
 
     ```

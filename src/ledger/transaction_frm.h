@@ -82,7 +82,7 @@ namespace bumo {
 
 		int64_t GetSelfGas();
 
-		bool ValidForParameter(bool contract_trigger = false);
+		bool ValidForParameter(uint32_t ldcontext_stack_size = 0);//ledger context stack size, check for the first tx and create contract's max depth
 		
 		bool ValidForApply(std::shared_ptr<Environment> environment, bool check_priv = true);
 

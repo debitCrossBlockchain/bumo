@@ -1,0 +1,366 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="common">
+      <UniqueIdentifier>{b5f216f9-a163-42ac-96cd-cab428655ee7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="case">
+      <UniqueIdentifier>{9c82649f-da66-405f-a6a5-c9ef05657b74}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="bumo">
+      <UniqueIdentifier>{7253d74e-c143-4da7-b864-67d250faf00e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="template">
+      <UniqueIdentifier>{2bb98bf4-4dd3-4cec-9ce7-f097d3b58491}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\test\ctest\main.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\test\ctest\common\http_client.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\test\ctest\common\ctest.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\ledger\ledger_manager.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\ledger\operation_frm.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\ledger\ledgercontext_manager.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\ledger\transaction_frm.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\ledger\ledger_frm.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\ledger\account.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\ledger\environment.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\ledger\fee_calculate.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\ledger\kv_trie.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\ledger\trie.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\proto\cpp\chain.pb.cc">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\proto\cpp\common.pb.cc">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\proto\cpp\consensus.pb.cc">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\proto\cpp\helloworld.pb.cc">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\proto\cpp\merkeltrie.pb.cc">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\proto\cpp\monitor.pb.cc">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\proto\cpp\overlay.pb.cc">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\contract\contract.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\contract\contract_manager.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\contract\v8_contract.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\contract\v8_contract_read.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\contract\v8_contract_write.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\glue\glue_manager.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\glue\ledger_upgrade.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\glue\transaction_queue.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\glue\transaction_set.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\consensus\bft.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\consensus\bft_instance.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\consensus\consensus.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\consensus\consensus_manager.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\consensus\consensus_msg.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\overlay\broadcast.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\overlay\peer.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\overlay\peer_manager.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\overlay\peer_network.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\monitor\monitor.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\monitor\monitor_manager.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\monitor\system_manager.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\api\console.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\api\web_server.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\api\web_server_command.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\api\web_server_helper.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\api\web_server_query.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\api\web_server_update.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\api\websocket_server.cpp">
+      <Filter>bumo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\test\ctest\case\chain_api.cpp">
+      <Filter>case</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\test\ctest\case\this.cpp">
+      <Filter>case</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\test\ctest\case\chain_property.cpp">
+      <Filter>case</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\test\ctest\case\utils_api.cpp">
+      <Filter>case</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\test\ctest\case\query_api.cpp">
+      <Filter>case</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\test\ctest\case\delegatecall.cpp">
+      <Filter>case</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\test\ctest\case\delegatequery.cpp">
+      <Filter>case</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\test\ctest\case\contractcall.cpp">
+      <Filter>case</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\test\ctest\case\contractquery.cpp">
+      <Filter>case</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\test\ctest\case\contractcreate.cpp">
+      <Filter>case</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\test\ctest\common\http_client.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\test\ctest\common\ctest.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\ledger\operation_frm.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\ledger\transaction_frm.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\ledger\ledger_manager.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\ledger\ledgercontext_manager.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\ledger\account.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\ledger\environment.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\ledger\fee_calculate.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\ledger\ledger_frm.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\ledger\trie.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\ledger\kv_trie.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\proto\cpp\chain.pb.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\proto\cpp\common.pb.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\proto\cpp\consensus.pb.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\proto\cpp\helloworld.pb.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\proto\cpp\merkeltrie.pb.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\proto\cpp\monitor.pb.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\proto\cpp\overlay.pb.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\contract\contract.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\contract\contract_manager.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\contract\v8_contract.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\glue\glue_manager.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\glue\ledger_upgrade.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\glue\transaction_queue.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\glue\transaction_set.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\consensus\bft.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\consensus\bft_instance.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\consensus\consensus.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\consensus\consensus_manager.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\consensus\consensus_msg.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\overlay\broadcast.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\overlay\peer.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\overlay\peer_manager.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\overlay\peer_network.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\monitor\monitor.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\monitor\monitor_manager.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\monitor\system_manager.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\api\console.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\api\web_server.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\api\websocket_server.h">
+      <Filter>bumo</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\test\ctest\common\config.json">
+      <Filter>common</Filter>
+    </None>
+    <None Include="..\..\test\ctest\template\create_contract.json">
+      <Filter>template</Filter>
+    </None>
+    <None Include="..\..\test\ctest\template\paycoin.json">
+      <Filter>template</Filter>
+    </None>
+    <None Include="..\..\test\ctest\case\chain_api.js">
+      <Filter>case</Filter>
+    </None>
+    <None Include="..\..\test\ctest\template\payasset.json">
+      <Filter>template</Filter>
+    </None>
+    <None Include="..\..\test\ctest\case\this.js">
+      <Filter>case</Filter>
+    </None>
+    <None Include="..\..\test\ctest\case\chain_property.js">
+      <Filter>case</Filter>
+    </None>
+    <None Include="..\..\test\ctest\case\utils_api.js">
+      <Filter>case</Filter>
+    </None>
+    <None Include="..\..\test\ctest\case\query_api.js">
+      <Filter>case</Filter>
+    </None>
+    <None Include="..\..\test\ctest\case\delegatecall.js">
+      <Filter>case</Filter>
+    </None>
+    <None Include="..\..\test\ctest\case\delegatequery.js">
+      <Filter>case</Filter>
+    </None>
+    <None Include="..\..\test\ctest\case\contractcall.js">
+      <Filter>case</Filter>
+    </None>
+    <None Include="..\..\test\ctest\case\contractquery.js">
+      <Filter>case</Filter>
+    </None>
+    <None Include="..\..\test\ctest\case\contractcreate.js">
+      <Filter>case</Filter>
+    </None>
+  </ItemGroup>
+</Project>

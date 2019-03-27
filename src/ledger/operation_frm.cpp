@@ -36,7 +36,7 @@ namespace bumo {
 		return ope_fee_;
 	}
 
-	Result OperationFrm::CheckValid(const protocol::Operation& operation, const std::string &source_address) {
+	Result OperationFrm::CheckValid(const protocol::Operation& operation, const std::string &source_address, uint32_t ldcontext_stack_size) {
 		Result result;
 		result.set_code(protocol::ERRCODE_SUCCESS);
 		auto type = operation.type();
@@ -53,9 +53,8 @@ namespace bumo {
 		switch (type) {
 		case protocol::Operation_Type_CREATE_ACCOUNT:
 		{
-			if (CHECK_VERSION_GT_1000)
-			{
-				result = CheckCreateAccountGt1000(create_account);
+			if (CHECK_VERSION_GT_1000){
+				result = CheckCreateAccountGt1000(create_account, ldcontext_stack_size);
 				break;
 			}
 
@@ -173,7 +172,7 @@ namespace bumo {
 				}
 				
 				std::string src = create_account.contract().payload();
-				result = ContractManager::Instance().SourceCodeCheck(Contract::TYPE_V8, src);
+				result = ContractManager::Instance().SourceCodeCheck(Contract::TYPE_V8, src, ldcontext_stack_size);
 			}
 
 			for (int32_t i = 0; i < create_account.metadatas_size(); i++){
@@ -962,7 +961,7 @@ namespace bumo {
 		}
 	}
 
-	Result OperationFrm::CheckCreateAccountGt1000(const protocol::OperationCreateAccount& create_account){
+	Result OperationFrm::CheckCreateAccountGt1000(const protocol::OperationCreateAccount& create_account, uint32_t ldcontext_stack_size){
 		Result result;
 		result.set_code(protocol::ERRCODE_SUCCESS);
 		do {
@@ -1056,7 +1055,7 @@ namespace bumo {
 				}
 
 				std::string src = create_account.contract().payload();
-				result = ContractManager::Instance().SourceCodeCheck(Contract::TYPE_V8, src);
+				result = ContractManager::Instance().SourceCodeCheck(Contract::TYPE_V8, src, ldcontext_stack_size);
 			}
 			else {
 				//If it's common and the version is greater than 1000, then you must set master_weight:1 and tx_threshold:1	

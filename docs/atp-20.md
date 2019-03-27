@@ -60,7 +60,7 @@ Token 属性可以通过合约的 `tokenInfo` 功能函数查询到，存储在�
 - symbol：推荐使用大写首字母缩写。如 DT
 - decimals：小数位在 0~8 的范围，0 表示无小数位
 - totalSupply：范围是 1~2^63-1
-- version：ATP 的版本。如 ATP20
+- version：atp 的版本。如 ATP20
 
 
 
@@ -224,6 +224,8 @@ tlog('transferFrom', sender, from, to, value);
 
 
 
+
+
 ### tokenInfo
 
 - 返回 Token 的基本信息。
@@ -256,6 +258,8 @@ tlog('transferFrom', sender, from, to, value);
 
 
 
+
+
 ### allowance
 
 - 返回 spender 仍然被允许从 owner 提取的金额。
@@ -283,6 +287,7 @@ tlog('transferFrom', sender, from, to, value);
     }
 } 
 ```
+
 
 
 
@@ -317,6 +322,7 @@ function init(input_str){
 
 
 
+
 ### main
 
 ```js
@@ -337,6 +343,8 @@ function main(input_str){
     }
 }
 ```
+
+
 
 
 

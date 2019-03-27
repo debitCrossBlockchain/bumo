@@ -86,7 +86,7 @@ namespace bumo {
 		//Get transaction info from a transaction
 		static void CallBackGetTransactionInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
 		static void CallBackContractQuery(const v8::FunctionCallbackInfo<v8::Value>& args);
-		static void CallBackContractQueryGt11(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void CallBackContractQueryGt1001(const v8::FunctionCallbackInfo<v8::Value>& args);
 		static void CallBackDelegateCall(const v8::FunctionCallbackInfo<v8::Value>& args);
 		static void CallBackDelegateQuery(const v8::FunctionCallbackInfo<v8::Value>& args);
 		static void CallBackGetContractProperty(const v8::FunctionCallbackInfo<v8::Value>& args);

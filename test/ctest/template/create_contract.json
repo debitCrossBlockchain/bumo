@@ -1,0 +1,28 @@
+{
+    "items": [{
+        "private_keys": ["{private_keys}"],
+        "transaction_json": {
+            "fee_limit": {fee_limit},
+            "gas_price": {gas_price},
+            "nonce":{nonce},
+            "operations": [{
+                "create_account": {
+                    "dest_address": "",
+                    "init_balance": {init_balance},
+                    "priv": {
+                        "master_weight": "0",
+                        "thresholds": {
+                            "tx_threshold": "1"
+                        }
+                    },
+					"init_input" : "{init_input}",
+                    "contract": {
+                        "payload": "{payload}"
+                    }
+                },
+                "type": 1
+            }],
+            "source_address": "{source_address}"
+        }
+    }]
+}

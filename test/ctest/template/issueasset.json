@@ -1,0 +1,24 @@
+{
+	"items":[
+		{
+			"private_keys":[
+				"{private_key}"
+			],
+			"transaction_json":{
+				"fee_limit":{fee_limit},
+				"gas_price":{gas_price},
+				"nonce":{nonce},
+				"operations":[
+					{
+						"issue_asset":{
+							"amount":{amount},
+							"code":"{code}"
+						},
+						"type":2
+					}
+				],
+				"source_address":"{source_address}"
+			}
+		}
+	]
+}
