@@ -606,8 +606,11 @@ namespace bumo {
 			if (with_validator == "true") {
 				protocol::ValidatorSet set;
 				if (LedgerManager::Instance().GetValidators(seq, set)) {
-					Json::Value validator = Proto2Json(set);
-					result["validators"] = validator["validators"];
+					Json::Value validators;
+					for (int i = 0; i < set.validators_size(); i++) {
+						validators.append(set.validators(i).address());
+					}
+					result["validators"] = validators;
 				}
 				else {
 					error_code = protocol::ERRCODE_NOT_EXIST;
