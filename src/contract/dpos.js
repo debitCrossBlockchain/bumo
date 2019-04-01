@@ -594,6 +594,7 @@ function withdraw(roleType){
         let committee = loadObj(committeeKey);
         Utils.assert(committee !== false, 'Failed to get ' + committeeKey + ' from metadata.');
         Utils.assert(committee.includes(Chain.msg.sender), 'There is no '+ Chain.msg.sender + ' in the committee');
+        Utils.assert(committee.length >= 2, 'Inadequate committee members.');
 
         let applyKey = proposalKey(motion.APPLY, roleType, Chain.msg.sender);
         Chain.del(applyKey);
@@ -633,8 +634,29 @@ function configProposal(item, value){
     return proposal;
 }
 
-function configure(item, value){
+function cfgValid(item, value){
     Utils.assert(cfg[item] !== undefined, 'Unknown config type');
+
+    if(item === 'reward_allocation_share'){
+        return Utils.assert(value[0] + value[1] + value[2] + value[3] === 100, 'Reward allocation share value invalid.');
+    }
+
+    if(item === 'logic_contract'){
+        return Utils.assert(Utils.addressCheck(value), value + ' is not valid address.');
+    }
+
+    Utils.assert(typeof value === 'number' && value > 0, 'Illegal configure value.');
+
+    if(item === 'pass_rate'){
+        Utils.assert(value <= 1, 'Invalid pass rate.');
+    }
+    else{
+        Utils.assert(value % 1 === 0, 'Illegal configure value.'); 
+    }
+}
+
+function configure(item, value){
+    cfgValid(item, value);
 
     let committee = loadObj(committeeKey);
     Utils.assert(committee !== false, 'Failed to get ' + committeeKey + ' from metadata.');
