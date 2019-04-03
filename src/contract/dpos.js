@@ -141,23 +141,25 @@ function rewardInput(){
     return JSON.stringify({ 'method' : 'reward' });
 }
 
-function extract(){
+function extract(address){
+    let recipient = address === undefined ?  Chain.msg.sender : address;
+
     electInit();
     rewardDistribution();
 
-    let income = elect.distribution[Chain.msg.sender];
-    assert(income !== undefined, Chain.msg.sender + ' is not on the reward table.');
+    let income = elect.distribution[recipient];
+    assert(income !== undefined, recipient + ' is not on the reward table.');
 
-    elect.distribution[Chain.msg.sender] = '0';
-    transferCoin(Chain.msg.sender, income, rewardInput());
+    elect.distribution[recipient] = '0';
+    transferCoin(recipient, income, rewardInput());
 
-    if(elect.validatorCands.find(function(x){ return x[0] === Chain.msg.sender; }) === undefined &&
-       elect.kols.find(function(x){ return x[0] === Chain.msg.sender; }) === undefined){
-        delete elect.distribution[Chain.msg.sender];
+    if(elect.validatorCands.find(function(x){ return x[0] === recipient; }) === undefined &&
+       elect.kols.find(function(x){ return x[0] === recipient; }) === undefined){
+        delete elect.distribution[recipient];
         distributed = true;
     }
 
-    Utils.log(Chain.msg.sender + ' extracted block reward ' + income);
+    Utils.log(recipient + ' extracted block reward ' + income);
 }
 
 function proposalKey(operate, content, address){
