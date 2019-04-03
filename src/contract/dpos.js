@@ -141,25 +141,36 @@ function rewardInput(){
     return JSON.stringify({ 'method' : 'reward' });
 }
 
-function extract(address){
-    let recipient = address === undefined ?  Chain.msg.sender : address;
+function award(address){
+    let income = elect.distribution[address];
+    assert(income !== undefined, address + ' is not on the reward table.');
 
+    elect.distribution[address] = '0';
+    distributed = true;
+    transferCoin(address, income, rewardInput());
+
+    if(elect.validatorCands.find(function(x){ return x[0] === address; }) === undefined &&
+       elect.kols.find(function(x){ return x[0] === address; }) === undefined){
+        delete elect.distribution[address];
+    }
+
+    Utils.log(address + ' extracted block reward ' + income);
+}
+
+function extract(list){
     electInit();
     rewardDistribution();
 
-    let income = elect.distribution[recipient];
-    assert(income !== undefined, recipient + ' is not on the reward table.');
-
-    elect.distribution[recipient] = '0';
-    transferCoin(recipient, income, rewardInput());
-
-    if(elect.validatorCands.find(function(x){ return x[0] === recipient; }) === undefined &&
-       elect.kols.find(function(x){ return x[0] === recipient; }) === undefined){
-        delete elect.distribution[recipient];
-        distributed = true;
+    if(list === undefined){
+        return award(Chain.msg.sender);
     }
 
-    Utils.log(recipient + ' extracted block reward ' + income);
+    assert(list.length <= 100, 'Receiving address overrun.');
+
+    let i = 0;
+    for(i = 0; i < list.length; i += 1){
+        award(list[i]);
+    }
 }
 
 function proposalKey(operate, content, address){
@@ -873,7 +884,7 @@ function main(input_str){
     	withdraw(params.role);
     }
     else if(input.method === 'extract'){
-    	extract();
+    	extract(params.list);
     }
     else if(input.method === 'configure'){
     	configure(params.item, params.value);
