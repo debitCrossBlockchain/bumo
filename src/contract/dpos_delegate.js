@@ -45,7 +45,7 @@ function main(input_str){
 function init(input_str){
     let input = JSON.parse(input_str);
 	Utils.assert(addressCheck(input.params.logic_contract), 'Invalid logic contract address');
-    Chain.delegateCall(input.params.logic_contract, JSON.stringify(input));
+    Chain.delegateCall(input.params.logic_contract, input_str);
 
     return true;
 }

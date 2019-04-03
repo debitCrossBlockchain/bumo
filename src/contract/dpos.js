@@ -143,14 +143,16 @@ function rewardInput(){
 
 function award(address){
     let income = elect.distribution[address];
-    assert(income !== undefined, address + ' is not on the reward table.');
+    if(income === undefined){
+        return;
+    }
 
     elect.distribution[address] = '0';
     distributed = true;
     transferCoin(address, income, rewardInput());
 
     if(elect.validatorCands.find(function(x){ return x[0] === address; }) === undefined &&
-       elect.kols.find(function(x){ return x[0] === address; }) === undefined){
+       elect.kolCands.find(function(x){ return x[0] === address; }) === undefined){
         delete elect.distribution[address];
     }
 
@@ -326,7 +328,7 @@ function append(roleType){
     let proposal = loadObj(key);
 
     Utils.assert(proposal !== false, Chain.msg.sender + ' has not yet applied to become ' + roleType);
-    Utils.assert(proposal.expiration < Chain.block.timestamp || proposal.passTime !== undefined, 'Application has expired.');
+    Utils.assert( Chain.block.timestamp < proposal.expiration || proposal.passTime !== undefined, 'Application has expired.');
     Utils.assert(Utils.int64Mod(Chain.msg.coinAmount, cfg.vote_unit) === '0', 'The number of additional pledge must be an integer multiple of ' + cfg.vote_unit);
 
     proposal.pledge = Utils.int64Add(proposal.pledge, Chain.msg.coinAmount);
@@ -448,7 +450,8 @@ function approve(operate, item, address){
 
     if(Chain.block.timestamp >= proposal.expiration){
         Chain.del(key);
-        if(operate === motion.APPLY && proposal.pledge > 0){
+        /*operate === motion.APPLY*/
+        if(proposal.pledge > 0){
             transferCoin(address, proposal.pledge, refundInput());
         }
 
@@ -524,7 +527,7 @@ function unVote(roleType, address){
 
     Utils.assert(found !== undefined, address + ' is not validator candidate or KOL candidate.');
     let formalSize = roleType === role.VALIDATOR ? cfg.validator_size : cfg.kol_size;
-    updateStake(roleType, found, formalSize, -amount);
+    updateStake(roleType, found, formalSize, '-' + amount);
 }
 
 function abolitionProposal(proof){
@@ -685,7 +688,7 @@ function configure(item, value){
     return saveObj(key, proposal);
 }
 
-function switchNode(address){
+function setNodeAddress(address){
     Utils.assert(Utils.addressCheck(address), address + ' is not valid address.');
 
     let key      = proposalKey(motion.APPLY, role.VALIDATOR, Chain.msg.sender);
@@ -722,7 +725,8 @@ function clean(operate, item, address){
     Utils.assert(Chain.block.timestamp >= proposal.expiration && proposal.passTime === undefined, 'The proposal is still useful.');
 
     Chain.del(key);
-    if((operate === motion.APPLY || operate === motion.WITHDRAW) && proposal.pledge > 0){
+    /*operate === motion.APPLY || operate === motion.WITHDRAW*/
+    if(proposal.pledge > 0){
         transferCoin(address, proposal.pledge, refundInput());
     }
 
@@ -889,8 +893,8 @@ function main(input_str){
     else if(input.method === 'configure'){
     	configure(params.item, params.value);
     }
-    else if(input.method === 'switchNode'){
-	    switchNode(params.address);
+    else if(input.method === 'setNodeAddress'){
+	    setNodeAddress(params.address);
     }
     else if(input.method === 'clean'){
 	    clean(params.operate, params.item, params.address);
