@@ -621,14 +621,17 @@ function withdraw(roleType){
     let exitKey = proposalKey(motion.WITHDRAW, roleType, Chain.msg.sender);
     let exitInfo = loadObj(exitKey);
     if(exitInfo === false){
-        electInit();
-        deleteCandidate(roleType, Chain.msg.sender);
-
         let applicantKey = proposalKey(motion.APPLY, roleType, Chain.msg.sender);
         let applicant    = loadObj(applicantKey);
         Utils.assert(applicant !== false, 'failed to get metadata: ' + applicantKey + '.');
 
         Chain.del(applicantKey);
+        if(applicant.passTime === undefined){
+            return transferCoin(Chain.msg.sender, exitInfo.pledge, refundInput());
+        }
+
+        electInit();
+        deleteCandidate(roleType, Chain.msg.sender);
         return saveObj(exitKey, exitProposal(Chain.msg.sender, applicant.pledge));
     }
 	
