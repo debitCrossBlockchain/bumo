@@ -47,7 +47,6 @@ function loadObj(key){
 function saveObj(key, value){
     let str = JSON.stringify(value);
     Chain.store(key, str);
-    Utils.log('Set key(' + key + '), value(' + str + ') in metadata succeed.');
 }
 
 function minusStake(amount){
@@ -62,8 +61,6 @@ function transferCoin(dest, amount, input){
 
     minusStake(amount);
     Chain.payCoin(dest, amount, input);
-
-    Utils.log('Pay coin( ' + amount + ') to dest account(' + dest + ') succeed.');
 }
 
 function electInit(){
@@ -88,10 +85,8 @@ function distribute(twoDimenList, allReward){
         return false;
     }
 	
-	Utils.log('Distribute reward ' + allReward + ' to ' + twoDimenList.length + ' address');
-    let reward = Utils.int64Div(allReward, twoDimenList.length);
-
     let i = 0;
+    let reward = Utils.int64Div(allReward, twoDimenList.length);
     for(i = 0; i < twoDimenList.length; i += 1){
         let name = twoDimenList[i][0];
         if(elect.distribution[name] === undefined){
@@ -135,6 +130,7 @@ function rewardDistribution(){
 
     elect.allStake = elect.balance;
     saveObj(stakeKey, elect.allStake);
+    Chain.tlog('rewardDistribute', Chain.block.number, Chain.msg.sender);
 }
 
 function rewardInput(){
@@ -155,8 +151,6 @@ function award(address){
        elect.kolCands.find(function(x){ return x[0] === address; }) === undefined){
         delete elect.distribution[address];
     }
-
-    Utils.log(address + ' extracted block reward ' + income);
 }
 
 function extract(list){
@@ -222,6 +216,7 @@ function updateValidators(candidates){
     }
 
     setValidators(JSON.stringify(validators));
+    Chain.tlog('updateValidators', Chain.block.number);
 }
 
 function addCandidates(roleType, address, proposal, maxSize){
@@ -246,6 +241,7 @@ function addCandidates(roleType, address, proposal, maxSize){
 
     let size = candidates.push(addition);
     let found = candidates[size - 1];
+    Chain.tlog('addCandidate', Chain.block.number, address, roleType);
 
     candidates.sort(doubleSort);
     if(candidates.length > maxSize){
@@ -272,6 +268,7 @@ function deleteCandidate(roleType, address){
     let index = candidates.indexOf(found);
     candidates.splice(index, 1);
     candidates.sort(doubleSort);
+    Chain.tlog('deleteCandidate', Chain.block.number, address, roleType);
 
     let key = roleType === role.VALIDATOR ? validatorCandsKey : kolCandsKey;
     saveObj(key, candidates);
@@ -288,6 +285,7 @@ function updateStake(roleType, candidate, formalSize, amount){
     candidate[1] = Utils.int64Add(candidate[1], amount);
     candidates.sort(doubleSort);
     let newPos = candidates.indexOf(candidate);
+    Chain.tlog('updateStake', Chain.block.number, candidates[0], roleType, amount);
 
     let key = roleType === role.VALIDATOR ? validatorCandsKey : kolCandsKey;
     saveObj(key, candidates);
@@ -320,6 +318,8 @@ function apply(roleType, node){
     else{
         proposal = applicationProposal();
     }
+
+    Chain.tlog('apply', Chain.block.number, Chain.msg.sender, roleType, Chain.msg.coinAmount, node);
     return saveObj(key, proposal);
 }
 
@@ -333,6 +333,7 @@ function append(roleType){
 
     proposal.pledge = Utils.int64Add(proposal.pledge, Chain.msg.coinAmount);
     saveObj(key, proposal);
+    Chain.tlog('append', Chain.block.number, Chain.msg.sender, roleType, Chain.msg.coinAmount);
     if(proposal.passTime === undefined){ 
         /* Additional deposit, not yet approved */
         return true;
@@ -380,6 +381,7 @@ function penalty(evil, roleType){
     }
 
     Chain.store(penaltyKey(evil, roleType), allAsset);
+    Chain.tlog('penalty', Chain.block.number, evil, roleType, allAsset);
 }
 
 function updateCfg(key, proposal, item){
@@ -392,6 +394,8 @@ function updateCfg(key, proposal, item){
         sys[feeCfg[item]] = proposal.value;
         configFee(JSON.stringify(sys));
     }
+
+    Chain.tlog('updateConfigure', Chain.block.number, key, item);
 }
 
 function passIn(committee, key, proposal, item, address){
@@ -465,16 +469,14 @@ function approve(operate, item, address){
         return saveObj(key, proposal);
     }
 
+    Chain.tlog('approved', Chain.block.number, operate, item, address);
     if(operate === motion.CONFIG){
-		Utils.log('Config of ' + item + ' proposal passed');
         updateCfg(key, proposal, item);
     }
     else if(operate === motion.APPLY){
-		Utils.log('Apply proposal of ' + item + '_' + address + ' passed');
         passIn(committee, key, proposal, item, address);
     }
     else if(operate === motion.ABOLISH){
-		Utils.log('Abolish proposal of ' + item + '_' + address + ' passed');
         passOut(committee, key, item, address);
     }
 }
@@ -500,6 +502,7 @@ function vote(roleType, address){
     }
 
     Chain.store(key, voteAmount);
+    Chain.tlog('vote', Chain.block.number, Chain.msg.sender, roleType, address, Chain.msg.coinAmount);
 
     electInit();
     let candidates = roleType === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
@@ -519,6 +522,7 @@ function unVote(roleType, address){
     Utils.assert(amount !== false, 'The account did not vote for: ' + address);
 
     Chain.del(key);
+    Chain.tlog('unVote', Chain.block.number, Chain.msg.sender, roleType, address, amount);
     transferCoin(Chain.msg.sender, amount);
 
     electInit();
@@ -591,6 +595,7 @@ function abolish(roleType, address, proof){
 
     proposal.expiration = Chain.block.timestamp + cfg.valid_period;
     saveObj(key, proposal);
+    Chain.tlog('abolish', Chain.block.number, Chain.msg.sender, roleType, address, proof);
 }
 
 function exitProposal(exiter, pledge){
@@ -627,19 +632,21 @@ function withdraw(roleType){
 
         Chain.del(applicantKey);
         if(applicant.passTime === undefined){
+            Chain.tlog('withdraw', Chain.block.number, Chain.msg.sender, roleType, exitInfo.pledge);
             return transferCoin(Chain.msg.sender, exitInfo.pledge, refundInput());
         }
 
         electInit();
         deleteCandidate(roleType, Chain.msg.sender);
+        Chain.tlog('withdraw', Chain.block.number, Chain.msg.sender, roleType);
         return saveObj(exitKey, exitProposal(Chain.msg.sender, applicant.pledge));
     }
 	
-	Utils.log('Chain.block.timestamp:' + Chain.block.timestamp + ' , expiration:' + exitInfo.expiration);
     Utils.assert(Chain.block.timestamp >= exitInfo.expiration, 'Buffer period is not over.');
 
     Chain.del(exitKey);
     transferCoin(Chain.msg.sender, exitInfo.pledge, refundInput());
+    Chain.tlog('withdraw', Chain.block.number, Chain.msg.sender, roleType, exitInfo.pledge);
 }
 
 function configProposal(item, value){
@@ -687,6 +694,7 @@ function configure(item, value){
         return;
     }
 
+    Chain.tlog('configure', Chain.block.number, Chain.msg.sender, item, value);
     proposal = configProposal(item, value);
     return saveObj(key, proposal);
 }
@@ -711,6 +719,7 @@ function setNodeAddress(address){
     
     found[2] = address;
     saveObj(validatorCandsKey, candidates);
+    Chain.tlog('setNodeAddress', Chain.block.number, Chain.msg.sender, address);
 
     if(candidates.indexOf(found) < cfg.validator_size){
         updateValidators(candidates);
@@ -733,6 +742,7 @@ function clean(operate, item, address){
         transferCoin(address, proposal.pledge, refundInput());
     }
 
+    Chain.tlog('clean', Chain.block.number, operate, item, address);
     return true;
 }
 
@@ -779,7 +789,6 @@ function query(input_str){
        	throw '<unidentified operation type>';
     }
 
-    Utils.log(result);
     return JSON.stringify(result);
 }
 
@@ -851,6 +860,7 @@ function initialization(params){
     saveObj(stakeKey, Chain.getBalance(Chain.thisAddress));
     saveObj(kolCandsKey, []);
     saveObj(rewardKey, {});
+    Chain.tlog('init', Chain.block.number, Chain.tx.sender, Chain.thisAddress, cfg.logic_contract);
 
     return true;
 }
