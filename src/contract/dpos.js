@@ -130,7 +130,7 @@ function rewardDistribution(){
 
     elect.allStake = elect.balance;
     saveObj(stakeKey, elect.allStake);
-    Chain.tlog('rewardDistribute', Chain.block.number, Chain.msg.sender);
+    Chain.tlog('rewardDistribute', Chain.block.number, reward, Chain.msg.sender);
 }
 
 function rewardInput(){
@@ -180,7 +180,8 @@ function applicationProposal(node){
         'ballot':[]
     };
 
-    if(node !== undefined && Utils.addressCheck(node)){
+    if(node !== undefined){
+        Utils.assert(Utils.addressCheck(node), node + ' is not valid address.');
         proposal.node = node;
     }
 
