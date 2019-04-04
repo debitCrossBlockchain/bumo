@@ -200,7 +200,7 @@ function checkPledge(roleType){
         Utils.assert(com === 0 || com === 1, 'Quality deposit is less than the minimum pledge of KOL.');
     }
     else if(roleType === role.COMMITTEE){
-        Utils.assert(Chain.msg.coinAmount === '0', 'No deposit is required to apply to join the committee');
+        Utils.assert(Chain.msg.coinAmount === '0', 'No deposit is required to apply to join the committee.');
     }
     else{
         throw 'Unkown role type.';
@@ -310,7 +310,7 @@ function apply(roleType, node){
 
     let key      = proposalKey(motion.APPLY, roleType, Chain.msg.sender);
     let proposal = loadObj(key);
-    Utils.assert(proposal === false, Chain.msg.sender + ' has applied for a ' + roleType);
+    Utils.assert(proposal === false, Chain.msg.sender + ' has applied for a ' + roleType + '.');
 
     checkPledge(roleType);
     if(roleType === role.VALIDATOR){
@@ -328,9 +328,9 @@ function append(roleType){
     let key      = proposalKey(motion.APPLY, roleType, Chain.msg.sender);
     let proposal = loadObj(key);
 
-    Utils.assert(proposal !== false, Chain.msg.sender + ' has not yet applied to become ' + roleType);
+    Utils.assert(proposal !== false, Chain.msg.sender + ' has not yet applied to become ' + roleType + '.');
     Utils.assert( Chain.block.timestamp < proposal.expiration || proposal.passTime !== undefined, 'Application has expired.');
-    Utils.assert(Utils.int64Mod(Chain.msg.coinAmount, cfg.vote_unit) === '0', 'The number of additional pledge must be an integer multiple of ' + cfg.vote_unit);
+    Utils.assert(Utils.int64Mod(Chain.msg.coinAmount, cfg.vote_unit) === '0', 'The number of additional pledge must be an integer multiple of ' + cfg.vote_unit + '.');
 
     proposal.pledge = Utils.int64Add(proposal.pledge, Chain.msg.coinAmount);
     saveObj(key, proposal);
@@ -420,7 +420,7 @@ function passOut(committee, key, item, address){
     Chain.del(key);
 
     if(item === role.COMMITTEE){
-        Utils.assert(committee.includes(address), 'There is no '+ address + ' in the committee');
+        Utils.assert(committee.includes(address), 'There is no '+ address + ' in the committee.');
         committee.splice(committee.indexOf(address), 1);
         saveObj(committeeKey, committee);
     }
@@ -440,7 +440,7 @@ function refundInput(){
 }
 
 function approve(operate, item, address){
-    Utils.assert(operateValid(operate), 'Unknown approve operation');
+    Utils.assert(operateValid(operate), 'Unknown approve operation.');
     Utils.assert(roleValid(item) || cfg[item] !== undefined, 'Unknown approve item.');
     Utils.assert(Utils.addressCheck(address), address + ' is not valid address.');
 
@@ -490,7 +490,7 @@ function voterKey(roleType, candidate, voter){
 function vote(roleType, address){
     Utils.assert(roleType === role.VALIDATOR || roleType === role.KOL, 'Can only vote for validator or KOL.');
     Utils.assert(Utils.addressCheck(address), address + ' is not valid address.');
-    Utils.assert(Utils.int64Mod(Chain.msg.coinAmount, cfg.vote_unit) === '0', 'The number of votes must be an integer multiple of ' + cfg.vote_unit);
+    Utils.assert(Utils.int64Mod(Chain.msg.coinAmount, cfg.vote_unit) === '0', 'The number of votes must be an integer multiple of ' + cfg.vote_unit + '.');
 
     let key        = voterKey(roleType, address);
     let voteAmount = Chain.load(key);
@@ -520,7 +520,7 @@ function unVote(roleType, address){
 
     let key    = voterKey(roleType, address);
     let amount = Chain.load(key);
-    Utils.assert(amount !== false, 'The account did not vote for: ' + address);
+    Utils.assert(amount !== false, 'The account did not vote for: ' + address + '.');
 
     Chain.del(key);
     transferCoin(Chain.msg.sender, amount);
@@ -615,7 +615,7 @@ function withdraw(roleType){
     if(roleType === role.COMMITTEE){
         let committee = loadObj(committeeKey);
         Utils.assert(committee !== false, 'Failed to get ' + committeeKey + ' from metadata.');
-        Utils.assert(committee.includes(Chain.msg.sender), 'There is no '+ Chain.msg.sender + ' in the committee');
+        Utils.assert(committee.includes(Chain.msg.sender), 'There is no '+ Chain.msg.sender + ' in the committee.');
         Utils.assert(committee.length >= 2, 'Inadequate committee members.');
 
         let applyKey = proposalKey(motion.APPLY, roleType, Chain.msg.sender);
@@ -728,7 +728,7 @@ function setNodeAddress(address){
 }
 
 function clean(operate, item, address){
-    Utils.assert(operateValid(operate), 'Unknown approve operation');
+    Utils.assert(operateValid(operate), 'Unknown approve operation.');
     Utils.assert(roleValid(item) || cfg[item] !== undefined, 'Unknown approve item.');
     Utils.assert(Utils.addressCheck(address), address + ' is not valid address.');
 
