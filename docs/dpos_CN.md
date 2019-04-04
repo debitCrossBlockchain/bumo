@@ -992,15 +992,12 @@ motion = [
   {
     "contract_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
     "code" : "",
-    "input" :
-    "{
+    "input" :"{
       \"method\": \"getProposal\",
-      \"params\":
-      {
-        {
-          \"operate\": \"apply\",
-          \"item\":\"kol\",
-          \"address\":\"buQmvKW11Xy1GL9RUXJKrydWuNykfaQr9SKE\"
+      \"params\":{
+        \"operate\": \"apply\",
+        \"item\":\"kol\",
+        \"address\":\"buQmvKW11Xy1GL9RUXJKrydWuNykfaQr9SKE\"
       }
     }",
     "opt_type" : 2,
