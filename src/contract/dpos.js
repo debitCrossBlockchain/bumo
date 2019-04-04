@@ -321,7 +321,7 @@ function apply(roleType, node){
     }
 
     saveObj(key, proposal);
-    return Chain.tlog('apply', Chain.msg.sender, roleType, Chain.msg.coinAmount, node);
+    return Chain.tlog('apply', Chain.msg.sender, roleType, Chain.msg.coinAmount);
 }
 
 function append(roleType){
