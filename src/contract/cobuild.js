@@ -12,7 +12,7 @@ const cobuildersKey = 'cobuilders';
 const dposContract  = 'buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss';
 
 const share   = 'share';
-const gain    = 'gain';
+const award   = 'award';
 const pledged = 'pledged';
 
 let cfg  = {};
@@ -71,49 +71,33 @@ function getReward(){
     return Utils.int64Sub(after, before);
 }
 
-function rewardCobuilders(reward, shares){
-    let unitReward = Utils.int64Div(reward, shares);
-
-    Object.keys(cobuilders).forEach(function(key){
-        if(cobuilders[key][pledged]){
-            let keyReward = Utils.int64Mul(unitReward, cobuilders[key][share]);
-            cobuilders[key][gain] = Utils.int64Add(cobuilders[key][gain], keyReward);
-        }
-    });
-
-    return Utils.int64Mod(reward, shares);
-}
-
 function distribute(){
     let reward = getReward();
     if(reward === '0'){
         return;
     }
 
-    let left = 0;
-    if(cfg.rewardRatio === 100){
-        left = rewardCobuilders(reward, states.pledgedShares);
-    }
-    else{
-        let initiator = cobuilders[cfg.initiator];
-        delete cobuilders[cfg.initiator];
+    let dividend = Utils.int64Mul(Utils.int64Div(reward, 100), cfg.rewardRatio); 
+    let unitReward = Utils.int64Div(dividend, states.pledgedShares);
 
-        let cobuildersReward = Utils.int64Mul(Utils.int64Div(reward, 100), cfg.rewardRatio); 
-        let cobuildersShares = Utils.int64Sub(states.pledgedShares, initiator[share]);
-        left = rewardCobuilders(cobuildersReward, cobuildersShares);
+    Object.keys(cobuilders).forEach(function(key){
+        if(cobuilders[key][pledged]){
+            let each = Utils.int64Mul(unitReward, cobuilders[key][share]);
+            cobuilders[key][award] = Utils.int64Add(cobuilders[key][award], each);
+        }
+    });
 
-        initiator[gain] = Utils.int64Add(initiator[gain], Utils.int64Sub(reward, cobuildersReward));
-        cobuilders[cfg.initiator] = initiator;
-    }
-
-    cobuilders[cfg.initiator][gain] = Utils.int64Add(cobuilders[cfg.initiator][gain], left);
+    let left = Utils.int64Mod(dividend, states.pledgedShares);
+    let reserve = Utils.int64Sub(reward, dividend);
+    reserve = Utils.int64Add(reserve, left);
+    cobuilders[cfg.initiator][award] = Utils.int64Add(cobuilders[cfg.initiator][award], reserve);
 }
 
 function cobuilder(shares, isPledged){
     return {
         share   :shares,
         pledged :isPledged || false,
-        gain    :'0'
+        award    :'0'
     };
 }
 
@@ -147,8 +131,8 @@ function revoke(){
     saveObj(statesKey, states);
 
     let amount = Utils.int64Mul(cfg.unit, stake[share]);
-    if(stake[gain] !== '0'){
-        amount = Utils.int64Add(amount, stake[gain]);
+    if(stake[award] !== '0'){
+        amount = Utils.int64Add(amount, stake[award]);
     }
 
     transferCoin(Chain.tx.sender, amount);
@@ -244,7 +228,7 @@ function accept(transferor){
 
     let reward = '0';
     if(Utils.int64Sub(cobuilders[transferor][share], shares) === 0){
-        reward = cobuilders[transferor][gain];
+        reward = cobuilders[transferor][award];
         delete cobuilders[transferor];
     }
     else{
@@ -349,9 +333,9 @@ function extract(){
     Utils.assert(cobuilders[Chain.tx.sender] !== undefined, Chain.tx.sender + ' is not involved in co-building.');
 
     distribute();
-    let reward = cobuilders[Chain.tx.sender][gain];
+    let reward = cobuilders[Chain.tx.sender][award];
 
-    cobuilders[Chain.tx.sender][gain] = '0';
+    cobuilders[Chain.tx.sender][award] = '0';
     saveObj(cobuildersKey, cobuilders);
 
     transferCoin(Chain.tx.sender, reward);
@@ -420,10 +404,6 @@ function main(input_str){
         Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
         append();
     }
-    else if(input.method === 'withdraw'){
-        Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
-    	withdraw();
-    }
     else if(input.method === 'transfer'){
         Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
     	transfer(params.to, params.shares);
@@ -434,13 +414,17 @@ function main(input_str){
     else if(input.method === 'extract'){
         extract();
     }
-    else if(input.method === 'takeback'){
+    else if(input.method === 'withdraw'){
         Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
-    	takeback();
+    	withdraw();
     }
     else if(input.method === 'poll'){
         Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
 	    poll();
+    }
+    else if(input.method === 'takeback'){
+        Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
+    	takeback();
     }
     else if(input.method === 'refund'){
         received();
@@ -454,7 +438,7 @@ function init(input_str){
     let mul = Utils.int64Mul(params.unit, params.shares);
     Utils.assert(Utils.int64Compare(mul, minApplyPledge) >= 0, 'Crowdfunding < minimum application pledge.');
     Utils.assert(params.ratio > 0 && params.ratio <= 100, 'The reward ratio should be > 0 and <= 100.');
-    Utils.assert(Utils.int64Compare(Chain.msg.coinAmount, minInitAmount) >= 0 && Utils.int64Mod(Chain.msg.coinAmount, params.unit) === '0', 'Initiator subscription amount is illegal.');
+    Utils.assert(Utils.int64Compare(Chain.msg.coinAmount, minInitAmount) >= 0, 'Initiator subscription amount is illegal.');
 
     cfg = {
         'initiator'   : Chain.tx.sender,
