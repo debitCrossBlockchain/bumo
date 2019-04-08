@@ -187,16 +187,17 @@ motion = [
 
 |方法     |参数                          |说明 |
 | :----- | ---------------------------- | -------------- |
-|apply   |`role`、`node`                |申请接口，任意BuChain账户申请成为候选共识节点、候选生态节点和委员会委员。`role`参数为申请的角色，参数值必须为[用户角色](#用户角色)章节中列出的值之一, `node`为物理节点地址，只有申请的角色为候选共识节点时，此参数才需要赋值。|
+|apply   |`role`、`pool`、`ratio`、`node`                |申请接口，任意BuChain账户申请成为候选共识节点、候选生态节点和委员会委员。`role`参数为申请的角色，参数值必须为[用户角色](#用户角色)章节中列出的值之一；`pool`为向投票用户分配区块奖励的地址，`ratio`为投票奖励的分配比率，合约会将该超级节点获取的区块奖励按照`ratio`指定的比率转入`pool`指定的地址，由该地址将奖励分配给所有支持此超级节点的投票用户，申请委员会委员不需要这两个参数；`node`为物理节点地址，只有申请的角色为候选共识节点时，此参数才需要赋值。|
 |append  |`role`                       |追加质押金接口。候选共识节点或候选kol可以通过调用此接口追加质押金。`role`参数解释同上。|
-|switchNode|`address`                  |切换节点地址接口。共识节点或候选共识节点可以调用此接口切换出块的物理节点。`address`参数为新节点的地址。|
+|setNodeAddress|`address`                  |设置节点地址接口。共识节点或候选共识节点可以调用此接口设置出块的物理节点。`address`参数为新节点的地址。|
+|setVoteDividend|`role`、`pool`、`ratio`    |设置投票奖励分配接口。超级节点及其候选节点可以调用此接口设置分配投票奖励的地址和分配比率。参数解释同apply接口。|
 |abolish |`role`、`address`、`proof`    |废止接口。某角色成员提案废止同角色集合内另一成员。`address`参数为被废止者地址；`proof`参数为废止原因；`role`参数解释同上。|
 |configure |`item`、`value`             |配置接口。委员会委员提案修改某项选举配置项的值。`item`参数为修改的配置项，参数值必须为[选举配置](#选举配置)章节列出的配置项之一；`value`参数为新配置值。|
 |approve   |`operate`、`item`、`address`|审核接口。委员会成员对某提案审核后投票。`operate`参数为提案的动作类型，参数值必须为[提案动作](#提案动作)章节中列出的值之一；`item`参数为提案的项目，参数值必须为[用户角色](#用户角色)章节或[选举配置](#选举配置)章节列出的值之一；`address`参数为被提案者地址，如果审核的配置修改提案，则为提案者地址。|
 |vote     |`role`、`address`            |投票接口。账户为候选共识节点和候选生态节点投票。`address`参数为投票支持的候选共识节点或候选生态节点，`role`参数解释同上。|
 |unVote   |`role`、`address`            |撤销投票接口。已投票账户撤回选票。`role`参数和`address`参数解释同上。|
 |withdraw |`role`                       | 退出接口。候选共识节点、候选生态节点或委员会委员退出自己所在集合。参数解释同上。|
-|extract  |无                           | 提现接口。共识节点、候选共识节点或生态节点提现已分得的区块奖励收益。|
+|extract  |`list`                       | 提现接口。`list`为列表类型的参数，任意用户可调用此接口将指定地址集合的奖励提取到各自地址上。|
 |clean    |`operate`、`item`、`address`  |清理过期提案接口。任意账户可以调用此接口清理任意过期提案。`operate`参数为提案的动作类型，参数值必须为[提案动作](#提案动作)章节中列出的值之一；`item`参数为提案的项目，参数值必须为[用户角色](#用户角色)章节或[选举配置](#选举配置)章节列出的值之一；`address`参数为被提案者地址，如果审核的配置修改提案，则为提案者地址。|
 
 #### 查询接口
@@ -212,6 +213,15 @@ motion = [
 |getCommittee           |无                            |查询委员会接口。可获取委员会名单。|
 |getRewardDistribute    |无                            |查询区块奖励分配表接口。可获取所有候选共识节点和生态节点已分配的区块奖励数额。|
 |getConfiguration       |无                            |查询选举配置接口。可获得所有可修改的选举配置项及其当前值。|
+
+### 操作反馈
+用户触发DPOS合约时，如果产生重要事件，DPOS合约将触发tlog交易，向用户反馈合约执行的结果。tlog交易会按顺序打印多个输出，其中第一个为事件的主题，即topic。
+|主题     |输出                          |说明 |
+| :----- | ---------------------------- | -------------- |
+|apply   |申请者地址, 申请角色, 投票奖励分配地址, 投票奖励分配比率, 物理节点地址       |如果申请角色为委员会委员，只打印申请者地址和申请角色，如果为kol，除了打印前两者，还将打印投票奖励分配地址和比率，validator打印全部信息。|
+|append  |追加者地址，追加者角色，追加金额|只有kol和validator会打印追加信息。|
+|approved|提案动作，提案项目，被提案者或提案者地址|提案动作为[提案动作](#提案动作)章节中列出的值之一；提案项目为[用户角色](#用户角色)章节或[选举配置](#选举配置)章节列出的值之一；最后一个输出为被提案者地址，如果是修改选举配置提案，则为提案者地址。|
+
 
 ### 角色权职
 
@@ -259,17 +269,19 @@ motion = [
 任意一个拥有网络节点的账户可以通过向DPOS合约转移一笔 BU 作为押金，申请成为候选共识节点。经委员会投票审核（参考[委员会批准投票](#委员会批准投票)）通过后，可成为正式的候选共识节点。但能否成为共识节点，是根据一定周期内获得的总票数决定的。
 
 - 申请者向DPOS合约转移一笔 BU 作为押金（参见开发文档‘[转移BU资产](#转移bu资产)’），用户如果退出，该质押金将被锁定15天，超过锁定期后，再次申请退出，合约会将质押金全部返还申请账户（参见[候选共识节点退出](#候选共识节点退出)）。
-- ‘转移货币’操作的 input 字段填入`{ "method" : "apply", "params":{"role":"validator", "node":"buQo8w52g2nQgxnfKWovUUEFQzMCTX5TRpZD"}}`,注意使用转义字符。
+- ‘转移货币’操作的 input 字段填入`{ "method" : "apply", "params":{"role":"validator", "pool":"此字段填入投票奖励分配地址", "ratio":"此字段填入投票奖励分配比率", "node":"此字段填入物理地址"}}`,注意使用转义字符。
 
 |参数|描述
 |:--- | ---
 |role | 申请的角色，参数值必须为[用户角色](#用户角色)章节列出的值之一，此处为共识节点角色。
+|pool | 投票奖励分配地址，如果参数未提供，默认为申请者地址。
+|ratio | 投票奖励分配比率，值为百分数的分子，比如80，表示区块奖励的80%将转入pool参数指定的地址，再由pool地址分配给当前节点的支持者。如果参数未提供，默认为0。
 |node| 节点地址，该地址为参与 BuChain 共识和出块的实际的物理节点的地址。为了保证账户资金安全，用户在申请共识节点时，资金地址和节点地址是分开的。
 
 >例
 
 ```json
-  "payCoin" :
+  "pay_coin" :
   {
     "dest_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
     "amount" :10000000000000,
@@ -279,6 +291,8 @@ motion = [
       \"params\":
       {
         \"role\":\"validator\", 
+        \"pool\":\"buQhqMoJziz27DdrS4DaFjeUSspxetAfvpzu\",
+        \"ratio\":0,
         \"node\":\"buQo8w52g2nQgxnfKWovUUEFQzMCTX5TRpZD\"
       }
     }"
@@ -301,7 +315,7 @@ motion = [
 >例
 
 ```json
-  "payCoin" :
+  "pay_coin" :
   {
     "dest_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
     "amount" :0,
@@ -333,7 +347,7 @@ motion = [
 >例：对指定候选共识节点投票
 
 ```json
-  "payCoin" :
+  "pay_coin" :
   {
     "dest_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
     "amount" :100000000000, /*投票1000BU*/
@@ -361,7 +375,7 @@ motion = [
 |address|  被投票者的地址。
 
 ```json
-  "payCoin" :
+  "pay_coin" :
   {
     "dest_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
     "amount" :0,
@@ -393,7 +407,7 @@ motion = [
 >例
 
 ```json
-  "payCoin" :
+  "pay_coin" :
   {
     "dest_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
     "amount" :0,
@@ -423,7 +437,7 @@ motion = [
 >例
 
 ```json
-  "payCoin" :
+  "pay_coin" :
   {
     "dest_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
     "amount" :0,
@@ -666,7 +680,7 @@ motion = [
 >例
 
 ```json
-  "payCoin" :
+  "pay_coin" :
   {
     "dest_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
     "amount" :0,
@@ -697,7 +711,7 @@ motion = [
 >例
 
 ```json
-  "payCoin" :
+  "pay_coin" :
   {
     "dest_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
     "amount" :0,
@@ -727,7 +741,7 @@ motion = [
 >例
 
 ```json
-  "payCoin" :
+  "pay_coin" :
   {
     "dest_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
     "amount" :0,
@@ -790,7 +804,7 @@ motion = [
 >例
 
 ```json
-  "payCoin" :
+  "pay_coin" :
   {
     "dest_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
     "amount" :0,
@@ -840,29 +854,30 @@ motion = [
 公链生态的发展离不开社区的活跃，对生态节点进行奖励是一个提升公链知名度，提升关注度，增加社区成员的办法。
 
 ### 生态节点申请
-
 任意一个用户账户可以通过向DPOS合约转移一笔 BU 作为押金，申请成为候选生态节点，只有在有效期内获得委员会审核通过，才能加入候选生态节点列表，参考[委员会批准投票](#委员会批准投票)。能否成为正式生态节点，是根据一定周期内获得的用户投票总票数决定的。
 
 - 申请者向DPOS合约转移一笔 BU 作为押金（参见开发文档‘[转移BU资产](#转移bu资产)’），该押金可通过 ‘[收回押金](#收回押金)’ 操作收回。
-- ‘转移货币’操作的 input 字段填入 `{ "method" : "apply", "params" : "role":"kol" }`，注意使用转义字符。
-
-- 重复申请视为追加质押金额，追加额必须为[选举配置](#选举配置)中`vote_unit`配置值的整数倍。
+- ‘转移货币’操作的 input 字段填入`{ "method" : "apply", "params":{"role":"kol", "pool":"此字段填入投票奖励分配地址", "ratio":"此字段填入投票奖励分配比率"}}`，注意使用转义字符。
 
 |参数|描述
 |:--- | ---
-|role | 申请的角色，参数值必须为[用户角色](#用户角色)章节列出的值之一，此处为生态节点。
+|role | 申请的角色，参数值必须为[用户角色](#用户角色)章节列出的值之一，此处为共识节点角色。
+|pool | 投票奖励分配地址，如果参数未提供，默认为申请者地址。
+|ratio | 投票奖励分配比率，值为百分数的分子，比如80，表示区块奖励的80%将转入pool参数指定的地址，再由pool地址分配给当前节点的支持者。如果参数未提供，默认为0。
 
 >例
 
 ```json
-  "payCoin" :
+  "pay_coin" :
   {
     "dest_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
     "amount" :1000000000000,
     "input":"{
       \"method\":\"apply\",
       \"params\" : {
-        \"role\":\"kol\"
+        \"role\":\"kol\",
+        \"pool\":\"buQhqMoJziz27DdrS4DaFjeUSspxetAfvpzu\",
+        \"ratio\":0,
       }
     }"
   }
@@ -883,7 +898,7 @@ motion = [
 >例
 
 ```json
-  "payCoin" :
+  "pay_coin" :
   {
     "dest_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
     "amount" :10000000000000,
@@ -913,7 +928,7 @@ motion = [
 >例
 
 ```json
-  "payCoin" :
+  "pay_coin" :
   {
     "dest_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
     "amount" :0,
@@ -942,7 +957,7 @@ motion = [
 |address| 被投票者的地址。
 
 ```json
-  "payCoin" :
+  "pay_coin" :
   {
     "dest_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
     "amount" :100000000,
@@ -964,7 +979,7 @@ motion = [
 |address| 被投票者的地址。
 
 ```json
-  "payCoin" :
+  "pay_coin" :
   {
     "dest_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
     "amount" :0,
@@ -1109,21 +1124,66 @@ motion = [
 }
 ```
 
+### 设置投票奖励分配
+
+超级节点调用此接口，可更改投票奖励分配地址和比率。
+- 向DPOS合约转账0BU。
+- ‘转移货币’操作的 input 字段填入`{ "method" : "setVoteDividend", "params":{"role":"此处填入超级节点的角色类型", "pool":"此字段填入投票奖励分配地址", "ratio":"此字段填入投票奖励分配比率"}}`,注意使用转义字符。
+
+|参数|描述
+|:--- | ---
+|role | 申请的角色，参数值必须为[用户角色](#用户角色)章节列出的值之一，但不能是委员会。
+|pool | 投票奖励分配地址，如果参数未提供，默认为申请者地址。
+|ratio | 投票奖励分配比率，值为百分数的分子，比如80，表示区块奖励的80%将转入pool参数指定的地址，再由pool地址分配给当前节点的支持者。如果参数未提供，默认为0。
+
+>例
+
+```json
+  "pay_coin" :
+  {
+    "dest_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
+    "amount" :10000000000000,
+    "input":
+    "{
+      \"method\":\"setVoteDividend\",
+      \"params\":
+      {
+        \"role\":\"validator\", 
+        \"pool\":\"buQhqMoJziz27DdrS4DaFjeUSspxetAfvpzu\",
+        \"ratio\":90
+      }
+    }"
+  }
+```
+
 ### 奖励提取
 
-- 共识节点，候选共识节点，生态节点，候选生态节点获得的奖励数额都记录在合约中，达到一定数额时，用户可以主动发起取现请求进行奖励取现。
+- 任意用户调用此接口可以为指定的地址集合领取区块奖励，如果有领取地址不在奖励收益列表中，则该地址收不到奖励。
 - 向DPOS合约转账0BU。
-- ‘转移资产’或‘转移货币’操作的 input 字段填入 `{ "method":"extract"}`，注意使用转义字符。
+- ‘转移资产’或‘转移货币’操作的 input 字段填入 `{ "method":"extract", "list":[此处填入提取奖励的地址集合]}`，注意使用转义字符。
+
+
+|参数|描述
+|:--- | ---
+|list | 领取奖励地址列表，为数组类型，领取奖励地址的个数不得超过100个，如果参数未提供，则默认领取合约触发者的奖励。
 
 >奖励取现
 
 ```json
-  "payCoin" :
+  "pay_coin" :
   {
     "dest_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
     "amount" :0,
     "input":"{
       \"method\":\"extract\",
+      \"params\":{
+        \"list\":[
+          \"buQrVDKPCVE6LfCf8TyZEaiZ8R99NrSn4Fuz\",
+          \"buQmziFKwWTvJe5hBCFa6e3FdPDPorht3wCB\",
+          \"buQmvKW11Xy1GL9RUXJKrydWuNykfaQr9SKE\",
+          \"buQnP4jueoC37fP2VxKpsZSTNjgFHpA442jy\",
+          \"buQjxgZsG3B24PNzKzpTiwrRR3z6ok46izuR\"
+      ]}
     }"
   }
 ```
@@ -1139,7 +1199,7 @@ motion = [
 >例
 
 ```json
-  "payCoin" :
+  "pay_coin" :
   {
     "dest_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
     "amount" :0,
