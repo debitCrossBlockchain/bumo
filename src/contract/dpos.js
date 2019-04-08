@@ -89,17 +89,12 @@ function distribute(twoDimenList, allReward){
     let reward = Utils.int64Div(allReward, twoDimenList.length);
     for(i = 0; i < twoDimenList.length; i += 1){
         let name = twoDimenList[i][0];
-        if(elect.distribution[name] === undefined){
-            elect.distribution[name] = reward;
-        }
-        else{
-            elect.distribution[name] = Utils.int64Add(elect.distribution[name], reward);
-        }
+        elect.distribution[name][0] = Utils.int64Add(elect.distribution[name][0], reward);
     }
 
-    let left       = Utils.int64Mod(allReward, twoDimenList.length);
-    let element1st = elect.distribution[twoDimenList[0][0]];
-    element1st     = Utils.int64Add(element1st, left);
+    let left   = Utils.int64Mod(allReward, twoDimenList.length);
+    let topOne = elect.distribution[twoDimenList[0][0]];
+    topOne[0]  = Utils.int64Add(topOne[0], left);
 
     return true;
 }
@@ -125,7 +120,8 @@ function rewardDistribution(){
     distribute(elect.validators, rValForm);
 
     let left = Utils.int64Mod(reward, 100);
-    elect.distribution[elect.validators[0][0]] = Utils.int64Add(elect.distribution[elect.validators[0][0]], left);
+    let topOne = elect.distribution[elect.validators[0][0]];
+    topOne[0] = Utils.int64Add(topOne[0], left);
     distributed = true;
 
     elect.allStake = elect.balance;
@@ -138,14 +134,31 @@ function rewardInput(){
 }
 
 function award(address){
-    let income = elect.distribution[address];
-    if(income === undefined){
+    let element = elect.distribution[address];
+    if(element === undefined || element[0] === '0'){
         return;
     }
 
-    elect.distribution[address] = '0';
+    if(element[2] === 0){
+        transferCoin(address, element[0], rewardInput());
+        Chain.tlog('award', address, element[0]);
+    }
+    else if(element[2] === 100){
+        transferCoin(element[1], element[0], rewardInput());
+        Chain.tlog('award', element[1], element[0]);
+    }
+    else{
+        let onePercent = Utils.int64Div(element[0], 100);
+        let dividend   = Utils.int64Mul(onePercent, element[2]);
+        transferCoin(element[1], dividend, rewardInput());
+
+        let reserve = Utils.int64Sub(element[0], dividend);
+        transferCoin(address, reserve, rewardInput());
+        Chain.tlog('award', address,  reserve, element[1], dividend);
+    }
+
+    elect.distribution[address][0] = '0';
     distributed = true;
-    transferCoin(address, income, rewardInput());
 
     if(elect.validatorCands.find(function(x){ return x[0] === address; }) === undefined &&
        elect.kolCands.find(function(x){ return x[0] === address; }) === undefined){
@@ -173,18 +186,28 @@ function proposalKey(operate, content, address){
     return operate + '_' + content + '_' + address;
 }
 
-function applicationProposal(node){
+function applicationProposal(roleType, pool, ratio, node){
     let proposal = {
         'pledge':Chain.msg.coinAmount,
         'expiration':Chain.block.timestamp + cfg.valid_period,
         'ballot':[]
     };
 
-    if(node !== undefined){
-        Utils.assert(Utils.addressCheck(node), node + ' is not valid address.');
-        proposal.node = node;
+    if(roleType === role.COMMITTEE){
+        return proposal;
     }
 
+    Utils.assert(Utils.addressCheck(pool), pool + ' is not valid address.');
+    Utils.assert(0 <= ratio && ratio <= 100 && ratio % 1 === 0, 'Invalid parameters: ' + ratio + '.');
+
+    proposal.rewardPool = pool;
+    proposal.rewardRatio = ratio;
+    if(roleType === role.KOL){
+        return proposal;
+    }
+
+    Utils.assert(Utils.addressCheck(node), node + ' is not valid address.');
+    proposal.node = node;
     return proposal;
 }
 
@@ -242,6 +265,10 @@ function addCandidates(roleType, address, proposal, maxSize){
 
     let size = candidates.push(addition);
     let found = candidates[size - 1];
+    if(elect.distribution[address] === undefined){
+        elect.distribution[address] = ['0', proposal.rewardPool, proposal.rewardRatio];
+        distributed = true;
+    }
     Chain.tlog('addCandidate', address, roleType);
 
     candidates.sort(doubleSort);
@@ -305,7 +332,7 @@ function roleValid(roleType){
     return roleType === role.COMMITTEE || roleType === role.VALIDATOR || roleType === role.KOL;
 }
 
-function apply(roleType, node){
+function apply(roleType, pool, ratio, node){
     Utils.assert(roleValid(roleType), 'Unknow role type.');
 
     let key      = proposalKey(motion.APPLY, roleType, Chain.msg.sender);
@@ -313,15 +340,20 @@ function apply(roleType, node){
     Utils.assert(proposal === false, Chain.msg.sender + ' has applied for a ' + roleType + '.');
 
     checkPledge(roleType);
-    if(roleType === role.VALIDATOR){
-        proposal = applicationProposal(node || Chain.msg.sender);
+    if(roleType === role.COMMITTEE){
+        proposal = applicationProposal(roleType);
+        Chain.tlog('apply', Chain.msg.sender, roleType);
+    }
+    else if(roleType === role.KOL){
+        proposal = applicationProposal(roleType, pool||Chain.msg.sender, ratio||0);
+        Chain.tlog('apply', Chain.msg.sender, roleType, pool||Chain.msg.sender, ratio||0);
     }
     else{
-        proposal = applicationProposal();
+        proposal = applicationProposal(roleType, pool||Chain.msg.sender, ratio||0, node||Chain.msg.sender);
+        Chain.tlog('apply', Chain.msg.sender, roleType, pool||Chain.msg.sender, ratio||0, node||Chain.msg.sender);
     }
 
     saveObj(key, proposal);
-    return Chain.tlog('apply', Chain.msg.sender, roleType, Chain.msg.coinAmount);
 }
 
 function append(roleType){
@@ -376,7 +408,7 @@ function penalty(evil, roleType){
 
     let allAsset = proposal.pledge;
     if(elect.distribution[evil] !== undefined){
-        allAsset = Utils.int64Add(proposal.pledge, elect.distribution[evil]);
+        allAsset = Utils.int64Add(proposal.pledge, elect.distribution[evil][0]);
         delete elect.distribution[evil];
         distributed = true;
     }
@@ -803,21 +835,6 @@ function prepare(){
     saveObj(stakeKey, elect.allStake);
 }
 
-function foundingProposal(node){
-    let proposal = {
-        'pledge': '0',
-        'expiration':Chain.block.timestamp,
-        'passTime' : Chain.block.timestamp,
-        'ballot':[]
-    };
-
-    if(node !== undefined && Utils.addressCheck(node)){
-        proposal.node = node;
-    }
-
-    return proposal;
-}
-
 function initialization(params){
     cfg = {
         'gas_price'                : 1000,     /* 1 : gas_price, 1000 MO */
@@ -843,7 +860,10 @@ function initialization(params){
     let i = 0;
     for(i = 0; i < params.committee.length; i += 1){
         Utils.assert(Utils.addressCheck(params.committee[i]), 'Committee member(' + params.committee[i] + ') is not valid address.');
-        saveObj(proposalKey(motion.APPLY, role.COMMITTEE, params.committee[i]), foundingProposal());
+
+        let proposalC      = applicationProposal(role.COMMITTEE);
+        proposalC.passTime = Chain.block.timestamp;
+        saveObj(proposalKey(motion.APPLY, role.COMMITTEE, params.committee[i]), proposalC);
     }
     saveObj(committeeKey, params.committee);
 
@@ -852,7 +872,9 @@ function initialization(params){
 
     let j = 0;
     for(j = 0; j < validators.length; j += 1){
-        saveObj(proposalKey(motion.APPLY, role.VALIDATOR, validators[j][0]), foundingProposal(validators[j][0]));
+        let proposalV      = applicationProposal(role.VALIDATOR, validators[j][0], 0, validators[j][0]);
+        proposalV.passTime = Chain.block.timestamp;
+        saveObj(proposalKey(motion.APPLY, role.VALIDATOR, validators[j][0]), proposalV);
         validators[j][2] = validators[j][0];
     }
     saveObj(validatorCandsKey, validators.sort(doubleSort));
@@ -878,7 +900,7 @@ function main(input_str){
     }
 
     if(input.method === 'apply'){
-        apply(params.role, params.node);
+        apply(params.role, params.pool, params.ratio, params.node);
     }
     else if(input.method === 'append'){
         append(params.role);
