@@ -482,7 +482,7 @@ function approve(operate, item, address){
 
     let key = proposalKey(operate, item, address);
     let proposal = loadObj(key);
-    Utils.assert(proposal !== false, 'failed to get metadata: ' + key + '.');
+    Utils.assert(proposal !== false, 'Failed to get metadata: ' + key + '.');
     Utils.assert(proposal.passTime === undefined, 'Has been approved.');
 
     if(Chain.block.timestamp >= proposal.expiration){
@@ -661,7 +661,7 @@ function withdraw(roleType){
     if(exitInfo === false){
         let applicantKey = proposalKey(motion.APPLY, roleType, Chain.msg.sender);
         let applicant    = loadObj(applicantKey);
-        Utils.assert(applicant !== false, 'failed to get metadata: ' + applicantKey + '.');
+        Utils.assert(applicant !== false, 'Failed to get metadata: ' + applicantKey + '.');
 
         Chain.del(applicantKey);
         if(applicant.passTime === undefined){
@@ -759,6 +759,31 @@ function setNodeAddress(address){
     }
 }
 
+function setVoteDividend(roleType, pool, ratio){
+    let key      = proposalKey(motion.APPLY, roleType, Chain.msg.sender);
+    let proposal = loadObj(key);
+    Utils.assert(proposal, 'Failed to get metadata: ' + key + '.');
+
+    elect.distribution = loadObj(rewardKey);
+    Utils.assert(elect.distribution !== false, 'Failed to get reward distribution table.');
+
+    if(pool){
+        Utils.assert(Utils.addressCheck(pool), pool + ' is not valid address.');
+        proposal.rewardPool = pool;
+        elect.distribution[Chain.msg.sender][1] = pool;
+    }
+    
+    if(ratio){
+        Utils.assert(0 <= ratio && ratio <= 100 && ratio % 1 === 0, 'Invalid parameters: ' + ratio + '.');
+        proposal.rewardRatio = ratio;
+        elect.distribution[Chain.msg.sender][2] = ratio;
+    }
+
+    saveObj(key, proposal);
+    saveObj(rewardKey, elect.distribution);
+    Chain.tlog('setVoteDividend', pool||proposal.rewardPool, ratio||proposal.rewardRatio);
+}
+
 function clean(operate, item, address){
     Utils.assert(operateValid(operate), 'Unknown approve operation.');
     Utils.assert(roleValid(item) || cfg[item] !== undefined, 'Unknown approve item.');
@@ -766,7 +791,7 @@ function clean(operate, item, address){
 
     let key = proposalKey(operate, item, address);
     let proposal = loadObj(key);
-    Utils.assert(proposal !== false, 'failed to get metadata: ' + key + '.');
+    Utils.assert(proposal !== false, 'Failed to get metadata: ' + key + '.');
     Utils.assert(Chain.block.timestamp >= proposal.expiration && proposal.passTime === undefined, 'The proposal is still useful.');
 
     Chain.del(key);
@@ -928,6 +953,9 @@ function main(input_str){
     }
     else if(input.method === 'setNodeAddress'){
 	    setNodeAddress(params.address);
+    }
+    else if(input.method === 'setVoteDividend'){
+        setVoteDividend(params.role, params.pool, params.ratio);
     }
     else if(input.method === 'clean'){
 	    clean(params.operate, params.item, params.address);
