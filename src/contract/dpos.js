@@ -240,7 +240,7 @@ function updateValidators(candidates){
     }
 
     setValidators(JSON.stringify(validators));
-    Chain.tlog('updateValidators');
+    Chain.tlog('updateValidators', validators.length);
 }
 
 function addCandidates(roleType, address, proposal, maxSize){
@@ -313,7 +313,7 @@ function updateStake(roleType, candidate, formalSize, amount){
     candidate[1] = Utils.int64Add(candidate[1], amount);
     candidates.sort(doubleSort);
     let newPos = candidates.indexOf(candidate);
-    Chain.tlog('updateStake', candidates[0], roleType, amount);
+    Chain.tlog('updateStake', candidate[0], roleType, amount);
 
     let key = roleType === role.VALIDATOR ? validatorCandsKey : kolCandsKey;
     saveObj(key, candidates);
@@ -896,17 +896,20 @@ function initialization(params){
     Utils.assert(validators !== false, 'Get validators failed.');
 
     let j = 0;
+    let dist = {};
     for(j = 0; j < validators.length; j += 1){
         let proposalV      = applicationProposal(role.VALIDATOR, validators[j][0], 0, validators[j][0]);
         proposalV.passTime = Chain.block.timestamp;
         saveObj(proposalKey(motion.APPLY, role.VALIDATOR, validators[j][0]), proposalV);
+
         validators[j][2] = validators[j][0];
+        dist[validators[j][0]] = ['0', validators[j][0], 0];
     }
     saveObj(validatorCandsKey, validators.sort(doubleSort));
 
     saveObj(stakeKey, Chain.getBalance(Chain.thisAddress));
     saveObj(kolCandsKey, []);
-    saveObj(rewardKey, {});
+    saveObj(rewardKey, dist);
     Chain.tlog('init', Chain.tx.sender, Chain.thisAddress, cfg.logic_contract);
 }
 
