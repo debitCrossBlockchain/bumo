@@ -65,16 +65,16 @@ function transferCoin(dest, amount, input){
 
 function electInit(){
     elect.distribution = loadObj(rewardKey);
-    Utils.assert(elect.distribution !== false, 'Failed to get reward distribution table.');
+    Utils.assert(elect.distribution !== false, 'Failed to get ' + rewardKey + ' from metadata.');
 
     elect.balance = Chain.getBalance(Chain.thisAddress);
     Utils.assert(elect.balance !== false, 'Failed to get account balance.');
 
     elect.validatorCands = loadObj(validatorCandsKey);
-    Utils.assert(elect.validatorCands !== false, 'Failed to get validator candidates.');
+    Utils.assert(elect.validatorCands !== false, 'Failed to get ' + validatorCands + ' from metadata.');
 
     elect.kolCands = loadObj(kolCandsKey);
-    Utils.assert(elect.kolCands !== false, 'Failed to get kol candidates.');
+    Utils.assert(elect.kolCands !== false, 'Failed to get ' + kolCandsKey + ' from metadata.');
 
     elect.validators = elect.validatorCands.slice(0, cfg.validator_size);
     elect.kols       = elect.kolCands.slice(0, cfg.kol_size);
@@ -174,7 +174,7 @@ function extract(list){
         return award(Chain.msg.sender);
     }
 
-    assert(list.length <= 100, 'Receiving address overrun.');
+    assert(list.length <= 100, 'The award-receiving addresses exceed upper limit: ' + list.length + '.');
 
     let i = 0;
     for(i = 0; i < list.length; i += 1){
@@ -197,8 +197,8 @@ function applicationProposal(roleType, pool, ratio, node){
         return proposal;
     }
 
-    Utils.assert(Utils.addressCheck(pool), pool + ' is not valid address.');
-    Utils.assert(0 <= ratio && ratio <= 100 && ratio % 1 === 0, 'Invalid parameters: ' + ratio + '.');
+    Utils.assert(Utils.addressCheck(pool), 'Invalid address: ' + pool + '.');
+    Utils.assert(0 <= ratio && ratio <= 100 && ratio % 1 === 0, 'Invalid vote reward ratio: ' + ratio + '.');
 
     proposal.rewardPool = pool;
     proposal.rewardRatio = ratio;
@@ -206,7 +206,7 @@ function applicationProposal(roleType, pool, ratio, node){
         return proposal;
     }
 
-    Utils.assert(Utils.addressCheck(node), node + ' is not valid address.');
+    Utils.assert(Utils.addressCheck(node), 'Invalid address: ' + node + '.');
     proposal.node = node;
     return proposal;
 }
@@ -216,17 +216,17 @@ function checkPledge(roleType){
 
     if(roleType === role.VALIDATOR){
         com = Utils.int64Compare(Chain.msg.coinAmount, cfg.validator_min_pledge);
-        Utils.assert(com === 0 || com === 1, 'Quality deposit is less than the minimum pledge of validator.');
+        Utils.assert(com === 0 || com === 1, 'The pledge is less than the minimum requirement of the validator.');
     }
     else if(roleType === role.KOL){
         com = Utils.int64Compare(Chain.msg.coinAmount, cfg.kol_min_pledge);
-        Utils.assert(com === 0 || com === 1, 'Quality deposit is less than the minimum pledge of KOL.');
+        Utils.assert(com === 0 || com === 1, 'The pledge is less than the minimum requirement of the KOL.');
     }
     else if(roleType === role.COMMITTEE){
-        Utils.assert(Chain.msg.coinAmount === '0', 'No deposit is required to apply to join the committee.');
+        Utils.assert(Chain.msg.coinAmount === '0', 'No pledge is required to apply to join the committee.');
     }
     else{
-        throw 'Unkown role type.';
+        throw 'Unkown role: ' + roleType + '.';
     }
 }
 
@@ -333,11 +333,11 @@ function roleValid(roleType){
 }
 
 function apply(roleType, pool, ratio, node){
-    Utils.assert(roleValid(roleType), 'Unknow role type.');
+    Utils.assert(roleValid(roleType), 'Unknown role: ' + roleType + '.');
 
     let key      = proposalKey(motion.APPLY, roleType, Chain.msg.sender);
     let proposal = loadObj(key);
-    Utils.assert(proposal === false, Chain.msg.sender + ' has applied for a ' + roleType + '.');
+    Utils.assert(proposal === false, Chain.msg.sender + ' has applied to become a ' + roleType + '.');
 
     checkPledge(roleType);
     if(roleType === role.COMMITTEE){
@@ -357,12 +357,14 @@ function apply(roleType, pool, ratio, node){
 }
 
 function append(roleType){
+    Utils.assert(roleValid(roleType), 'Unknown role: ' + roleType + '.');
+
     let key      = proposalKey(motion.APPLY, roleType, Chain.msg.sender);
     let proposal = loadObj(key);
 
-    Utils.assert(proposal !== false, Chain.msg.sender + ' has not yet applied to become ' + roleType + '.');
+    Utils.assert(proposal !== false, Chain.msg.sender + ' has not yet applied to become a ' + roleType + '.');
     Utils.assert( Chain.block.timestamp < proposal.expiration || proposal.passTime !== undefined, 'Application has expired.');
-    Utils.assert(Utils.int64Mod(Chain.msg.coinAmount, cfg.vote_unit) === '0', 'The number of additional pledge must be an integer multiple of ' + cfg.vote_unit + '.');
+    Utils.assert(Utils.int64Mod(Chain.msg.coinAmount, cfg.vote_unit) === '0', 'The amount of additional pledge must be an integer multiple of ' + cfg.vote_unit + '.');
 
     proposal.pledge = Utils.int64Add(proposal.pledge, Chain.msg.coinAmount);
     saveObj(key, proposal);
@@ -373,7 +375,7 @@ function append(roleType){
     }
 
     /* Approved, additional deposit */
-    Utils.assert(roleType === role.VALIDATOR || roleType === role.KOL, 'Only the validator and KOL may add a deposit.');
+    Utils.assert(roleType === role.VALIDATOR || roleType === role.KOL, 'Only the validator and KOL can add a deposit.');
 
     electInit();
     let candidates = roleType === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
@@ -472,9 +474,9 @@ function refundInput(){
 }
 
 function approve(operate, item, address){
-    Utils.assert(operateValid(operate), 'Unknown approve operation.');
-    Utils.assert(roleValid(item) || cfg[item] !== undefined, 'Unknown approve item.');
-    Utils.assert(Utils.addressCheck(address), address + ' is not valid address.');
+    Utils.assert(operateValid(operate), 'Unknown proposal operation: ' + operate + '.');
+    Utils.assert(roleValid(item) || cfg[item] !== undefined, 'Unknown proposal item: ' + item + '.');
+    Utils.assert(Utils.addressCheck(address), 'Invalid address: ' + address + '.');
 
     let committee = loadObj(committeeKey);
     Utils.assert(committee !== false, 'Failed to get ' + committeeKey + ' from metadata.');
@@ -482,8 +484,8 @@ function approve(operate, item, address){
 
     let key = proposalKey(operate, item, address);
     let proposal = loadObj(key);
-    Utils.assert(proposal !== false, 'Failed to get metadata: ' + key + '.');
-    Utils.assert(proposal.passTime === undefined, 'Has been approved.');
+    Utils.assert(proposal !== false, 'Failed to get ' + key + ' from metadata.');
+    Utils.assert(proposal.passTime === undefined, 'The ' + key + ' proposal has been approved.');
 
     if(Chain.block.timestamp >= proposal.expiration){
         Chain.del(key);
@@ -520,8 +522,8 @@ function voterKey(roleType, candidate, voter){
 }
 
 function vote(roleType, address){
-    Utils.assert(roleType === role.VALIDATOR || roleType === role.KOL, 'Can only vote for validator or KOL.');
-    Utils.assert(Utils.addressCheck(address), address + ' is not valid address.');
+    Utils.assert(roleType === role.VALIDATOR || roleType === role.KOL,  'Illegal role: ' + roleType + '.');
+    Utils.assert(Utils.addressCheck(address), 'Invalid address: ' + address + '.');
     Utils.assert(Utils.int64Mod(Chain.msg.coinAmount, cfg.vote_unit) === '0', 'The number of votes must be an integer multiple of ' + cfg.vote_unit + '.');
 
     let key        = voterKey(roleType, address);
@@ -541,18 +543,18 @@ function vote(roleType, address){
     let candidates = roleType === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
     let found      = candidates.find(function(x){ return x[0] === address; });
 
-    Utils.assert(found !== undefined, address + ' is not validator candidate or KOL candidate.');
+    Utils.assert(found !== undefined, address + ' is not a validator candidate or KOL candidate.');
     let formalSize = roleType === role.VALIDATOR ? cfg.validator_size : cfg.kol_size;
     updateStake(roleType, found, formalSize, Chain.msg.coinAmount);
 }
 
 function unVote(roleType, address){
-    Utils.assert(roleType === role.VALIDATOR || roleType === role.KOL, 'Can only vote for validator or KOL.');
-    Utils.assert(Utils.addressCheck(address), address + ' is not valid address.');
+    Utils.assert(roleType === role.VALIDATOR || roleType === role.KOL, 'Illegal role: ' + roleType + '.');
+    Utils.assert(Utils.addressCheck(address), 'Invalid address: ' + address + '.');
 
     let key    = voterKey(roleType, address);
     let amount = Chain.load(key);
-    Utils.assert(amount !== false, 'The account did not vote for: ' + address + '.');
+    Utils.assert(amount !== false, 'The account: ' + Chain.msg.sender + ' has not voted for: ' + address + '.');
 
     Chain.del(key);
     transferCoin(Chain.msg.sender, amount);
@@ -562,7 +564,7 @@ function unVote(roleType, address){
     let candidates = roleType === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
     let found      = candidates.find(function(x){ return x[0] === address; });
 
-    Utils.assert(found !== undefined, address + ' is not validator candidate or KOL candidate.');
+    Utils.assert(found !== undefined, address + ' is not a validator candidate or KOL candidate.');
     let formalSize = roleType === role.VALIDATOR ? cfg.validator_size : cfg.kol_size;
     updateStake(roleType, found, formalSize, '-' + amount);
 }
@@ -590,33 +592,33 @@ function reportPermission(roleType){
     if(roleType === role.COMMITTEE){
         let committee = loadObj(committeeKey);
         Utils.assert(committee !== false, 'Failed to get ' + committeeKey + ' from metadata.');
-        Utils.assert(committee.includes(Chain.msg.sender), 'Only committee members have the right to report other committee member.');
+        Utils.assert(committee.includes(Chain.msg.sender), 'Only committee members have the right to report illegal practices.');
     }
     else if(roleType === role.VALIDATOR){
         let validatorCands = loadObj(validatorCandsKey);
-        Utils.assert(validatorCands !== false, 'Failed to get validator candidates.');
+        Utils.assert(validatorCands !== false, 'Failed to get ' + validatorCandsKey + ' from metadata.');
 
         let validators = validatorCands.slice(0, cfg.validator_size);
-        Utils.assert(isExist(validators, Chain.msg.sender), 'Only validator have the right to report other validator.');
+        Utils.assert(isExist(validators, Chain.msg.sender), 'Only validators have the right to report illegal practices.');
     }
     else if(roleType === role.KOL){
         let kolCands = loadObj(kolCandsKey);
-        Utils.assert(kolCands !== false, 'Failed to get kol candidates.');
+        Utils.assert(kolCands !== false, 'Failed to get ' + kolCandsKey + ' from metadata.');
 
         let kols = kolCands.slice(0, cfg.kol_size);
-        Utils.assert(isExist(kols, Chain.msg.sender), 'Only kol have the right to report other kol.');
+        Utils.assert(isExist(kols, Chain.msg.sender), 'Only KOLs have the right to report illegal practices.');
     }
     else{
-        throw 'Unkown abolish type.';
+        throw 'Unkown role: ' + roleType + '.';
     }
 
     return true;
 }
 
 function abolish(roleType, address, proof){
-    Utils.assert(Utils.addressCheck(address), address + ' is not valid address.');
-    Utils.assert(reportPermission(roleType), Chain.msg.sender + ' has no permission to report.');
-    Utils.assert(typeof proof === 'string', 'Args type error, proof must be a string.');
+    reportPermission(roleType);
+    Utils.assert(Utils.addressCheck(address), 'Invalid address: ' + address + '.');
+    Utils.assert(typeof proof === 'string', 'Proof must be a string.');
 
     let key      = proposalKey(motion.ABOLISH, roleType, address);
     let proposal = loadObj(key);
@@ -642,7 +644,7 @@ function exitProposal(exiter, pledge){
 }
 
 function withdraw(roleType){
-    Utils.assert(roleValid(roleType), 'Unknow role type.');
+    Utils.assert(roleValid(roleType), 'Unknown role: ' + roleType + '.');
 
     if(roleType === role.COMMITTEE){
         let committee = loadObj(committeeKey);
@@ -661,7 +663,7 @@ function withdraw(roleType){
     if(exitInfo === false){
         let applicantKey = proposalKey(motion.APPLY, roleType, Chain.msg.sender);
         let applicant    = loadObj(applicantKey);
-        Utils.assert(applicant !== false, 'Failed to get metadata: ' + applicantKey + '.');
+        Utils.assert(applicant !== false, 'Failed to get ' + applicantKey + ' from metadata.');
 
         Chain.del(applicantKey);
         if(applicant.passTime === undefined){
@@ -675,7 +677,7 @@ function withdraw(roleType){
         return Chain.tlog('withdraw', Chain.msg.sender, roleType);
     }
 	
-    Utils.assert(Chain.block.timestamp >= exitInfo.expiration, 'Buffer period is not over.');
+    Utils.assert(Chain.block.timestamp >= exitInfo.expiration, 'Buffer period is not finished.');
 
     Chain.del(exitKey);
     transferCoin(Chain.msg.sender, exitInfo.pledge, refundInput());
@@ -694,23 +696,23 @@ function configProposal(item, value){
 }
 
 function cfgValid(item, value){
-    Utils.assert(cfg[item] !== undefined, 'Unknown config type');
+    Utils.assert(cfg[item] !== undefined, 'Unknown configuration item: ' + item + '.');
 
     if(item === 'reward_allocation_share'){
-        return Utils.assert(value[0] + value[1] + value[2] + value[3] === 100, 'Reward allocation share value invalid.');
+        return Utils.assert(value[0] + value[1] + value[2] + value[3] === 100, 'Reward allocation is invalid.');
     }
 
     if(item === 'logic_contract'){
-        return Utils.assert(Utils.addressCheck(value), value + ' is not valid address.');
+        return Utils.assert(Utils.addressCheck(value), 'Invalid address: ' + value + '.');
     }
 
-    Utils.assert(typeof value === 'number' && value > 0, 'Illegal configure value.');
+    Utils.assert(typeof value === 'number' && value > 0, 'Illegal configuration value: ' + value + '.');
 
     if(item === 'pass_rate'){
-        Utils.assert(value <= 1, 'Invalid pass rate.');
+        Utils.assert(value <= 1, 'Invalid passing rate: ' + value + '.');
     }
     else{
-        Utils.assert(value % 1 === 0, 'Illegal configure value.'); 
+        Utils.assert(value % 1 === 0, 'Illegal configuration value: ' + value + '.'); 
     }
 }
 
@@ -719,7 +721,7 @@ function configure(item, value){
 
     let committee = loadObj(committeeKey);
     Utils.assert(committee !== false, 'Failed to get ' + committeeKey + ' from metadata.');
-    Utils.assert(committee.includes(Chain.msg.sender), 'Only the committee has the power to proposal to modify the configuration.');
+    Utils.assert(committee.includes(Chain.msg.sender), 'Only the committee has the right to propose to modify the configuration.');
 
     let key      = proposalKey(motion.CONFIG, item, Chain.msg.sender);
     let proposal = loadObj(key);
@@ -733,7 +735,7 @@ function configure(item, value){
 }
 
 function setNodeAddress(address){
-    Utils.assert(Utils.addressCheck(address), address + ' is not valid address.');
+    Utils.assert(Utils.addressCheck(address),  'Invalid address: ' + address + '.');
 
     let key      = proposalKey(motion.APPLY, role.VALIDATOR, Chain.msg.sender);
     let proposal = loadObj(key);
@@ -743,7 +745,7 @@ function setNodeAddress(address){
     saveObj(key, proposal);
 
     let candidates = loadObj(validatorCandsKey);
-    Utils.assert(candidates !== false, 'Failed to get validator candidates.');
+    Utils.assert(candidates !== false, 'Failed to get ' + validatorCandsKey + ' from metadata.');
 
     let found = candidates.find(function(x){ return x[0] === Chain.msg.sender; });
     if(found === undefined){
@@ -762,19 +764,19 @@ function setNodeAddress(address){
 function setVoteDividend(roleType, pool, ratio){
     let key      = proposalKey(motion.APPLY, roleType, Chain.msg.sender);
     let proposal = loadObj(key);
-    Utils.assert(proposal, 'Failed to get metadata: ' + key + '.');
+    Utils.assert(proposal, 'Failed to get ' + key + ' from metadata.');
 
     elect.distribution = loadObj(rewardKey);
-    Utils.assert(elect.distribution !== false, 'Failed to get reward distribution table.');
+    Utils.assert(elect.distribution !== false, 'Failed to get ' + rewardKey + ' from metadata.');
 
     if(pool){
-        Utils.assert(Utils.addressCheck(pool), pool + ' is not valid address.');
+        Utils.assert(Utils.addressCheck(pool), 'Invalid address: ' + pool + '.');
         proposal.rewardPool = pool;
         elect.distribution[Chain.msg.sender][1] = pool;
     }
     
     if(ratio){
-        Utils.assert(0 <= ratio && ratio <= 100 && ratio % 1 === 0, 'Invalid parameters: ' + ratio + '.');
+        Utils.assert(0 <= ratio && ratio <= 100 && ratio % 1 === 0, 'Invalid vote reward ratio: ' + ratio + '.');
         proposal.rewardRatio = ratio;
         elect.distribution[Chain.msg.sender][2] = ratio;
     }
@@ -785,14 +787,14 @@ function setVoteDividend(roleType, pool, ratio){
 }
 
 function clean(operate, item, address){
-    Utils.assert(operateValid(operate), 'Unknown approve operation.');
-    Utils.assert(roleValid(item) || cfg[item] !== undefined, 'Unknown approve item.');
-    Utils.assert(Utils.addressCheck(address), address + ' is not valid address.');
+    Utils.assert(operateValid(operate), 'Unknown proposal operation: ' + operate + '.');
+    Utils.assert(roleValid(item) || cfg[item] !== undefined, 'Unknown proposal item: ' + item + '.');
+    Utils.assert(Utils.addressCheck(address),  'Invalid address: ' + address + '.');
 
     let key = proposalKey(operate, item, address);
     let proposal = loadObj(key);
-    Utils.assert(proposal !== false, 'Failed to get metadata: ' + key + '.');
-    Utils.assert(Chain.block.timestamp >= proposal.expiration && proposal.passTime === undefined, 'The proposal is still useful.');
+    Utils.assert(proposal !== false, 'Failed to get ' + key + ' from metadata.');
+    Utils.assert(Chain.block.timestamp >= proposal.expiration && proposal.passTime === undefined, 'The proposal is still valid.');
 
     Chain.del(key);
     /*operate === motion.APPLY || operate === motion.WITHDRAW*/
@@ -824,7 +826,7 @@ function query(input_str){
     }
     else if(input.method === 'getKols') {
         let kolCands = loadObj(kolCandsKey);
-        Utils.assert(kolCands !== false, 'Failed to get kol candidates.');
+        Utils.assert(kolCands !== false, 'Failed to get ' + kolCandsKey + ' from metadata.');
 
         result.kols = kolCands.slice(0, cfg.kol_size);
     }
@@ -843,7 +845,7 @@ function query(input_str){
         result.configuration = loadObj(configKey);
     }
     else{
-       	throw '<unidentified operation type>';
+       	throw 'Unknown operating: ' + input.method + '.';
     }
 
     return JSON.stringify(result);
@@ -851,10 +853,10 @@ function query(input_str){
 
 function prepare(){
     cfg = loadObj(configKey);
-    Utils.assert(cfg !== false, 'Failed to load configuration.');
+    Utils.assert(cfg !== false, 'Failed to get ' + configKey + ' from metadata.');
 
     elect.allStake = loadObj(stakeKey);
-    Utils.assert(elect.allStake !== false, 'Failed to get all stake.');
+    Utils.assert(elect.allStake !== false, 'Failed to get ' + stakeKey + ' from metadata.');
 
     elect.allStake = Utils.int64Add(elect.allStake, Chain.msg.coinAmount);
     saveObj(stakeKey, elect.allStake);
@@ -880,11 +882,11 @@ function initialization(params){
     };
     saveObj(configKey, cfg);
 
-    Utils.assert(Utils.int64Compare(params.committee.length, cfg.committee_size) <= 0, 'Committee size exceeded.');
+    Utils.assert(Utils.int64Compare(params.committee.length, cfg.committee_size) <= 0, 'The committee size is exceeded.');
 
     let i = 0;
     for(i = 0; i < params.committee.length; i += 1){
-        Utils.assert(Utils.addressCheck(params.committee[i]), 'Committee member(' + params.committee[i] + ') is not valid address.');
+        Utils.assert(Utils.addressCheck(params.committee[i]), 'Invalid address: ' + params.committee[i] + '.');
 
         let proposalC      = applicationProposal(role.COMMITTEE);
         proposalC.passTime = Chain.block.timestamp;
@@ -893,7 +895,7 @@ function initialization(params){
     saveObj(committeeKey, params.committee);
 
     let validators = getValidators();
-    Utils.assert(validators !== false, 'Get validators failed.');
+    Utils.assert(validators !== false, 'Failed to get validators.');
 
     let j = 0;
     let dist = {};
@@ -964,7 +966,7 @@ function main(input_str){
 	    clean(params.operate, params.item, params.address);
     }
     else{
-        throw '<undidentified operation type>';
+        throw 'Unknown operating: ' + input.method + '.';
     }
 
     if(distributed) {
