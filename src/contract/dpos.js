@@ -866,6 +866,24 @@ function prepare(){
     saveObj(stakeKey, elect.allStake);
 }
 
+function initProposal(roleType, pool, ratio, node){
+    let proposal = {
+        'pledge': '0',
+        'expiration':Chain.block.timestamp + cfg.valid_period,
+        'passTime':Chain.block.timestamp + cfg.valid_period,
+        'ballot':[]
+    };
+
+    if(roleType === role.COMMITTEE){
+        return proposal;
+    }
+
+    proposal.rewardPool = pool;
+    proposal.rewardRatio = ratio;
+    proposal.node = node;
+    return proposal;
+}
+
 function initialization(params){
     cfg = {
         'gas_price'                : 1000,     /* 1 : gas_price, 1000 MO */
@@ -892,8 +910,7 @@ function initialization(params){
     for(i = 0; i < params.committee.length; i += 1){
         Utils.assert(Utils.addressCheck(params.committee[i]), 'Invalid address:' + params.committee[i] + '.');
 
-        let proposalC      = applicationProposal(role.COMMITTEE);
-        proposalC.passTime = Chain.block.timestamp;
+        let proposalC = initProposal(role.COMMITTEE);
         saveObj(proposalKey(motion.APPLY, role.COMMITTEE, params.committee[i]), proposalC);
     }
     saveObj(committeeKey, params.committee);
@@ -904,8 +921,7 @@ function initialization(params){
     let j = 0;
     let dist = {};
     for(j = 0; j < validators.length; j += 1){
-        let proposalV      = applicationProposal(role.VALIDATOR, validators[j][0], 0, validators[j][0]);
-        proposalV.passTime = Chain.block.timestamp;
+        let proposalV = initProposal(role.VALIDATOR, validators[j][0], 0, validators[j][0]);
         saveObj(proposalKey(motion.APPLY, role.VALIDATOR, validators[j][0]), proposalV);
 
         validators[j][2] = validators[j][0];

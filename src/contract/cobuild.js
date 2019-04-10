@@ -75,12 +75,7 @@ function getReward(){
     return Utils.int64Sub(after, before);
 }
 
-function distribute(){
-    let reward = getReward();
-    if(reward === '0'){
-        return;
-    }
-
+function distribute(reward){
     let dividend = Utils.int64Mul(Utils.int64Div(reward, 100), cfg.rewardRatio); 
     let unitReward = Utils.int64Div(dividend, states.pledgedShares);
 
@@ -230,7 +225,10 @@ function accept(transferor){
     Utils.assert(shares !== false, 'Failed to get ' + key + ' from metadata.');
     Utils.assert(Utils.int64Compare(Utils.int64Mul(cfg.unit, shares), Chain.msg.coinAmount) === 0, 'unit * shares !== Chain.msg.coinAmount.');
 
-    distribute();
+    let allReward = getReward();
+    if(allReward !== '0'){
+        distribute(allReward);
+    }
 
     if(cobuilders[Chain.tx.sender] === undefined){
         cobuilders[Chain.tx.sender] = cobuilder(shares, true);
@@ -340,12 +338,18 @@ function received(){
     if(false !== loadObj(withdrawKey)){
         Chain.del(withdrawKey);
     }
+
+    distribute(Chain.msg.coinAmount);
 }
 
 function extract(){
     Utils.assert(cobuilders[Chain.tx.sender] !== undefined, Chain.tx.sender + ' is not involved in co-building.');
 
-    distribute();
+    let allReward = getReward();
+    if(allReward !== '0'){
+        distribute(allReward);
+    }
+
     let reward = cobuilders[Chain.tx.sender][award];
 
     cobuilders[Chain.tx.sender][award] = '0';
