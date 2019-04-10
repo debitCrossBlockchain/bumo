@@ -11,9 +11,12 @@ const withdrawKey   = 'withdraw';
 const cobuildersKey = 'cobuilders';
 const dposContract  = 'buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss';
 
-const share   = 'share';
-const award   = 'award';
-const pledged = 'pledged';
+const share     = 'share';
+const award     = 'award';
+const pledged   = 'pledged';
+const validator = 'validator';
+const kol       = 'kol';
+
 
 let cfg  = {};
 let states = {};
@@ -138,17 +141,22 @@ function revoke(){
     transferCoin(Chain.tx.sender, amount);
 }
 
-function applyInput(node){
+function applyInput(pool, ratio, node){
     let application = {
         'method' : 'apply',
         'params':{
-            'role': states.role || 'kol'
+            'role': states.role,
+            'pool': pool,
+            'ratio':ratio
         }
     };
 
-    if(node !== undefined && Utils.addressCheck(node)){
-        application.params.node = node;
+    if(application.params.role === kol){
+        return JSON.stringify(application);
     }
+
+    Utils.assert(Utils.addressCheck(node), 'Invalid address:' + node + '.');
+    application.params.node = node;
 
     return JSON.stringify(application);
 }
@@ -162,7 +170,12 @@ function setStatus(){
     saveObj(cobuildersKey, cobuilders);
 }
 
-function apply(role, node){
+function apply(role, pool, ratio, node){
+    Utils.assert(role === validator || role === kol,  'Unknown role:' + roleType + '.');
+    Utils.assert(Utils.addressCheck(pool), 'Invalid address:' + pool + '.');
+    Utils.assert(Utils.addressCheck(node) && node !== Chain.thisAddress, 'Invalid address:' + node + '.');
+    Utils.assert(0 <= ratio && ratio <= 100 && ratio % 1 === 0, 'Invalid vote reward ratio:' + ratio + '.');
+
     Utils.assert(states.applied === false, 'Already applied.');
     Utils.assert(Chain.tx.sender === cfg.initiator, 'Only the initiator has the right to apply.');
     Utils.assert(Utils.int64Compare(states.allShares, cfg.raiseShares) >= 0, 'Co-building fund is not enough.');
@@ -171,7 +184,7 @@ function apply(role, node){
     setStatus();
    
     let pledgeAmount = Utils.int64Mul(cfg.unit, states.allShares);
-    callDPOS(pledgeAmount, applyInput(node));
+    callDPOS(pledgeAmount, applyInput(pool||Chain.thisAddress, ratio||0, node));
 }
 
 function appendInput(){
@@ -255,7 +268,7 @@ function withdrawInput(){
     let application = {
         'method' : 'withdraw',
         'params':{
-            'role':states.role || 'kol'
+            'role':states.role || kol
         }
     };
 

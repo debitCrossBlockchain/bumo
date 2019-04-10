@@ -71,7 +71,7 @@ function electInit(){
     Utils.assert(elect.balance !== false, 'Failed to get account balance.');
 
     elect.validatorCands = loadObj(validatorCandsKey);
-    Utils.assert(elect.validatorCands !== false, 'Failed to get ' + validatorCands + ' from metadata.');
+    Utils.assert(elect.validatorCands !== false, 'Failed to get ' + elect.validatorCands + ' from metadata.');
 
     elect.kolCands = loadObj(kolCandsKey);
     Utils.assert(elect.kolCands !== false, 'Failed to get ' + kolCandsKey + ' from metadata.');
