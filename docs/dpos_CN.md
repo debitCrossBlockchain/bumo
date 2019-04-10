@@ -324,7 +324,7 @@ motion = [
 共识节点的资金地址和节点地址是分开的，为了方便共识节点在线更新升级，共识节点或候选共识节点可以调用此接口修改节点地址。
 
 - 向DPOS合约转账 0 BU。
-- ‘转移货币’操作的 input 字段填入`{ "method" : "switchNode", "params" : {  "address" : "此处填入新节点地址"} }`，注意使用转义字符。
+- ‘转移货币’操作的 input 字段填入`{ "method" : "setNodeAddress", "params" : {  "address" : "此处填入新节点地址"} }`，注意使用转义字符。
 
 |参数|描述
 |:--- | ---
@@ -339,7 +339,7 @@ motion = [
     "amount" :0,
     "input":
     "{
-      \"method\":\"switchNode\",
+      \"method\":\"setNodeAddress\",
       \"params\":
       {
         \"address\":\"buQo8w52g2nQgxnfKWovUUEFQzMCTX5TRpZD\"
