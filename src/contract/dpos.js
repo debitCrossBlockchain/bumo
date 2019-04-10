@@ -174,7 +174,7 @@ function extract(list){
         return award(Chain.msg.sender);
     }
 
-    assert(list.length <= 100, 'The award-receiving addresses exceed upper limit: ' + list.length + '.');
+    assert(list.length <= 100, 'The award-receiving addresses:' + list.length + ' exceed upper limit:100.');
 
     let i = 0;
     for(i = 0; i < list.length; i += 1){
@@ -197,8 +197,8 @@ function applicationProposal(roleType, pool, ratio, node){
         return proposal;
     }
 
-    Utils.assert(Utils.addressCheck(pool), 'Invalid address: ' + pool + '.');
-    Utils.assert(0 <= ratio && ratio <= 100 && ratio % 1 === 0, 'Invalid vote reward ratio: ' + ratio + '.');
+    Utils.assert(Utils.addressCheck(pool), 'Invalid address:' + pool + '.');
+    Utils.assert(0 <= ratio && ratio <= 100 && ratio % 1 === 0, 'Invalid vote reward ratio:' + ratio + '.');
 
     proposal.rewardPool = pool;
     proposal.rewardRatio = ratio;
@@ -206,7 +206,7 @@ function applicationProposal(roleType, pool, ratio, node){
         return proposal;
     }
 
-    Utils.assert(Utils.addressCheck(node), 'Invalid address: ' + node + '.');
+    Utils.assert(Utils.addressCheck(node), 'Invalid address:' + node + '.');
     proposal.node = node;
     return proposal;
 }
@@ -216,17 +216,17 @@ function checkPledge(roleType){
 
     if(roleType === role.VALIDATOR){
         com = Utils.int64Compare(Chain.msg.coinAmount, cfg.validator_min_pledge);
-        Utils.assert(com === 0 || com === 1, 'The pledge is less than the minimum requirement of the validator.');
+        Utils.assert(com === 0 || com === 1, 'The pledge:' + Chain.msg.coinAmount + ' is less than the minimum requirement:' + cfg.validator_min_pledge +  ' of the validator.');
     }
     else if(roleType === role.KOL){
         com = Utils.int64Compare(Chain.msg.coinAmount, cfg.kol_min_pledge);
-        Utils.assert(com === 0 || com === 1, 'The pledge is less than the minimum requirement of the KOL.');
+        Utils.assert(com === 0 || com === 1, 'The pledge:' + Chain.msg.coinAmount + ' is less than the minimum requirement:' + cfg.kol_min_pledge + ' of the KOL.');
     }
     else if(roleType === role.COMMITTEE){
         Utils.assert(Chain.msg.coinAmount === '0', 'No pledge is required to apply to join the committee.');
     }
     else{
-        throw 'Unkown role: ' + roleType + '.';
+        throw 'Unkown role:' + roleType + '.';
     }
 }
 
@@ -333,7 +333,7 @@ function roleValid(roleType){
 }
 
 function apply(roleType, pool, ratio, node){
-    Utils.assert(roleValid(roleType), 'Unknown role: ' + roleType + '.');
+    Utils.assert(roleValid(roleType), 'Unknown role:' + roleType + '.');
 
     let key      = proposalKey(motion.APPLY, roleType, Chain.msg.sender);
     let proposal = loadObj(key);
@@ -357,7 +357,7 @@ function apply(roleType, pool, ratio, node){
 }
 
 function append(roleType){
-    Utils.assert(roleValid(roleType), 'Unknown role: ' + roleType + '.');
+    Utils.assert(roleValid(roleType), 'Unknown role:' + roleType + '.');
 
     let key      = proposalKey(motion.APPLY, roleType, Chain.msg.sender);
     let proposal = loadObj(key);
@@ -474,9 +474,9 @@ function refundInput(){
 }
 
 function approve(operate, item, address){
-    Utils.assert(operateValid(operate), 'Unknown proposal operation: ' + operate + '.');
-    Utils.assert(roleValid(item) || cfg[item] !== undefined, 'Unknown proposal item: ' + item + '.');
-    Utils.assert(Utils.addressCheck(address), 'Invalid address: ' + address + '.');
+    Utils.assert(operateValid(operate), 'Unknown proposal operation:' + operate + '.');
+    Utils.assert(roleValid(item) || cfg[item] !== undefined, 'Unknown proposal item:' + item + '.');
+    Utils.assert(Utils.addressCheck(address), 'Invalid address:' + address + '.');
 
     let committee = loadObj(committeeKey);
     Utils.assert(committee !== false, 'Failed to get ' + committeeKey + ' from metadata.');
@@ -522,8 +522,8 @@ function voterKey(roleType, candidate, voter){
 }
 
 function vote(roleType, address){
-    Utils.assert(roleType === role.VALIDATOR || roleType === role.KOL,  'Illegal role: ' + roleType + '.');
-    Utils.assert(Utils.addressCheck(address), 'Invalid address: ' + address + '.');
+    Utils.assert(roleType === role.VALIDATOR || roleType === role.KOL,  'Illegal role:' + roleType + '.');
+    Utils.assert(Utils.addressCheck(address), 'Invalid address:' + address + '.');
     Utils.assert(Utils.int64Mod(Chain.msg.coinAmount, cfg.vote_unit) === '0', 'The number of votes must be an integer multiple of ' + cfg.vote_unit + '.');
 
     let key        = voterKey(roleType, address);
@@ -549,8 +549,8 @@ function vote(roleType, address){
 }
 
 function unVote(roleType, address){
-    Utils.assert(roleType === role.VALIDATOR || roleType === role.KOL, 'Illegal role: ' + roleType + '.');
-    Utils.assert(Utils.addressCheck(address), 'Invalid address: ' + address + '.');
+    Utils.assert(roleType === role.VALIDATOR || roleType === role.KOL, 'Illegal role:' + roleType + '.');
+    Utils.assert(Utils.addressCheck(address), 'Invalid address:' + address + '.');
 
     let key    = voterKey(roleType, address);
     let amount = Chain.load(key);
@@ -609,7 +609,7 @@ function reportPermission(roleType){
         Utils.assert(isExist(kols, Chain.msg.sender), 'Only KOLs have the right to report illegal practices.');
     }
     else{
-        throw 'Unkown role: ' + roleType + '.';
+        throw 'Unkown role:' + roleType + '.';
     }
 
     return true;
@@ -617,7 +617,7 @@ function reportPermission(roleType){
 
 function abolish(roleType, address, proof){
     reportPermission(roleType);
-    Utils.assert(Utils.addressCheck(address), 'Invalid address: ' + address + '.');
+    Utils.assert(Utils.addressCheck(address), 'Invalid address:' + address + '.');
     Utils.assert(typeof proof === 'string', 'Proof must be a string.');
 
     let key      = proposalKey(motion.ABOLISH, roleType, address);
@@ -644,7 +644,7 @@ function exitProposal(exiter, pledge){
 }
 
 function withdraw(roleType){
-    Utils.assert(roleValid(roleType), 'Unknown role: ' + roleType + '.');
+    Utils.assert(roleValid(roleType), 'Unknown role:' + roleType + '.');
 
     if(roleType === role.COMMITTEE){
         let committee = loadObj(committeeKey);
@@ -696,14 +696,14 @@ function configProposal(item, value){
 }
 
 function cfgValid(item, value){
-    Utils.assert(cfg[item] !== undefined, 'Unknown configuration item: ' + item + '.');
+    Utils.assert(cfg[item] !== undefined, 'Unknown configuration item:' + item + '.');
 
     if(item === 'reward_allocation_share'){
         return Utils.assert(value[0] + value[1] + value[2] + value[3] === 100, 'Reward allocation is invalid.');
     }
 
     if(item === 'logic_contract'){
-        return Utils.assert(Utils.addressCheck(value), 'Invalid address: ' + value + '.');
+        return Utils.assert(Utils.addressCheck(value), 'Invalid address:' + value + '.');
     }
 
     Utils.assert(typeof value === 'number' && value > 0, 'Illegal configuration value: ' + value + '.');
@@ -735,7 +735,7 @@ function configure(item, value){
 }
 
 function setNodeAddress(address){
-    Utils.assert(Utils.addressCheck(address),  'Invalid address: ' + address + '.');
+    Utils.assert(Utils.addressCheck(address),  'Invalid address:' + address + '.');
 
     let key      = proposalKey(motion.APPLY, role.VALIDATOR, Chain.msg.sender);
     let proposal = loadObj(key);
@@ -770,13 +770,13 @@ function setVoteDividend(roleType, pool, ratio){
     Utils.assert(elect.distribution !== false, 'Failed to get ' + rewardKey + ' from metadata.');
 
     if(pool){
-        Utils.assert(Utils.addressCheck(pool), 'Invalid address: ' + pool + '.');
+        Utils.assert(Utils.addressCheck(pool), 'Invalid address:' + pool + '.');
         proposal.rewardPool = pool;
         elect.distribution[Chain.msg.sender][1] = pool;
     }
     
     if(ratio){
-        Utils.assert(0 <= ratio && ratio <= 100 && ratio % 1 === 0, 'Invalid vote reward ratio: ' + ratio + '.');
+        Utils.assert(0 <= ratio && ratio <= 100 && ratio % 1 === 0, 'Invalid vote reward ratio:' + ratio + '.');
         proposal.rewardRatio = ratio;
         elect.distribution[Chain.msg.sender][2] = ratio;
     }
@@ -787,9 +787,9 @@ function setVoteDividend(roleType, pool, ratio){
 }
 
 function clean(operate, item, address){
-    Utils.assert(operateValid(operate), 'Unknown proposal operation: ' + operate + '.');
-    Utils.assert(roleValid(item) || cfg[item] !== undefined, 'Unknown proposal item: ' + item + '.');
-    Utils.assert(Utils.addressCheck(address),  'Invalid address: ' + address + '.');
+    Utils.assert(operateValid(operate), 'Unknown proposal operation:' + operate + '.');
+    Utils.assert(roleValid(item) || cfg[item] !== undefined, 'Unknown proposal item:' + item + '.');
+    Utils.assert(Utils.addressCheck(address),  'Invalid address:' + address + '.');
 
     let key = proposalKey(operate, item, address);
     let proposal = loadObj(key);
@@ -886,7 +886,7 @@ function initialization(params){
 
     let i = 0;
     for(i = 0; i < params.committee.length; i += 1){
-        Utils.assert(Utils.addressCheck(params.committee[i]), 'Invalid address: ' + params.committee[i] + '.');
+        Utils.assert(Utils.addressCheck(params.committee[i]), 'Invalid address:' + params.committee[i] + '.');
 
         let proposalC      = applicationProposal(role.COMMITTEE);
         proposalC.passTime = Chain.block.timestamp;
