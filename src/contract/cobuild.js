@@ -75,8 +75,8 @@ function getReward(){
     return Utils.int64Sub(after, before);
 }
 
-function distribute(reward){
-    let dividend = Utils.int64Mul(Utils.int64Div(reward, 100), cfg.rewardRatio); 
+function distribute(allReward){
+    let dividend = Utils.int64Mul(Utils.int64Div(allReward, 100), cfg.rewardRatio); 
     let unitReward = Utils.int64Div(dividend, states.pledgedShares);
 
     Object.keys(cobuilders).forEach(function(key){
@@ -87,7 +87,7 @@ function distribute(reward){
     });
 
     let left = Utils.int64Mod(dividend, states.pledgedShares);
-    let reserve = Utils.int64Sub(reward, dividend);
+    let reserve = Utils.int64Sub(allReward, dividend);
     reserve = Utils.int64Add(reserve, left);
     cobuilders[cfg.initiator][award] = Utils.int64Add(cobuilders[cfg.initiator][award], reserve);
 }
@@ -237,9 +237,9 @@ function accept(transferor){
         cobuilders[Chain.tx.sender][share] = Utils.int64Add(cobuilders[Chain.tx.sender][share], shares);
     }
 
-    let reward = '0';
+    let gain = '0';
     if(Utils.int64Sub(cobuilders[transferor][share], shares) === 0){
-        reward = cobuilders[transferor][award];
+        gain = cobuilders[transferor][award];
         delete cobuilders[transferor];
     }
     else{
@@ -247,7 +247,7 @@ function accept(transferor){
     }
 
     saveObj(cobuildersKey, cobuilders);
-    transferCoin(transferor, Utils.int64Add(Chain.msg.coinAmount, reward));
+    transferCoin(transferor, Utils.int64Add(Chain.msg.coinAmount, gain));
 }
 
 function withdrawProposal(){
@@ -350,12 +350,12 @@ function extract(){
         distribute(allReward);
     }
 
-    let reward = cobuilders[Chain.tx.sender][award];
+    let gain = cobuilders[Chain.tx.sender][award];
 
     cobuilders[Chain.tx.sender][award] = '0';
     saveObj(cobuildersKey, cobuilders);
 
-    transferCoin(Chain.tx.sender, reward);
+    transferCoin(Chain.tx.sender, gain);
 }
 
 function getCobuilders(){
