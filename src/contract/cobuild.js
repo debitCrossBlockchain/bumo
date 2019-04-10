@@ -2,6 +2,7 @@
 
 const oneBU          = 100000000; /* 1 0000 0000 MO */
 const maxShare       = 1000;
+const baseReserve    = 10000000;  /*1000 0000 MO, or 0.1BU*/
 const minInitAmount  = 1000000 * oneBU; /* 100 0000 BU */
 const minApplyPledge = 5000000 * oneBU; /* 500 0000 BU */
 
@@ -155,7 +156,7 @@ function applyInput(pool, ratio, node){
         return JSON.stringify(application);
     }
 
-    Utils.assert(Utils.addressCheck(node), 'Invalid address:' + node + '.');
+    Utils.assert(Utils.addressCheck(node) && node !== Chain.thisAddress, 'Invalid address:' + node + '.');
     application.params.node = node;
 
     return JSON.stringify(application);
@@ -171,9 +172,8 @@ function setStatus(){
 }
 
 function apply(role, pool, ratio, node){
-    Utils.assert(role === validator || role === kol,  'Unknown role:' + roleType + '.');
+    Utils.assert(role === validator || role === kol,  'Unknown role:' + role + '.');
     Utils.assert(Utils.addressCheck(pool), 'Invalid address:' + pool + '.');
-    Utils.assert(Utils.addressCheck(node) && node !== Chain.thisAddress, 'Invalid address:' + node + '.');
     Utils.assert(0 <= ratio && ratio <= 100 && ratio % 1 === 0, 'Invalid vote reward ratio:' + ratio + '.');
 
     Utils.assert(states.applied === false, 'Already applied.');
@@ -446,12 +446,16 @@ function main(input_str){
 
 function init(input_str){
     let params = JSON.parse(input_str).params;
-    Utils.assert(typeof params.ratio === 'number' && typeof params.unit === 'number' && typeof params.shares === 'number', 'Illegal parameter type.');
+    Utils.assert(0 <= params.ratio && params.ratio <= 100 && params.ratio % 1 === 0, 'Illegal reward ratio:' + params.ratio + '.');
+    Utils.assert(typeof params.unit === 'number' && params.unit % oneBU === 0, 'Illegal unit:' + params.unit + '.');
+    Utils.assert(typeof params.shares === 'number'&& params.shares % 1 === 0, 'Illegal raise shares:' + params.shares + '.');
 
     let mul = Utils.int64Mul(params.unit, params.shares);
-    Utils.assert(Utils.int64Compare(mul, minApplyPledge) >= 0, 'Crowdfunding < minimum application pledge.');
-    Utils.assert(params.ratio > 0 && params.ratio <= 100, 'The reward ratio should be > 0 and <= 100.');
-    Utils.assert(Utils.int64Compare(Chain.msg.coinAmount, minInitAmount) >= 0, 'Initiator subscription amount is illegal.');
+    Utils.assert(Utils.int64Compare(mul, minApplyPledge) >= 0, 'Crowdfunding < ' + minApplyPledge + '.');
+    Utils.assert(Utils.int64Compare(Chain.msg.coinAmount, minInitAmount) > 0, 'Initiating funds <= ' + minInitAmount + '.');
+
+    let reserve = Utils.int64Mod(Chain.msg.coinAmount, cfg.unit);
+    Utils.assert(Utils.int64Compare(reserve, baseReserve) >= 0, 'Reserve balance < ' + baseReserve + '.');
 
     cfg = {
         'initiator'   : Chain.tx.sender,
