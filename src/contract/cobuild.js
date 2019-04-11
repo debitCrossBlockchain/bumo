@@ -179,7 +179,7 @@ function apply(role, pool, ratio, node){
     setStatus();
    
     let pledgeAmount = Utils.int64Mul(cfg.unit, states.allShares);
-    callDPOS(pledgeAmount, applyInput(pool||Chain.thisAddress, ratio||0, node));
+    callDPOS(pledgeAmount, applyInput(pool, ratio, node));
 }
 
 function appendInput(){
@@ -342,20 +342,20 @@ function received(){
     distribute(Chain.msg.coinAmount);
 }
 
-function extract(){
-    Utils.assert(cobuilders[Chain.tx.sender] !== undefined, Chain.tx.sender + ' is not involved in co-building.');
-
+function extract(list){
     let allReward = getReward();
     if(allReward !== '0'){
         distribute(allReward);
     }
 
-    let gain = cobuilders[Chain.tx.sender][award];
+    let i = 0;
+    for(i = 0; i < list.length; i += 1){
+        let gain = cobuilders[list[i]][award];
+        cobuilders[list[i]][award] = '0';
+        transferCoin(Chain.tx.sender, gain);
+    }
 
-    cobuilders[Chain.tx.sender][award] = '0';
     saveObj(cobuildersKey, cobuilders);
-
-    transferCoin(Chain.tx.sender, gain);
 }
 
 function getCobuilders(){
@@ -415,7 +415,7 @@ function main(input_str){
     }
     else if(input.method === 'apply'){
         Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
-        apply(params.role, params.node);
+        apply(params.role, params.pool, params.ratio, params.node);
     }
     else if(input.method === 'append'){
         Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
@@ -429,7 +429,7 @@ function main(input_str){
     	accept(params.transferor);
     }
     else if(input.method === 'extract'){
-        extract();
+        extract(params.list);
     }
     else if(input.method === 'withdraw'){
         Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
@@ -442,6 +442,9 @@ function main(input_str){
     else if(input.method === 'takeback'){
         Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
     	takeback();
+    }
+    else if(input.method === 'reward'){
+        distribute(Chain.msg.coinAmount);
     }
     else if(input.method === 'refund'){
         received();
@@ -458,7 +461,7 @@ function init(input_str){
     Utils.assert(Utils.int64Compare(mul, minApplyPledge) >= 0, 'Crowdfunding < ' + minApplyPledge + '.');
     Utils.assert(Utils.int64Compare(Chain.msg.coinAmount, minInitAmount) > 0, 'Initiating funds <= ' + minInitAmount + '.');
 
-    let reserve = Utils.int64Mod(Chain.msg.coinAmount, cfg.unit);
+    let reserve = Utils.int64Mod(Chain.msg.coinAmount, params.unit);
     Utils.assert(Utils.int64Compare(reserve, baseReserve) >= 0, 'Reserve balance < ' + baseReserve + '.');
 
     cfg = {

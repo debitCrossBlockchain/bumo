@@ -667,8 +667,8 @@ function withdraw(roleType){
 
         Chain.del(applicantKey);
         if(applicant.passTime === undefined){
-            transferCoin(Chain.msg.sender, exitInfo.pledge, refundInput());
-            return Chain.tlog('withdraw', Chain.msg.sender, roleType, exitInfo.pledge);
+            transferCoin(Chain.msg.sender, applicant.pledge, refundInput());
+            return Chain.tlog('withdraw', Chain.msg.sender, roleType, applicant.pledge);
         }
 
         electInit();
