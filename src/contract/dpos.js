@@ -563,8 +563,10 @@ function unVote(roleType, address){
     electInit();
     let candidates = roleType === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
     let found      = candidates.find(function(x){ return x[0] === address; });
+    if(found === undefined){
+        return true;
+    }
 
-    Utils.assert(found !== undefined, address + ' is not a validator candidate or KOL candidate.');
     let formalSize = roleType === role.VALIDATOR ? cfg.validator_size : cfg.kol_size;
     updateStake(roleType, found, formalSize, '-' + amount);
 }
