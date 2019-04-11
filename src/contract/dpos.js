@@ -809,6 +809,39 @@ function clean(operate, item, address){
     Chain.tlog('clean', operate, item, address);
 }
 
+function calculateReward(){
+    cfg = loadObj(configKey);
+    Utils.assert(cfg !== false, 'Failed to get ' + configKey + ' from metadata.');
+    elect.allStake = loadObj(stakeKey);
+    Utils.assert(elect.allStake !== false, 'Failed to get ' + stakeKey + ' from metadata.');
+
+    electInit();
+    let reward = Utils.int64Sub(elect.balance, elect.allStake);
+    if(reward === '0'){
+        return;
+    }
+
+    let centi = Utils.int64Div(reward, 100);
+    let rValForm = Utils.int64Mul(centi, cfg.reward_allocation_share[0]);
+    let rValCand = Utils.int64Mul(centi, cfg.reward_allocation_share[1]);
+    let rKolForm = Utils.int64Mul(centi, cfg.reward_allocation_share[2]);
+    let rKolCand = Utils.int64Mul(centi, cfg.reward_allocation_share[3]);
+
+    let kolCandidates = elect.kolCands.slice(cfg.kol_size);
+    let valCandidates = elect.validatorCands.slice(cfg.validator_size);
+
+    rKolForm = distribute(kolCandidates, rKolCand) ? rKolForm : Utils.int64Add(rKolForm, rKolCand);
+    rValForm = distribute(elect.kols, rKolForm)    ? rValForm : Utils.int64Add(rValForm, rKolForm);
+    rValForm = distribute(valCandidates, rValCand) ? rValForm : Utils.int64Add(rValForm, rValCand);
+    distribute(elect.validators, rValForm);
+
+    let left = Utils.int64Mod(reward, 100);
+    let topOne = elect.distribution[elect.validators[0][0]];
+    topOne[0] = Utils.int64Add(topOne[0], left);
+
+    return elect.distribution;
+}
+
 function query(input_str){
     let input  = JSON.parse(input_str);
     let params = input.params;
@@ -841,9 +874,7 @@ function query(input_str){
         result.committee = loadObj(committeeKey);
     }
     else if(input.method === 'getRewardDistribute') {
-        electInit();
-        rewardDistribution();
-        result.reward = elect.distribution;
+        result.reward = calculateReward();
     }
     else if(input.method === 'getConfiguration') {
         result.configuration = loadObj(configKey);
