@@ -622,6 +622,10 @@ function abolish(roleType, address, proof){
     Utils.assert(Utils.addressCheck(address), 'Invalid address:' + address + '.');
     Utils.assert(typeof proof === 'string', 'Proof must be a string.');
 
+    let applyKey      = proposalKey(motion.APPLY, roleType, address);
+    let applyProposal = loadObj(applyKey);
+    Utils.assert(applyProposal.passTime !== undefined, address + ' can not be abolished.');
+
     let key      = proposalKey(motion.ABOLISH, roleType, address);
     let proposal = loadObj(key);
 
