@@ -334,12 +334,9 @@ function takeback(){
 
 function received(){
     resetStatus(); 
-
     if(false !== loadObj(withdrawKey)){
         Chain.del(withdrawKey);
     }
-
-    distribute(Chain.msg.coinAmount);
 }
 
 function extract(list){
@@ -351,6 +348,7 @@ function extract(list){
     if(list === undefined){
         let profit = cobuilders[Chain.tx.sender][award];
         cobuilders[Chain.tx.sender][award] = '0';
+        saveObj(cobuildersKey, cobuilders);
         return transferCoin(Chain.tx.sender, profit);
     }
 
