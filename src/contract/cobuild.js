@@ -348,6 +348,15 @@ function extract(list){
         distribute(allReward);
     }
 
+    if(list === undefined){
+        let profit = cobuilders[Chain.tx.sender][award];
+        cobuilders[Chain.tx.sender][award] = '0';
+        return transferCoin(Chain.tx.sender, profit);
+    }
+
+    assert(typeof list === 'object', 'Wrong parameter type.');
+    assert(list.length <= 100, 'The award-receiving addresses:' + list.length + ' exceed upper limit:100.');
+
     let i = 0;
     for(i = 0; i < list.length; i += 1){
         let gain = cobuilders[list[i]][award];
@@ -429,7 +438,7 @@ function main(input_str){
     	accept(params.transferor);
     }
     else if(input.method === 'extract'){
-        extract(params.list);
+        extract(params !== undefined ? params.list : params);
     }
     else if(input.method === 'withdraw'){
         Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
