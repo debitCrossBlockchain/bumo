@@ -318,8 +318,8 @@ function updateStake(roleType, candidate, formalSize, amount){
     let key = roleType === role.VALIDATOR ? validatorCandsKey : kolCandsKey;
     saveObj(key, candidates);
 
-    if((oldPos > formalSize && newPos <= formalSize) ||
-       (oldPos <= formalSize && newPos > formalSize)){
+    if((oldPos >= formalSize && newPos < formalSize) ||
+       (oldPos < formalSize && newPos >= formalSize)){
         rewardDistribution();
 
         if(roleType === role.VALIDATOR){
@@ -1004,7 +1004,7 @@ function main(input_str){
     	withdraw(params.role);
     }
     else if(input.method === 'extract'){
-    	extract(params.list);
+    	extract(params !== undefined ? params.list : params);
     }
     else if(input.method === 'configure'){
     	configure(params.item, params.value);
