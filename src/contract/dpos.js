@@ -174,6 +174,7 @@ function extract(list){
         return award(Chain.msg.sender);
     }
 
+    assert(typeof list === 'object', 'Wrong parameter type.');
     assert(list.length <= 100, 'The award-receiving addresses:' + list.length + ' exceed upper limit:100.');
 
     let i = 0;
@@ -772,7 +773,7 @@ function setVoteDividend(roleType, pool, ratio){
 
     let key      = proposalKey(motion.APPLY, roleType, Chain.msg.sender);
     let proposal = loadObj(key);
-    Utils.assert(proposal, 'Failed to get ' + key + ' from metadata.');
+    Utils.assert(proposal !== false, 'Failed to get ' + key + ' from metadata.');
 
     elect.distribution = loadObj(rewardKey);
     Utils.assert(elect.distribution !== false, 'Failed to get ' + rewardKey + ' from metadata.');

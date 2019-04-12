@@ -654,7 +654,7 @@ motion = [
 |参数|类型|描述
 |:--- | --- |--- 
 |proposal | string |  提案
-|Informer| string |质押金额
+|Informer| string |举报者地址
 |reason| string | 举报原因
 |expiration| number | 过期时间
 |ballot| array | 委员会成员支持该提案的投票列表
