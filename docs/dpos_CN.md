@@ -1136,7 +1136,7 @@ motion = [
 {
   "result": {
       "type": "string",
-      "value": "{\"kols\":[
+      "value": "{\"kol_candidates\":[
         [\"buQB3LtCXfLjtSJKfpaHpykEwDLf43nPxB6z\",\"6000000000000\"],[\"buQZayH6gcAFh5XdgS4tnn8Axrqo1NdutS3p\",\"5500000000000\"],[\"buQaUqDotGNM7htvPR6iHKHBxLGzVpSFkmBM\",\"5500000000000\"]]}"
   }
 }
