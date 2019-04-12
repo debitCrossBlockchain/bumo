@@ -769,8 +769,6 @@ function setNodeAddress(address){
 
 function setVoteDividend(roleType, pool, ratio){
     Utils.assert(roleValid(roleType), 'Unknown role:' + roleType + '.');
-    Utils.assert(Utils.addressCheck(pool), 'Invalid address:' + pool + '.');
-    Utils.assert(0 <= ratio && ratio <= 100 && ratio % 1 === 0, 'Invalid vote reward ratio:' + ratio + '.');
 
     let key      = proposalKey(motion.APPLY, roleType, Chain.msg.sender);
     let proposal = loadObj(key);
@@ -779,13 +777,13 @@ function setVoteDividend(roleType, pool, ratio){
     elect.distribution = loadObj(rewardKey);
     Utils.assert(elect.distribution !== false, 'Failed to get ' + rewardKey + ' from metadata.');
 
-    if(pool){
+    if(pool !== undefined){
         Utils.assert(Utils.addressCheck(pool), 'Invalid address:' + pool + '.');
         proposal.rewardPool = pool;
         elect.distribution[Chain.msg.sender][1] = pool;
     }
     
-    if(ratio){
+    if(ratio !== undefined){
         Utils.assert(0 <= ratio && ratio <= 100 && ratio % 1 === 0, 'Invalid vote reward ratio:' + ratio + '.');
         proposal.rewardRatio = ratio;
         elect.distribution[Chain.msg.sender][2] = ratio;
