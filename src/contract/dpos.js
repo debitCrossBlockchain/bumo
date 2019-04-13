@@ -141,11 +141,11 @@ function award(address){
 
     if(element[2] === 0){
         transferCoin(address, element[0], rewardInput());
-        Chain.tlog('award', address, element[0]);
+        Chain.tlog('award', address, element[0], element[1], '0');
     }
     else if(element[2] === 100){
         transferCoin(element[1], element[0], rewardInput());
-        Chain.tlog('award', element[1], element[0]);
+        Chain.tlog('award', address, '0', element[1], element[0]);
     }
     else{
         let onePercent = Utils.int64Div(element[0], 100);
