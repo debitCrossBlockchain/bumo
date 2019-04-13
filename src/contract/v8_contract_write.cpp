@@ -221,13 +221,12 @@ namespace bumo {
 			parameter.this_address_ = v8_contract->GetParameter().this_address_;
 
 			Result tmp_result = ContractManager::Instance().Execute(contract.type(), parameter);
+			ledger_context->transaction_stack_.pop_back();
 			if (tmp_result.code() > 0) {
 				v8_contract->SetResult(tmp_result);
 				error_desc = utils::String::Format("Failed to process transaction(%s)", tmp_result.desc().c_str());
 				break;
 			}
-
-			ledger_context->transaction_stack_.pop_back();
 
 			v8::Local<v8::Value> v8_result;
 			CppJsonToJsValue(args.GetIsolate(), tmp_result.contract_result(), v8_result);
