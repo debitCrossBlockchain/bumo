@@ -209,12 +209,19 @@ function transferKey(from, to){
 
 function transfer(to, shares){
     Utils.assert(Utils.addressCheck(to), 'Arg-to is not a valid address.');
-    Utils.assert(Utils.int64Compare(shares, '0') >= 0, 'Arg-shares must be >= 0.');
+    Utils.assert(shares > 0 && shares % 1 === 0, 'Invalid shares:' + shares + '.');
     Utils.assert(cobuilders[Chain.tx.sender][pledged] === true, 'Unpled shares can be withdrawn directly.');
     Utils.assert(Utils.int64Compare(shares, cobuilders[Chain.tx.sender][share]) <= 0, 'Transfer shares > holding shares.');
 
+    shares = String(shares);
+
     let key = transferKey(Chain.tx.sender, to);
-    Chain.store(key, String(shares));
+    let transfered = Chain.load(key);
+    if(transfered !== false){
+        shares = Utils.int64Add(transfered ,shares);
+    }
+    
+    Chain.store(key, shares);
 }
 
 function accept(transferor){
@@ -247,6 +254,7 @@ function accept(transferor){
         cobuilders[transferor][share] = Utils.int64Sub(cobuilders[transferor][share], shares);
     }
 
+    Chain.del(key);
     saveObj(cobuildersKey, cobuilders);
     transferCoin(transferor, Utils.int64Add(Chain.msg.coinAmount, gain));
 }
