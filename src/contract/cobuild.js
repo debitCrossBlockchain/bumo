@@ -179,7 +179,7 @@ function apply(role, pool, ratio, node){
    
     let pledgeAmount = Utils.int64Mul(cfg.unit, states.allShares);
     callDPOS(pledgeAmount, applyInput(pool, ratio, node));
-    Chain.tlog('apply', pledgeAmount, pool, ratio, node);
+    Chain.tlog('apply', pledgeAmount, pool, ratio);
 }
 
 function appendInput(){
@@ -417,7 +417,7 @@ function query(input_str){
     }
     else if(input.method === 'getTransferInfo'){
         let key = transferKey(params.from, params.to);
-        result.transferInfo = Chain.load(key);
+        result.transferShares = Chain.load(key);
     }
 
     return JSON.stringify(result);
