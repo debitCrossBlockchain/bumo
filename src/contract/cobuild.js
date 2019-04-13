@@ -11,6 +11,7 @@ const configKey     = 'config';
 const withdrawKey   = 'withdraw';
 const cobuildersKey = 'cobuilders';
 const dposContract  = 'buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss';
+const valid_period  = 1296000000000;  /* 15 * 24 * 60 * 60 * 1000 * 1000 */
 
 const share     = 'share';
 const award     = 'award';
@@ -213,7 +214,7 @@ function transfer(to, shares){
     Utils.assert(Utils.int64Compare(shares, cobuilders[Chain.tx.sender][share]) <= 0, 'Transfer shares > holding shares.');
 
     let key = transferKey(Chain.tx.sender, to);
-    Chain.store(key, shares);
+    Chain.store(key, String(shares));
 }
 
 function accept(transferor){
@@ -253,7 +254,7 @@ function accept(transferor){
 function withdrawProposal(){
     let proposal = {
         'withdrawed' : false,
-        'expiration' : Chain.block.timestamp + cfg.valid_period,
+        'expiration' : Chain.block.timestamp + valid_period,
         'sum':'0',
         'ballot': {}
 
