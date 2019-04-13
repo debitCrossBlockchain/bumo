@@ -114,6 +114,7 @@ function subscribe(shares){
     states.allShares = Utils.int64Add(states.allShares, shares);
     saveObj(statesKey, states);
     saveObj(cobuildersKey, cobuilders);
+    Chain.tlog('subscribe', Chain.tx.sender, shares, Chain.msg.coinAmount);
 }
 
 function revoke(){
@@ -132,6 +133,7 @@ function revoke(){
     }
 
     transferCoin(Chain.tx.sender, amount);
+    Chain.tlog('revoke', Chain.tx.sender, stake[share], amount);
 }
 
 function applyInput(pool, ratio, node){
@@ -177,6 +179,7 @@ function apply(role, pool, ratio, node){
    
     let pledgeAmount = Utils.int64Mul(cfg.unit, states.allShares);
     callDPOS(pledgeAmount, applyInput(pool, ratio, node));
+    Chain.tlog('apply', pledgeAmount, pool, ratio, node);
 }
 
 function appendInput(){
@@ -197,6 +200,7 @@ function append(){
 
     setStatus();
     callDPOS(appendAmount, appendInput());
+    Chain.tlog('append', appendAmount);
 }
 
 function transferKey(from, to){
@@ -253,6 +257,7 @@ function accept(transferor){
     Chain.del(key);
     saveObj(cobuildersKey, cobuilders);
     transferCoin(transferor, Utils.int64Add(Chain.msg.coinAmount, gain));
+    Chain.tlog('deal', transferor, Chain.tx.sender, shares, Chain.msg.coinAmount);
 }
 
 function withdrawProposal(){
@@ -290,6 +295,7 @@ function withdraw(){
 
     let proposal = withdrawProposal();
     withdrawing(proposal);
+    Chain.tlog('withdraw', cfg.initiator);
 }
 
 function poll(){
@@ -314,6 +320,7 @@ function poll(){
     } 
 
     withdrawing(proposal);
+    Chain.tlog('votePassed', proposal.sum);
 }
 
 function resetStatus(){
@@ -344,6 +351,7 @@ function received(){
     if(false !== loadObj(withdrawKey)){
         Chain.del(withdrawKey);
     }
+    Chain.tlog('receivedPledge', Chain.msg.coinAmount);
 }
 
 function extract(list){
@@ -356,7 +364,8 @@ function extract(list){
         let profit = cobuilders[Chain.tx.sender][award];
         cobuilders[Chain.tx.sender][award] = '0';
         saveObj(cobuildersKey, cobuilders);
-        return transferCoin(Chain.tx.sender, profit);
+        transferCoin(Chain.tx.sender, profit);
+        return Chain.tlog('extract', Chain.tx.sender, profit);
     }
 
     assert(typeof list === 'object', 'Wrong parameter type.');
@@ -366,7 +375,8 @@ function extract(list){
     for(i = 0; i < list.length; i += 1){
         let gain = cobuilders[list[i]][award];
         cobuilders[list[i]][award] = '0';
-        transferCoin(Chain.tx.sender, gain);
+        transferCoin(list[i], gain);
+        Chain.tlog('extract', list[i], gain);
     }
 
     saveObj(cobuildersKey, cobuilders);
@@ -410,7 +420,6 @@ function query(input_str){
         result.transferInfo = Chain.load(key);
     }
 
-    Utils.log(result);
     return JSON.stringify(result);
 }
 
@@ -459,6 +468,7 @@ function main(input_str){
     }
     else if(input.method === 'reward'){
         distribute(Chain.msg.coinAmount);
+        Chain.tlog('reward', Chain.msg.coinAmount);
     }
     else if(input.method === 'refund'){
         received();
@@ -495,5 +505,4 @@ function init(input_str){
         'pledgedShares': '0'
     };
     saveObj(statesKey, states);
-
 }
