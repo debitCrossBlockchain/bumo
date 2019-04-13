@@ -47,6 +47,7 @@
   - [查询当前生态节点集合信息](#查询当前生态节点集合信息)
   - [查询候选生态节点集合信息](#查询候选生态节点集合信息)
   - [设置投票奖励分配](#设置投票奖励分配)
+  - [查询节点奖励信息](#查询节点奖励信息)
   - [奖励提取](#奖励提取)
   - [清理过期提案](#清理过期提案)
 
@@ -1173,6 +1174,46 @@ motion = [
     }"
   }
 ```
+
+### 查询节点奖励信息
+
+>例
+
+```json
+  {
+    "contract_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
+    "code" : "",
+    "input" : "{\"method\": \"getRewardDistribute\"}",
+    "opt_type" : 2,
+    "source_address" : ""
+  }
+```
+
+>查询结果
+
+Reward列表按key-value形式存储
+|参数|描述
+|:--- | ---
+|key | 超级节点地址。
+|value | value[0]为奖励金额，value[1]为投票奖励分配地址，value[2]为投票奖励分配比率。
+
+```json
+{
+  "result": {
+      "type": "string",
+      "value":"{\"reward\":{
+        \"buQYoQ6TqAEpFK5pdTtBBPyQ2AYfMdcNyKe4\":
+        [\"13851403250\",\"buQYoQ6TqAEpFK5pdTtBBPyQ2AYfMdcNyKe4\",50],
+        \"buQnfBpnZk8TS78VVi2Bp53gf7moEF7N87su\":
+        [\"13851403250\",\"buQnfBpnZk8TS78VVi2Bp53gf7moEF7N87su\",100],
+        \"buQViQF9dRUpd8Ge5r7NU8zcJtYevMym5ukp\":
+        [\"13851403250\",\"buQViQF9dRUpd8Ge5r7NU8zcJtYevMym5ukp\",80],
+        \"buQi9NAtLbP8LLKkXuGEAtxwgA2B3ZMG128Q\":
+        [\"13851403250\",\"buQi9NAtLbP8LLKkXuGEAtxwgA2B3ZMG128Q\",80]
+      }
+    }"
+  }
+}
 
 ### 奖励提取
 
