@@ -1,10 +1,8 @@
 'use strict';
 
 const oneBU          = 100000000; /* 1 0000 0000 MO */
-const maxShare       = 1000;
 const baseReserve    = 10000000;  /*1000 0000 MO, or 0.1BU*/
 const minInitAmount  = 1000000 * oneBU; /* 100 0000 BU */
-const minApplyPledge = 5000000 * oneBU; /* 500 0000 BU */
 
 const statesKey     = 'states';
 const configKey     = 'config';
@@ -114,8 +112,6 @@ function subscribe(shares){
     }
 
     states.allShares = Utils.int64Add(states.allShares, shares);
-    Utils.assert(Utils.int64Compare(states.allShares, maxShare) <= 0, 'Share overrun.');
-
     saveObj(statesKey, states);
     saveObj(cobuildersKey, cobuilders);
 }
@@ -474,7 +470,6 @@ function init(input_str){
     Utils.assert(typeof params.shares === 'number'&& params.shares % 1 === 0, 'Illegal raise shares:' + params.shares + '.');
 
     let mul = Utils.int64Mul(params.unit, params.shares);
-    Utils.assert(Utils.int64Compare(mul, minApplyPledge) >= 0, 'Crowdfunding < ' + minApplyPledge + '.');
     Utils.assert(Utils.int64Compare(Chain.msg.coinAmount, minInitAmount) > 0, 'Initiating funds <= ' + minInitAmount + '.');
 
     let reserve = Utils.int64Mod(Chain.msg.coinAmount, params.unit);
