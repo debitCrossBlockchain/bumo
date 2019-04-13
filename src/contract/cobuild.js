@@ -100,7 +100,7 @@ function cobuilder(shares, isPledged){
 }
 
 function subscribe(shares){
-    Utils.assert(typeof shares === 'number', 'Illegal parameter type.');
+    Utils.assert(shares > 0 && shares % 1 === 0, 'Invalid shares:' + shares + '.');
     Utils.assert(Utils.int64Compare(Utils.int64Mul(cfg.unit, shares), Chain.msg.coinAmount) === 0, 'unit * shares !== Chain.msg.coinAmount.');
 
     if(cobuilders[Chain.tx.sender] === undefined){
@@ -208,7 +208,7 @@ function transferKey(from, to){
 }
 
 function transfer(to, shares){
-    Utils.assert(Utils.addressCheck(to), 'Arg-to is not a valid address.');
+    Utils.assert(Utils.addressCheck(to), 'Invalid address:' + to + '.');
     Utils.assert(shares > 0 && shares % 1 === 0, 'Invalid shares:' + shares + '.');
     Utils.assert(cobuilders[Chain.tx.sender][pledged] === true, 'Unpled shares can be withdrawn directly.');
     Utils.assert(Utils.int64Compare(shares, cobuilders[Chain.tx.sender][share]) <= 0, 'Transfer shares > holding shares.');
@@ -225,7 +225,7 @@ function transfer(to, shares){
 }
 
 function accept(transferor){
-    Utils.assert(Utils.addressCheck(transferor), 'Arg-to is not a valid address.');
+    Utils.assert(Utils.addressCheck(transferor), 'Invalid address:' + transferor + '.');
     Utils.assert(cobuilders[transferor][pledged] === true, 'Unpled shares can be revoked directly.');
 
     let key = transferKey(transferor, Chain.tx.sender);
