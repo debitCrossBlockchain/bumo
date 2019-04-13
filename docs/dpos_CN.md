@@ -1204,17 +1204,18 @@ Reward列表按key-value形式存储
       "type": "string",
       "value":"{\"reward\":{
         \"buQYoQ6TqAEpFK5pdTtBBPyQ2AYfMdcNyKe4\":
-        [\"13851403250\",\"buQYoQ6TqAEpFK5pdTtBBPyQ2AYfMdcNyKe4\",50],
+        [\"13851403250\",\"buQqhh8FQWRWpSqJ3aWgWSmHS84NnNvSSDS8\",50],
         \"buQnfBpnZk8TS78VVi2Bp53gf7moEF7N87su\":
-        [\"13851403250\",\"buQnfBpnZk8TS78VVi2Bp53gf7moEF7N87su\",100],
+        [\"13851403250\",\"buQWBgAWSqiES7TNh1mq2VQwonvWtESz8Z2Z\",100],
         \"buQViQF9dRUpd8Ge5r7NU8zcJtYevMym5ukp\":
-        [\"13851403250\",\"buQViQF9dRUpd8Ge5r7NU8zcJtYevMym5ukp\",80],
+        [\"13851403250\",\"buQtb4piHr83GRcttEqcjHr7Mwqj414rCDxw\",80],
         \"buQi9NAtLbP8LLKkXuGEAtxwgA2B3ZMG128Q\":
-        [\"13851403250\",\"buQi9NAtLbP8LLKkXuGEAtxwgA2B3ZMG128Q\",80]
+        [\"13851403250\",\"buQBNfjiAynVF3uHMbJ2vMXFSuuXQcDX6ojt\",80]
       }
     }"
   }
 }
+```
 
 ### 奖励提取
 
