@@ -338,6 +338,8 @@ function takeback(){
 }
 
 function received(){
+    Utils.assert(Chain.msg.sender === dposContract, 'Chain.msg.sender != dpos contract(' + dposContract + ').');
+
     resetStatus(); 
     if(false !== loadObj(withdrawKey)){
         Chain.del(withdrawKey);
