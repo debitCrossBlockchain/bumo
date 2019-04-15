@@ -11,6 +11,8 @@
   - [取消认购](#取消认购)
   - [申请参选](#申请参选)
   - [追加押金](#追加押金)
+  - [设置节点地址](#设置节点地址)
+  - [设置投票奖励](#设置投票奖励)
   - [转让份额](#转让份额)
   - [接收转让](#接收转让)
   - [提取奖励](#提取奖励)
@@ -179,6 +181,61 @@
     "dest_address" : "buQo8w52g2nQgxnfKWovUUEFQzMCTX5TRpZD",
     "amount" :0,
     "input":"{\"method\":\"append\"}"
+  }
+```
+### 设置节点地址
+共建合约参选超级节点竞选后，可以调用`setNodeAddress`接口设置或更改物理节点地址。
+
+- 发起者向共建合约转账 0 BU。
+- ‘转移货币’操作的 input 字段填入`{ "method" : "setNodeAddress", "params" : {  "address" : "此处填入新节点地址"} }`，注意使用转义字符。
+|参数|描述
+|:--- | ---
+|address | 新节点地址，用于代替当前执行出块任务的节点。
+
+>例
+
+```json
+  "pay_coin" :
+  {
+    "dest_address" : "buQo8w52g2nQgxnfKWovUUEFQzMCTX5TRpZD",
+    "amount" :0,
+    "input":
+    "{
+      \"method\":\"setNodeAddress\",
+      \"params\":
+      {
+        \"address\":\"buQop4UtJJNPKSHNCt9LKYs1kDNQ4Bdz52a3\"
+      }
+    }"
+  }
+```
+
+### 设置投票奖励
+
+共建合约参选超级节点竞选后，调用此接口，可更改共建节点的投票奖励分配地址和比率。
+- 发起者向共建合约转账 0 BU。
+- ‘转移货币’操作的 input 字段填入`{ "method" : "setVoteDividend", "params":{"pool":"此字段填入投票奖励分配地址", "ratio":"此字段填入投票奖励分配比率"}}`,注意使用转义字符。
+
+|参数|描述
+|:--- | ---
+|pool | 投票奖励分配地址。
+|ratio | 投票奖励分配比率，值为百分数的分子，比如80，表示区块奖励的80%将转入pool参数指定的地址，再由pool地址分配给当前节点的支持者。
+
+>例
+
+```json
+  "pay_coin" :
+  {
+    "dest_address" : "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss",
+    "amount" :10000000000000,
+    "input":
+    "{
+      \"method\":\"setVoteDividend\",
+      \"params\":{
+        \"pool\":\"buQhqMoJziz27DdrS4DaFjeUSspxetAfvpzu\",
+        \"ratio\":90
+      }
+    }"
   }
 ```
 
