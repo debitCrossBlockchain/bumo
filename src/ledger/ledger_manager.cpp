@@ -974,7 +974,9 @@ namespace bumo {
 				new_tx->GetResult().code() == protocol::ERRCODE_CONTRACT_TOO_MANY_TRANSACTIONS) {
 				result = new_tx->GetResult();
 				LOG_ERROR("%s", new_tx->GetResult().desc().c_str());
-				ledger_context->transaction_stack_.pop_back();
+				if (CHECK_VERSION_GT_1002) {
+					ledger_context->transaction_stack_.pop_back();
+				}
 				return result;
 			}
 
