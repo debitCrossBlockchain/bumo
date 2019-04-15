@@ -187,7 +187,7 @@ namespace bumo {
 			bumo::AccountFrm::pointer account_frm = nullptr;
 			V8Contract *v8_contract = GetContractFrom(args.GetIsolate());
 			LedgerContext *ledger_context = v8_contract->GetParameter().ledger_context_;
-			ledger_context->GetBottomTx()->ContractStepInc(1000);
+			ledger_context->GetBottomTx()->ContractStepInc(100);
 
 			if (v8_contract->IsReadonly()) {
 				error_desc = "The contract is readonly";
