@@ -203,6 +203,41 @@ function append(){
     Chain.tlog('append', appendAmount);
 }
 
+function setNodeAddress(address){
+    Utils.assert(Utils.addressCheck(address),  'Invalid address:' + address + '.');
+
+    let input = {
+        'method' : 'setNodeAddress',
+        'params':{
+            'address': address
+        }
+    };
+
+    callDPOS('0', input);
+    Chain.tlog('setNodeAddress', address);
+
+}
+
+function setVoteDividend(pool, ratio){
+    let input = {
+        'method' : 'setVoteDividend',
+        'params':{}
+    };
+
+    if(pool !== undefined){
+        Utils.assert(Utils.addressCheck(pool), 'Invalid address:' + pool + '.');
+        input.params.pool = pool;
+    }
+
+    if(ratio !== undefined){
+        Utils.assert(0 <= ratio && ratio <= 100 && ratio % 1 === 0, 'Invalid vote reward ratio:' + ratio + '.');
+        input.params.ratio = ratio;
+    }
+
+    callDPOS('0', input);
+    Chain.tlog('setVoteDividend', pool, ratio);
+}
+
 function transferKey(from, to){
     return 'transfer_' + from + '_to_' + to;
 }
@@ -443,6 +478,12 @@ function main(input_str){
     else if(input.method === 'append'){
         Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
         append();
+    }
+    else if(input.method === 'setNodeAddress'){
+	    setNodeAddress(params.address);
+    }
+    else if(input.method === 'setVoteDividend'){
+        setVoteDividend(params.role, params.pool, params.ratio);
     }
     else if(input.method === 'transfer'){
         Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
