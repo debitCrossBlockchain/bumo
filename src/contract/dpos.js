@@ -489,13 +489,7 @@ function approve(operate, item, address){
     Utils.assert(proposal.passTime === undefined, 'The ' + key + ' proposal has been approved.');
 
     if(Chain.block.timestamp >= proposal.expiration){
-        Chain.del(key);
-        /*operate === motion.APPLY*/
-        if(proposal.pledge > 0){
-            transferCoin(address, proposal.pledge, refundInput());
-        }
-
-        return;
+        return false;
     }
 
     Utils.assert(proposal.ballot.includes(Chain.msg.sender) !== true, Chain.msg.sender + ' has voted.');
