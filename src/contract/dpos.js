@@ -50,8 +50,8 @@ function saveObj(key, value){
 }
 
 function minusStake(amount){
-    let stake = Utils.int64Sub(elect.allStake, amount);
-    Chain.store(stakeKey, stake);
+    elect.allStake = Utils.int64Sub(elect.allStake, amount);
+    Chain.store(stakeKey, elect.allStake);
 }
 
 function transferCoin(dest, amount, input){
