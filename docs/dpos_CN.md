@@ -716,7 +716,7 @@ motion = [
 |参数|类型|描述
 |:--- | --- |--- 
 |proposal | string |  提案
-|Informer| string |举报者地址
+|informer| string |举报者地址
 |reason| string | 举报原因
 |expiration| number | 过期时间
 |ballot| array | 委员会成员支持该提案的投票列表
@@ -725,7 +725,7 @@ motion = [
 {
   "result": {
       "type": "string",
-      "value": "{\"proposal\":{\"Informer\":\"buQWQ4rwVW8RCzatR8XnRnhMCaCeMkE46qLR\",\"reason\":\"see abnormal record\",\"expiration\":1550815129920811,\"ballot\":[\"buQWQ4rwVW8RCzatR8XnRnhMCaCeMkE46qLR\"]}}"
+      "value": "{\"proposal\":{\"informer\":\"buQWQ4rwVW8RCzatR8XnRnhMCaCeMkE46qLR\",\"reason\":\"see abnormal record\",\"expiration\":1550815129920811,\"ballot\":[\"buQWQ4rwVW8RCzatR8XnRnhMCaCeMkE46qLR\"]}}"
   }
 }
 ```

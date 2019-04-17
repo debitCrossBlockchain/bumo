@@ -574,7 +574,7 @@ function unVote(roleType, address){
 
 function abolitionProposal(proof){
     let proposal = {
-        'Informer': Chain.msg.sender,
+        'informer': Chain.msg.sender,
         'reason': proof,
         'expiration': Chain.block.timestamp + cfg.valid_period,
         'ballot': [Chain.msg.sender]
