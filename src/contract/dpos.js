@@ -99,12 +99,7 @@ function distribute(twoDimenList, allReward){
     return true;
 }
 
-function rewardDistribution(){
-    let reward = Utils.int64Sub(elect.balance, elect.allStake);
-    if(reward === '0'){
-        return;
-    }
-
+function calculate(reward){
     let centi = Utils.int64Div(reward, 100);
     let rValForm = Utils.int64Mul(centi, cfg.reward_allocation_share[0]);
     let rValCand = Utils.int64Mul(centi, cfg.reward_allocation_share[1]);
@@ -122,6 +117,17 @@ function rewardDistribution(){
     let left = Utils.int64Mod(reward, 100);
     let topOne = elect.distribution[elect.validators[0][0]];
     topOne[0] = Utils.int64Add(topOne[0], left);
+
+    return elect.distribution;
+}
+
+function rewardDistribution(){
+    let reward = Utils.int64Sub(elect.balance, elect.allStake);
+    if(reward === '0'){
+        return;
+    }
+
+    calculate(reward);
     distributed = true;
 
     elect.allStake = elect.balance;
@@ -811,34 +817,17 @@ function clean(operate, item, address){
 function calculateReward(){
     cfg = loadObj(configKey);
     Utils.assert(cfg !== false, 'Failed to get ' + configKey + ' from metadata.');
+
     elect.allStake = loadObj(stakeKey);
     Utils.assert(elect.allStake !== false, 'Failed to get ' + stakeKey + ' from metadata.');
 
     electInit();
     let reward = Utils.int64Sub(elect.balance, elect.allStake);
     if(reward === '0'){
-        return;
+        return elect.distribution;
     }
 
-    let centi = Utils.int64Div(reward, 100);
-    let rValForm = Utils.int64Mul(centi, cfg.reward_allocation_share[0]);
-    let rValCand = Utils.int64Mul(centi, cfg.reward_allocation_share[1]);
-    let rKolForm = Utils.int64Mul(centi, cfg.reward_allocation_share[2]);
-    let rKolCand = Utils.int64Mul(centi, cfg.reward_allocation_share[3]);
-
-    let kolCandidates = elect.kolCands.slice(cfg.kol_size);
-    let valCandidates = elect.validatorCands.slice(cfg.validator_size);
-
-    rKolForm = distribute(kolCandidates, rKolCand) ? rKolForm : Utils.int64Add(rKolForm, rKolCand);
-    rValForm = distribute(elect.kols, rKolForm)    ? rValForm : Utils.int64Add(rValForm, rKolForm);
-    rValForm = distribute(valCandidates, rValCand) ? rValForm : Utils.int64Add(rValForm, rValCand);
-    distribute(elect.validators, rValForm);
-
-    let left = Utils.int64Mod(reward, 100);
-    let topOne = elect.distribution[elect.validators[0][0]];
-    topOne[0] = Utils.int64Add(topOne[0], left);
-
-    return elect.distribution;
+    return calculate(reward);
 }
 
 function query(input_str){
@@ -892,8 +881,10 @@ function prepare(){
     elect.allStake = loadObj(stakeKey);
     Utils.assert(elect.allStake !== false, 'Failed to get ' + stakeKey + ' from metadata.');
 
-    elect.allStake = Utils.int64Add(elect.allStake, Chain.msg.coinAmount);
-    saveObj(stakeKey, elect.allStake);
+    if(Utils.int64Compare(Chain.msg.coinAmount, 0) > 0){
+        elect.allStake = Utils.int64Add(elect.allStake, Chain.msg.coinAmount);
+        saveObj(stakeKey, elect.allStake);
+    }
 }
 
 function initProposal(roleType, pool, ratio, node){
