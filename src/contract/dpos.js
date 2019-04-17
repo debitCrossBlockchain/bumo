@@ -844,7 +844,10 @@ function query(input_str){
         result.voterInfo = loadObj(vKey);
     }
     else if(input.method === 'getValidators') {
-        result.validators = getValidators();
+        let validatorCands = loadObj(validatorCandsKey);
+        Utils.assert(validatorCands !== false, 'Failed to get ' + validatorCands + ' from metadata.');
+
+        result.validators = validatorCands.slice(0, cfg.validator_size);
     }
     else if(input.method === 'getValidatorCandidates') {
         result.validator_candidates = loadObj(validatorCandsKey);
