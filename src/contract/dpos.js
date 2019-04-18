@@ -1,11 +1,12 @@
 'use strict';
 
-const stakeKey          = 'all_stake';
-const rewardKey         = 'reward_distribute';
-const configKey         = 'dpos_config';
-const kolCandsKey       = 'kol_candidates';
-const committeeKey      = 'committee';
-const validatorCandsKey = 'validator_candidates';
+const stakeKey     = 'all_stake';
+const configKey    = 'dpos_config';
+const valCandsKey  = 'validator_candidates';
+const kolCandsKey  = 'kol_candidates';
+const valRewardKey = 'valiator_reward_distribution';
+const kolRewardKey = 'kol_reward_distribution';
+const committeeKey = 'committee';
 
 const role = {
     'COMMITTEE' : 'committee',
@@ -64,36 +65,39 @@ function transferCoin(dest, amount, input){
 }
 
 function electInit(){
-    elect.distribution = loadObj(rewardKey);
-    Utils.assert(elect.distribution !== false, 'Failed to get ' + rewardKey + ' from metadata.');
+    elect.kolDist = loadObj(kolRewardKey);
+    Utils.assert(elect.kolDist !== false, 'Failed to get ' + kolRewardKey+ ' from metadata.');
+
+    elect.valDist = loadObj(valRewardKey);
+    Utils.assert(elect.valDist !== false, 'Failed to get ' + valRewardKey+ ' from metadata.');
 
     elect.balance = Chain.getBalance(Chain.thisAddress);
     Utils.assert(elect.balance !== false, 'Failed to get account balance.');
 
-    elect.validatorCands = loadObj(validatorCandsKey);
-    Utils.assert(elect.validatorCands !== false, 'Failed to get ' + elect.validatorCands + ' from metadata.');
+    elect.valCands = loadObj(valCandsKey);
+    Utils.assert(elect.valCands !== false, 'Failed to get ' + elect.valCands + ' from metadata.');
 
     elect.kolCands = loadObj(kolCandsKey);
     Utils.assert(elect.kolCands !== false, 'Failed to get ' + kolCandsKey + ' from metadata.');
 
-    elect.validators = elect.validatorCands.slice(0, cfg.validator_size);
+    elect.validators = elect.valCands.slice(0, cfg.validator_size);
     elect.kols       = elect.kolCands.slice(0, cfg.kol_size);
 }
 
-function distribute(twoDimenList, allReward){
-    if (twoDimenList.length === 0){
+function distribute(nodes, allReward, dist){
+    if (nodes.length === 0){
         return false;
     }
 	
     let i = 0;
-    let reward = Utils.int64Div(allReward, twoDimenList.length);
-    for(i = 0; i < twoDimenList.length; i += 1){
-        let name = twoDimenList[i][0];
-        elect.distribution[name][0] = Utils.int64Add(elect.distribution[name][0], reward);
+    let reward = Utils.int64Div(allReward, nodes.length);
+    for(i = 0; i < nodes.length; i += 1){
+        let name = nodes[i][0];
+        dist[name][0] = Utils.int64Add(dist[name][0], reward);
     }
 
-    let left   = Utils.int64Mod(allReward, twoDimenList.length);
-    let topOne = elect.distribution[twoDimenList[0][0]];
+    let left   = Utils.int64Mod(allReward, nodes.length);
+    let topOne = dist[nodes[0][0]];
     topOne[0]  = Utils.int64Add(topOne[0], left);
 
     return true;
@@ -101,24 +105,22 @@ function distribute(twoDimenList, allReward){
 
 function calculate(reward){
     let centi = Utils.int64Div(reward, 100);
-    let rValForm = Utils.int64Mul(centi, cfg.reward_allocation_share[0]);
-    let rValCand = Utils.int64Mul(centi, cfg.reward_allocation_share[1]);
-    let rKolForm = Utils.int64Mul(centi, cfg.reward_allocation_share[2]);
-    let rKolCand = Utils.int64Mul(centi, cfg.reward_allocation_share[3]);
+    let rVF = Utils.int64Mul(centi, cfg.reward_allocation_share[0]);
+    let rVC = Utils.int64Mul(centi, cfg.reward_allocation_share[1]);
+    let rKF = Utils.int64Mul(centi, cfg.reward_allocation_share[2]);
+    let rKC = Utils.int64Mul(centi, cfg.reward_allocation_share[3]);
 
-    let kolCandidates = elect.kolCands.slice(cfg.kol_size);
-    let valCandidates = elect.validatorCands.slice(cfg.validator_size);
+    let kolCands = elect.kolCands.slice(cfg.kol_size);
+    let valCands = elect.valCands.slice(cfg.validator_size);
 
-    rKolForm = distribute(kolCandidates, rKolCand) ? rKolForm : Utils.int64Add(rKolForm, rKolCand);
-    rValForm = distribute(elect.kols, rKolForm)    ? rValForm : Utils.int64Add(rValForm, rKolForm);
-    rValForm = distribute(valCandidates, rValCand) ? rValForm : Utils.int64Add(rValForm, rValCand);
-    distribute(elect.validators, rValForm);
+    rKF = distribute(kolCands, rKC, elect.kolDist) ? rKF : Utils.int64Add(rKF, rKC);
+    rVF = distribute(elect.kols, rKF, elect.kolDist) ? rVF : Utils.int64Add(rVF, rKF);
+    rVF = distribute(valCands, rVC, elect.valDist) ? rVF : Utils.int64Add(rVF, rVC);
+    distribute(elect.validators, rVF, elect.valDist);
 
     let left = Utils.int64Mod(reward, 100);
-    let topOne = elect.distribution[elect.validators[0][0]];
+    let topOne = elect.valDist[elect.validators[0][0]];
     topOne[0] = Utils.int64Add(topOne[0], left);
-
-    return elect.distribution;
 }
 
 function rewardDistribution(){
@@ -139,36 +141,40 @@ function rewardInput(){
     return JSON.stringify({ 'method' : 'reward' });
 }
 
+/* dist[address]
+ * [0] : reward received
+ * [1] : vote reward pool
+ * [2] : vote reward ratio */
 function award(address){
-    let element = elect.distribution[address];
-    if(element === undefined || element[0] === '0'){
+    let dist = elect.valDist[address] !== undefined ? elect.valDist : elect.kolDist;
+    if(dist[address] === undefined || dist[address] === '0'){
         return;
     }
 
-    if(element[2] === 0){
-        transferCoin(address, element[0], rewardInput());
-        Chain.tlog('award', address, element[0], element[1], '0');
+    if(dist[address][2] === 0){
+        transferCoin(address,dist[address][0], rewardInput());
+        Chain.tlog('award', address,dist[address][0],dist[address][1], '0');
     }
-    else if(element[2] === 100){
-        transferCoin(element[1], element[0], rewardInput());
-        Chain.tlog('award', address, '0', element[1], element[0]);
+    else if(dist[address][2] === 100){
+        transferCoin(dist[address][1],dist[address][0], rewardInput());
+        Chain.tlog('award', address, '0',dist[address][1],dist[address][0]);
     }
     else{
-        let onePercent = Utils.int64Div(element[0], 100);
-        let dividend   = Utils.int64Mul(onePercent, element[2]);
-        transferCoin(element[1], dividend, rewardInput());
+        let onePercent = Utils.int64Div(dist[address][0], 100);
+        let dividend   = Utils.int64Mul(onePercent,dist[address][2]);
+        transferCoin(dist[address][1], dividend, rewardInput());
 
-        let reserve = Utils.int64Sub(element[0], dividend);
+        let reserve = Utils.int64Sub(dist[address][0], dividend);
         transferCoin(address, reserve, rewardInput());
-        Chain.tlog('award', address,  reserve, element[1], dividend);
+        Chain.tlog('award', address,  reserve,dist[address][1], dividend);
     }
 
-    elect.distribution[address][0] = '0';
+    dist[address][0] = '0';
     distributed = true;
 
-    if(elect.validatorCands.find(function(x){ return x[0] === address; }) === undefined &&
+    if(elect.valCands.find(function(x){ return x[0] === address; }) === undefined &&
        elect.kolCands.find(function(x){ return x[0] === address; }) === undefined){
-        delete elect.distribution[address];
+        delete dist[address];
     }
 }
 
@@ -251,7 +257,7 @@ function updateValidators(candidates){
 }
 
 function addCandidates(roleType, address, proposal, maxSize){
-    let candidates = roleType === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
+    let candidates = roleType === role.VALIDATOR ? elect.valCands : elect.kolCands;
     let stake = Utils.int64Mul(proposal.pledge, cfg.pledge_magnification);
 	let com = -1;
 
@@ -272,8 +278,9 @@ function addCandidates(roleType, address, proposal, maxSize){
 
     let size = candidates.push(addition);
     let found = candidates[size - 1];
-    if(elect.distribution[address] === undefined){
-        elect.distribution[address] = ['0', proposal.rewardPool, proposal.rewardRatio];
+    let dist = roleType === role.VALIDATOR ? elect.valDist : elect.kolDist;
+    if(dist[address] === undefined){
+        dist[address] = ['0', proposal.rewardPool, proposal.rewardRatio];
         distributed = true;
     }
     Chain.tlog('addCandidate', address, roleType);
@@ -283,7 +290,7 @@ function addCandidates(roleType, address, proposal, maxSize){
         candidates = candidates.slice(0, maxSize);
     }
 
-    let key = roleType === role.VALIDATOR ? validatorCandsKey : kolCandsKey;
+    let key = roleType === role.VALIDATOR ? valCandsKey : kolCandsKey;
     saveObj(key, candidates);
 
     if(roleType === role.VALIDATOR && candidates.indexOf(found) < cfg.validator_size){
@@ -292,7 +299,7 @@ function addCandidates(roleType, address, proposal, maxSize){
 }
 
 function deleteCandidate(roleType, address){
-    let candidates = roleType === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
+    let candidates = roleType === role.VALIDATOR ? elect.valCands : elect.kolCands;
     let found      = candidates.find(function(x){ return x[0] === address; });
     if(found === undefined){
         return; 
@@ -305,7 +312,7 @@ function deleteCandidate(roleType, address){
     candidates.sort(doubleSort);
     Chain.tlog('deleteCandidate', address, roleType);
 
-    let key = roleType === role.VALIDATOR ? validatorCandsKey : kolCandsKey;
+    let key = roleType === role.VALIDATOR ? valCandsKey : kolCandsKey;
     saveObj(key, candidates);
 
     if(roleType === role.VALIDATOR && index < cfg.validator_size){
@@ -314,7 +321,7 @@ function deleteCandidate(roleType, address){
 }
 
 function updateStake(roleType, candidate, formalSize, amount){
-    let candidates = roleType === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
+    let candidates = roleType === role.VALIDATOR ? elect.valCands : elect.kolCands;
 
     let oldPos   = candidates.indexOf(candidate);
     candidate[1] = Utils.int64Add(candidate[1], amount);
@@ -322,7 +329,7 @@ function updateStake(roleType, candidate, formalSize, amount){
     let newPos = candidates.indexOf(candidate);
     Chain.tlog('updateStake', candidate[0], roleType, amount);
 
-    let key = roleType === role.VALIDATOR ? validatorCandsKey : kolCandsKey;
+    let key = roleType === role.VALIDATOR ? valCandsKey : kolCandsKey;
     saveObj(key, candidates);
 
     if((oldPos >= formalSize && newPos < formalSize) ||
@@ -385,7 +392,7 @@ function append(roleType){
     Utils.assert(roleType === role.VALIDATOR || roleType === role.KOL, 'Only the validator and KOL can add a deposit.');
 
     electInit();
-    let candidates = roleType === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
+    let candidates = roleType === role.VALIDATOR ? elect.valCands : elect.kolCands;
     let found = candidates.find(function(x){ return x[0] === Chain.msg.sender; });
 
     if(found === undefined){
@@ -413,17 +420,10 @@ function penalty(evil, roleType){
     }
 
     Utils.assert(proposal !== false, 'Failed to get ' + key + ' from metadata.');
+
     Chain.del(key);
-
-    let allAsset = proposal.pledge;
-    if(elect.distribution[evil] !== undefined){
-        allAsset = Utils.int64Add(proposal.pledge, elect.distribution[evil][0]);
-        delete elect.distribution[evil];
-        distributed = true;
-    }
-
-    Chain.store(penaltyKey(evil, roleType), allAsset);
-    Chain.tlog('penalty', evil, roleType, allAsset);
+    Chain.store(penaltyKey(evil, roleType), proposal.pledge);
+    Chain.tlog('penalty', evil, roleType, proposal.pledge);
 }
 
 function updateCfg(key, proposal, item){
@@ -541,7 +541,7 @@ function vote(roleType, address){
     Chain.tlog('vote', Chain.msg.sender, roleType, address, Chain.msg.coinAmount);
 
     electInit();
-    let candidates = roleType === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
+    let candidates = roleType === role.VALIDATOR ? elect.valCands : elect.kolCands;
     let found      = candidates.find(function(x){ return x[0] === address; });
 
     Utils.assert(found !== undefined, address + ' is not a validator candidate or KOL candidate.');
@@ -562,7 +562,7 @@ function unVote(roleType, address){
     Chain.tlog('unVote', Chain.msg.sender, roleType, address, amount);
 
     electInit();
-    let candidates = roleType === role.VALIDATOR ? elect.validatorCands : elect.kolCands;
+    let candidates = roleType === role.VALIDATOR ? elect.valCands : elect.kolCands;
     let found      = candidates.find(function(x){ return x[0] === address; });
     if(found === undefined){
         return true;
@@ -598,10 +598,10 @@ function reportPermission(roleType){
         Utils.assert(committee.includes(Chain.msg.sender), 'Only committee members have the right to report illegal practices.');
     }
     else if(roleType === role.VALIDATOR){
-        let validatorCands = loadObj(validatorCandsKey);
-        Utils.assert(validatorCands !== false, 'Failed to get ' + validatorCandsKey + ' from metadata.');
+        let valCands = loadObj(valCandsKey);
+        Utils.assert(valCands !== false, 'Failed to get ' + valCandsKey + ' from metadata.');
 
-        let validators = validatorCands.slice(0, cfg.validator_size);
+        let validators = valCands.slice(0, cfg.validator_size);
         Utils.assert(isExist(validators, Chain.msg.sender), 'Only validators have the right to report illegal practices.');
     }
     else if(roleType === role.KOL){
@@ -751,8 +751,8 @@ function setNodeAddress(address){
     proposal.node = address;
     saveObj(key, proposal);
 
-    let candidates = loadObj(validatorCandsKey);
-    Utils.assert(candidates !== false, 'Failed to get ' + validatorCandsKey + ' from metadata.');
+    let candidates = loadObj(valCandsKey);
+    Utils.assert(candidates !== false, 'Failed to get ' + valCandsKey + ' from metadata.');
 
     let found = candidates.find(function(x){ return x[0] === Chain.msg.sender; });
     if(found === undefined){
@@ -760,7 +760,7 @@ function setNodeAddress(address){
     }
     
     found[2] = address;
-    saveObj(validatorCandsKey, candidates);
+    saveObj(valCandsKey, candidates);
     Chain.tlog('setNodeAddress', Chain.msg.sender, address);
 
     if(candidates.indexOf(found) < cfg.validator_size){
@@ -775,23 +775,24 @@ function setVoteDividend(roleType, pool, ratio){
     let proposal = loadObj(key);
     Utils.assert(proposal !== false, 'Failed to get ' + key + ' from metadata.');
 
-    elect.distribution = loadObj(rewardKey);
-    Utils.assert(elect.distribution !== false, 'Failed to get ' + rewardKey + ' from metadata.');
+    let rewardKey = roleType === role.VALIDATOR ? valRewardKey : kolRewardKey;
+    let dist = loadObj(rewardKey);
+    Utils.assert(dist !== false, 'Failed to get ' + rewardKey + ' from metadata.');
 
     if(pool !== undefined){
         Utils.assert(Utils.addressCheck(pool), 'Invalid address:' + pool + '.');
         proposal.rewardPool = pool;
-        elect.distribution[Chain.msg.sender][1] = pool;
+        dist[Chain.msg.sender][1] = pool;
     }
     
     if(ratio !== undefined){
         Utils.assert(0 <= ratio && ratio <= 100 && ratio % 1 === 0, 'Invalid vote reward ratio:' + ratio + '.');
         proposal.rewardRatio = ratio;
-        elect.distribution[Chain.msg.sender][2] = ratio;
+        dist[Chain.msg.sender][2] = ratio;
     }
 
     saveObj(key, proposal);
-    saveObj(rewardKey, elect.distribution);
+    saveObj(rewardKey, dist);
     Chain.tlog('setVoteDividend', pool||proposal.rewardPool, ratio||proposal.rewardRatio);
 }
 
@@ -823,11 +824,11 @@ function calculateReward(){
 
     electInit();
     let reward = Utils.int64Sub(elect.balance, elect.allStake);
-    if(reward === '0'){
-        return elect.distribution;
+    if(reward !== '0'){
+        calculate(reward);
     }
 
-    return calculate(reward);
+   return { 'validators' : elect.valDist, 'kols' : elect.kolDist };
 }
 
 function query(input_str){
@@ -844,13 +845,13 @@ function query(input_str){
         result.voterInfo = loadObj(vKey);
     }
     else if(input.method === 'getValidators') {
-        let validatorCands = loadObj(validatorCandsKey);
-        Utils.assert(validatorCands !== false, 'Failed to get ' + validatorCands + ' from metadata.');
+        let valCands = loadObj(valCandsKey);
+        Utils.assert(valCands !== false, 'Failed to get ' + valCands + ' from metadata.');
 
-        result.validators = validatorCands.slice(0, cfg.validator_size);
+        result.validators = valCands.slice(0, cfg.validator_size);
     }
     else if(input.method === 'getValidatorCandidates') {
-        result.validator_candidates = loadObj(validatorCandsKey);
+        result.validator_candidates = loadObj(valCandsKey);
     }
     else if(input.method === 'getKols') {
         let kolCands = loadObj(kolCandsKey);
@@ -865,7 +866,7 @@ function query(input_str){
         result.committee = loadObj(committeeKey);
     }
     else if(input.method === 'getRewardDistribute') {
-        result.reward = calculateReward();
+        result.rewards = calculateReward();
     }
     else if(input.method === 'getConfiguration') {
         result.configuration = loadObj(configKey);
@@ -951,11 +952,11 @@ function initialization(params){
         validators[j][2] = validators[j][0];
         dist[validators[j][0]] = ['0', validators[j][0], 0];
     }
-    saveObj(validatorCandsKey, validators.sort(doubleSort));
-
-    saveObj(stakeKey, Chain.getBalance(Chain.thisAddress));
+    saveObj(valCandsKey, validators.sort(doubleSort));
     saveObj(kolCandsKey, []);
-    saveObj(rewardKey, dist);
+    saveObj(valRewardKey, dist);
+    saveObj(kolRewardKey, {});
+    saveObj(stakeKey, Chain.getBalance(Chain.thisAddress));
     Chain.tlog('init', Chain.tx.sender, Chain.thisAddress, cfg.logic_contract);
 }
 
@@ -1014,7 +1015,8 @@ function main(input_str){
     }
 
     if(distributed) {
-        saveObj(rewardKey, elect.distribution);
+        saveObj(kolRewardKey, elect.kolDist);
+        saveObj(valRewardKey, elect.valDist);
     }
 }
 
