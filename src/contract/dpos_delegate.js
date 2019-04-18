@@ -31,7 +31,7 @@ function query(input_str){
 function main(input_str){
     let input = JSON.parse(input_str);
 
-	if(input.method !== undefined) {
+	if(input.method !== undefined && input.method !== 'init') {
         let cfg = loadObj(configKey);
 		Utils.assert(cfg !== false, 'Failed to load configuration.');
 		Chain.delegateCall(cfg.logic_contract, input_str);

@@ -100,6 +100,7 @@ function cobuilder(shares, isPledged){
 }
 
 function subscribe(shares){
+    Utils.assert(Chain.tx.sender !== cfg.initiator, Chain.tx.sender + ' is initiator.');
     Utils.assert(shares > 0 && shares % 1 === 0, 'Invalid shares:' + shares + '.');
     Utils.assert(Utils.int64Compare(Utils.int64Mul(cfg.unit, shares), Chain.msg.coinAmount) === 0, 'unit * shares !== Chain.msg.coinAmount.');
 
@@ -118,6 +119,7 @@ function subscribe(shares){
 }
 
 function revoke(){
+    Utils.assert(Chain.tx.sender !== cfg.initiator, Chain.tx.sender + ' is initiator.');
     Utils.assert(cobuilders[Chain.tx.sender][pledged] === false, 'The share of '+ Chain.tx.sender + ' has been pledged.');
 
     let stake = cobuilders[Chain.tx.sender];

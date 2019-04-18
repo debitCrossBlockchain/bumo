@@ -910,6 +910,9 @@ function initProposal(roleType, pool, ratio, node){
 }
 
 function initialization(params){
+    cfg = loadObj(configKey);
+    Utils.assert(cfg === false, 'Repeated initialization.');
+
     cfg = {
         'gas_price'                : 1000,     /* 1 : gas_price, 1000 MO */
         'base_reserve'             : 1000000,  /* 2 : base_reserve, 100 0000 MO or 0.01 BU */
