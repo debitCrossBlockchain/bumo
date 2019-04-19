@@ -1,7 +1,6 @@
 'use strict';
 
 const oneBU          = 100000000; /* 1 0000 0000 MO */
-const baseReserve    = 10000000;  /*1000 0000 MO, or 0.1BU*/
 const minInitAmount  = 1000000 * oneBU; /* 100 0000 BU */
 
 const statesKey     = 'states';
@@ -9,7 +8,6 @@ const configKey     = 'config';
 const withdrawKey   = 'withdraw';
 const cobuildersKey = 'cobuilders';
 const dposContract  = 'buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss';
-const valid_period  = 1296000000000;  /* 15 * 24 * 60 * 60 * 1000 * 1000 */
 
 const share     = 'share';
 const award     = 'award';
@@ -49,6 +47,14 @@ function transferCoin(dest, amount){
 function callDPOS(amount, input){
     Chain.payCoin(dposContract, amount, input);
     Utils.log('Call DPOS contract(address: ' + dposContract + ', input: ' + input +') succeed.');
+}
+
+function queryDposCfg(){
+    let input = {'method': 'getConfiguration'};
+    let res = Chain.contractQuery(dposContract, JSON.stringify(input)); /* get base_reserve and valid_period from dpos contract */
+    Utils.assert(res.error === undefined && res.result !== undefined, 'Failed to query contract, ' + JSON.stringify(res));
+    Utils.log('Query DPOS contract(address: ' + dposContract + ', input:' + input + ') succeed.');
+    return JSON.parse(res.result).configuration;
 }
 
 function prepare(){
@@ -298,9 +304,10 @@ function accept(transferor){
 }
 
 function withdrawProposal(){
+    let dpos_cfg = queryDposCfg();
     let proposal = {
         'withdrawed' : false,
-        'expiration' : Chain.block.timestamp + valid_period,
+        'expiration' : Chain.block.timestamp + dpos_cfg.valid_period,
         'sum':'0',
         'ballot': {}
 
@@ -528,7 +535,8 @@ function init(input_str){
     Utils.assert(Utils.int64Compare(Chain.msg.coinAmount, minInitAmount) > 0, 'Initiating funds <= ' + minInitAmount + '.');
 
     let reserve = Utils.int64Mod(Chain.msg.coinAmount, params.unit);
-    Utils.assert(Utils.int64Compare(reserve, baseReserve) >= 0, 'Reserve balance < ' + baseReserve + '.');
+    let dpos_cfg = queryDposCfg();
+    Utils.assert(Utils.int64Compare(reserve, dpos_cfg.base_reserve) >= 0, 'Reserve balance < ' + dpos_cfg.base_reserve + '.');
 
     cfg = {
         'initiator'   : Chain.tx.sender,
