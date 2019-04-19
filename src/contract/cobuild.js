@@ -104,7 +104,6 @@ function cobuilder(shares, isPledged){
 }
 
 function subscribe(shares){
-    /*Utils.assert(Chain.tx.sender !== cfg.initiator, Chain.tx.sender + ' is initiator.');*/
     Utils.assert(shares > 0 && shares % 1 === 0, 'Invalid shares:' + shares + '.');
     Utils.assert(Utils.int64Compare(Utils.int64Mul(cfg.unit, shares), Chain.msg.coinAmount) === 0, 'unit * shares !== Chain.msg.coinAmount.');
 
@@ -123,7 +122,9 @@ function subscribe(shares){
 }
 
 function revoke(){
-    /*Utils.assert(Chain.tx.sender !== cfg.initiator, Chain.tx.sender + ' is initiator.');*/
+    if(Chain.tx.sender === cfg.initiator){
+        Utils.assert(!states.disable, Chain.tx.sender + ' is initiator.');
+    }
     Utils.assert(cobuilders[Chain.tx.sender][pledged] === false, 'The share of '+ Chain.tx.sender + ' has been pledged.');
 
     let stake = cobuilders[Chain.tx.sender];
@@ -367,6 +368,7 @@ function poll(){
 function resetStatus(){
     delete states.role;
 
+    states.disable = true;
     states.applied = false;
     states.pledgedShares = '0';
     saveObj(statesKey, states);
@@ -470,6 +472,10 @@ function main(input_str){
 
     prepare();
 
+    if(states.disable && input.method !== 'revoke'){
+        return 'Co-build is disband.';
+    }
+
     if(input.method === 'subscribe'){
 	    subscribe(params.shares);
     }
@@ -547,6 +553,7 @@ function init(input_str){
     saveObj(cobuildersKey, cobuilders);
 
     states = {
+        'disable':false,
         'applied': false,
         'allShares': initShare,
         'pledgedShares': '0'
