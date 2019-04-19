@@ -53,14 +53,14 @@ namespace bumo {
 				break;
 			}
 			if (!args[0]->IsBoolean()) {
-				error_desc.append("parameter 0 should be boolean");
+				error_desc.append(",parameter 0 should be boolean");
 				break;
 			}
 
 			v8::HandleScope scope(args.GetIsolate());
 			if (args.Length() == 2) {
 				if (!args[1]->IsString()) {
-					error_desc.append("parameter 1 should be string");
+					error_desc.append(",parameter 1 should be string");
 					break;
 				}
 				else {

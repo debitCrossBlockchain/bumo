@@ -1202,16 +1202,19 @@ Reward列表按key-value形式存储
 ```json
 {
   "result": {
-      "type": "string",
-      "value":"{\"reward\":{
-        \"buQYoQ6TqAEpFK5pdTtBBPyQ2AYfMdcNyKe4\":
-        [\"13851403250\",\"buQqhh8FQWRWpSqJ3aWgWSmHS84NnNvSSDS8\",50],
-        \"buQnfBpnZk8TS78VVi2Bp53gf7moEF7N87su\":
-        [\"13851403250\",\"buQWBgAWSqiES7TNh1mq2VQwonvWtESz8Z2Z\",100],
-        \"buQViQF9dRUpd8Ge5r7NU8zcJtYevMym5ukp\":
-        [\"13851403250\",\"buQtb4piHr83GRcttEqcjHr7Mwqj414rCDxw\",80],
-        \"buQi9NAtLbP8LLKkXuGEAtxwgA2B3ZMG128Q\":
-        [\"13851403250\",\"buQBNfjiAynVF3uHMbJ2vMXFSuuXQcDX6ojt\",80]
+    "type": "string",
+    "value": "{
+      \"rewards\":{
+        \"validators\":{
+          \"buQa6cifJPAduxqWf42dUgZ72qQiLGr4VCyn\":[\"10013634880\",\"buQa6cifJPAduxqWf42dUgZ72qQiLGr4VCyn\",0]
+        },
+        \"kols\":{
+          \"buQhqMoJziz27DdrS4DaFjeUSspxetAfvpzu\":[\"282345624\",\"buQhqMoJziz27DdrS4DaFjeUSspxetAfvpzu\",0],
+          \"buQmziFKwWTvJe5hBCFa6e3FdPDPorht3wCB\":[\"282345624\",\"buQmziFKwWTvJe5hBCFa6e3FdPDPorht3wCB\",0],
+          \"buQnP4jueoC37fP2VxKpsZSTNjgFHpA442jy\":[\"282345624\",\"buQnP4jueoC37fP2VxKpsZSTNjgFHpA442jy\",0],
+          \"buQjxgZsG3B24PNzKzpTiwrRR3z6ok46izuR\":[\"282345624\",\"buQjxgZsG3B24PNzKzpTiwrRR3z6ok46izuR\",0],
+          \"buQhtTjDmmquE4PTAKSzx4CqL7Z5LKLVG8SZ\":[\"282345624\",\"buQhtTjDmmquE4PTAKSzx4CqL7Z5LKLVG8SZ\",0]
+        }
       }
     }"
   }

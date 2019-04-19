@@ -167,7 +167,7 @@ function setStatus(){
     saveObj(cobuildersKey, cobuilders);
 }
 
-function apply(role, pool, ratio, node){
+function coApply(role, pool, ratio, node){
     Utils.assert(role === validator || role === kol,  'Unknown role:' + role + '.');
     Utils.assert(Utils.addressCheck(pool), 'Invalid address:' + pool + '.');
     Utils.assert(0 <= ratio && ratio <= 100 && ratio % 1 === 0, 'Invalid vote reward ratio:' + ratio + '.');
@@ -193,7 +193,7 @@ function appendInput(){
     return JSON.stringify(addition);
 }
 
-function append(){
+function coAppend(){
     Utils.assert(states.applied === true, 'Has not applied.');
     Utils.assert(Chain.tx.sender === cfg.initiator, 'Only the initiator has the right to append.');
 
@@ -202,10 +202,10 @@ function append(){
 
     setStatus();
     callDPOS(appendAmount, appendInput());
-    Chain.tlog('append', appendAmount);
+    Chain.tlog('coAppend', appendAmount);
 }
 
-function setNodeAddress(address){
+function coSetNodeAddress(address){
     Utils.assert(Utils.addressCheck(address),  'Invalid address:' + address + '.');
 
     let input = {
@@ -216,11 +216,11 @@ function setNodeAddress(address){
     };
 
     callDPOS('0', input);
-    Chain.tlog('setNodeAddress', address);
+    Chain.tlog('coSetNodeAddress', address);
 
 }
 
-function setVoteDividend(pool, ratio){
+function coSetVoteDividend(pool, ratio){
     let input = {
         'method' : 'setVoteDividend',
         'params':{}
@@ -237,7 +237,7 @@ function setVoteDividend(pool, ratio){
     }
 
     callDPOS('0', input);
-    Chain.tlog('setVoteDividend', pool, ratio);
+    Chain.tlog('coSetVoteDividend', pool, ratio);
 }
 
 function transferKey(from, to){
@@ -326,13 +326,13 @@ function withdrawing(proposal){
     callDPOS('0', withdrawInput());
 }
 
-function withdraw(){
+function coWithdraw(){
     Utils.assert(states.applied === true, 'Has not applied yet.');
     Utils.assert(Chain.tx.sender === cfg.initiator, 'Only the initiator has the right to withdraw.');
 
     let proposal = withdrawProposal();
     withdrawing(proposal);
-    Chain.tlog('withdraw', cfg.initiator);
+    Chain.tlog('coWithdraw', cfg.initiator);
 }
 
 function poll(){
@@ -391,7 +391,7 @@ function received(){
     Chain.tlog('receivedPledge', Chain.msg.coinAmount);
 }
 
-function extract(list){
+function coExtract(list){
     let allReward = getReward();
     if(allReward !== '0'){
         distribute(allReward);
@@ -402,7 +402,7 @@ function extract(list){
         cobuilders[Chain.tx.sender][award] = '0';
         saveObj(cobuildersKey, cobuilders);
         transferCoin(Chain.tx.sender, profit);
-        return Chain.tlog('extract', Chain.tx.sender, profit);
+        return Chain.tlog('coExtract', Chain.tx.sender, profit);
     }
 
     assert(typeof list === 'object', 'Wrong parameter type.');
@@ -413,7 +413,7 @@ function extract(list){
         let gain = cobuilders[list[i]][award];
         cobuilders[list[i]][award] = '0';
         transferCoin(list[i], gain);
-        Chain.tlog('extract', list[i], gain);
+        Chain.tlog('coExtract', list[i], gain);
     }
 
     saveObj(cobuildersKey, cobuilders);
@@ -473,19 +473,19 @@ function main(input_str){
         Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
 	    revoke();
     }
-    else if(input.method === 'apply'){
+    else if(input.method === 'coApply'){
         Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
-        apply(params.role, params.pool, params.ratio, params.node);
+        coApply(params.role, params.pool, params.ratio, params.node);
     }
-    else if(input.method === 'append'){
+    else if(input.method === 'coAppend'){
         Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
-        append();
+        coAppend();
     }
-    else if(input.method === 'setNodeAddress'){
-	    setNodeAddress(params.address);
+    else if(input.method === 'coSetNodeAddress'){
+	    coSetNodeAddress(params.address);
     }
-    else if(input.method === 'setVoteDividend'){
-        setVoteDividend(params.role, params.pool, params.ratio);
+    else if(input.method === 'coSetVoteDividend'){
+        coSetVoteDividend(params.role, params.pool, params.ratio);
     }
     else if(input.method === 'transfer'){
         Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
@@ -494,12 +494,12 @@ function main(input_str){
     else if(input.method === 'accept'){
     	accept(params.transferor);
     }
-    else if(input.method === 'extract'){
-        extract(params !== undefined ? params.list : params);
+    else if(input.method === 'coExtract'){
+        coExtract(params !== undefined ? params.list : params);
     }
-    else if(input.method === 'withdraw'){
+    else if(input.method === 'coWithdraw'){
         Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
-    	withdraw();
+    	coWithdraw();
     }
     else if(input.method === 'poll'){
         Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
