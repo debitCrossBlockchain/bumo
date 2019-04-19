@@ -75,20 +75,24 @@ function getReward(){
 }
 
 function distribute(allReward){
-    let dividend = Utils.int64Mul(Utils.int64Div(allReward, 100), cfg.rewardRatio); 
-    let unitReward = Utils.int64Div(dividend, states.pledgedShares);
+    let initiator  = cobuilders[cfg.initiator];
+    let dividend   = Utils.int64Mul(Utils.int64Div(allReward, 100), cfg.rewardRatio); 
+    let coShares   = Utils.int64Sub(states.pledgedShares, initiator[share]);
+    let unitReward = Utils.int64Div(dividend, coShares);
 
+    delete cobuilders[cfg.initiator];
     Object.keys(cobuilders).forEach(function(key){
         if(cobuilders[key][pledged]){
             let each = Utils.int64Mul(unitReward, cobuilders[key][share]);
             cobuilders[key][award] = Utils.int64Add(cobuilders[key][award], each);
         }
     });
-
-    let left = Utils.int64Mod(dividend, states.pledgedShares);
+    
+    let left    = Utils.int64Mod(dividend, coShares);
     let reserve = Utils.int64Sub(allReward, dividend);
     reserve = Utils.int64Add(reserve, left);
-    cobuilders[cfg.initiator][award] = Utils.int64Add(cobuilders[cfg.initiator][award], reserve);
+    initiator[award] = Utils.int64Add(initiator[award], reserve);
+    cobuilders[cfg.initiator] = initiator;
 }
 
 function cobuilder(shares, isPledged){
