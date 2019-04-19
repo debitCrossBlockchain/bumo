@@ -14,18 +14,19 @@ function loadObj(key){
 function query(input_str){
     let input  = JSON.parse(input_str);
 
-    let result = {};
+    let object = {};
     if(input.method !== undefined){
         let cfg = loadObj(configKey);
     	Utils.assert(cfg !== false, 'Failed to load configuration.');
-		Chain.delegateQuery(cfg.logic_contract, input_str);
+        object = Chain.delegateQuery(cfg.logic_contract, input_str);
+        Utils.assert(object.error === undefined && object.result !== undefined, 'Failed to query contract.');
     }
     else{
        	throw '<unidentified operation type>';
     }
 
-    Utils.log(result);
-    return true;
+    Utils.log(object);
+    return object.result;
 }
 
 function main(input_str){
