@@ -577,7 +577,7 @@ function abolitionProposal(proof){
         'informer': Chain.msg.sender,
         'reason': proof,
         'expiration': Chain.block.timestamp + cfg.valid_period,
-        'ballot': [Chain.msg.sender]
+        'ballot': []
     };
 
     return proposal;
