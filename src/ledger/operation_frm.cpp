@@ -36,6 +36,15 @@ namespace bumo {
 		return ope_fee_;
 	}
 
+	bool OperationFrm::dposAddrAvailable(const std::string& src, const std::string& dest){
+		AccountFrm::pointer dpos;
+		if (!Environment::AccountFromDB(dest, dpos) && dest == General::CONTRACT_DPOS_ADDRESS && src != Configure::Instance().genesis_configure_.account_){
+			return false;
+		}
+
+		return true;
+	}
+
 	Result OperationFrm::CheckValid(const protocol::Operation& operation, const std::string &source_address, uint32_t ldcontext_stack_size) {
 		Result result;
 		result.set_code(protocol::ERRCODE_SUCCESS);
@@ -59,6 +68,12 @@ namespace bumo {
 			}
 
 			if (!bumo::PublicKey::IsAddressValid(create_account.dest_address())) {
+				result.set_code(protocol::ERRCODE_INVALID_ADDRESS);
+				result.set_desc(utils::String::Format("Dest account address(%s) invalid.", create_account.dest_address().c_str()));
+				break;
+			}
+
+			if (!dposAddrAvailable(source_address, create_account.dest_address())){
 				result.set_code(protocol::ERRCODE_INVALID_ADDRESS);
 				result.set_desc(utils::String::Format("Dest account address(%s) invalid.", create_account.dest_address().c_str()));
 				break;
@@ -354,6 +369,13 @@ namespace bumo {
 				result.set_desc(utils::String::Format("Dest address should be a valid account address"));
 				break;
 			}
+
+			if (!dposAddrAvailable(source_address, pay_coin.dest_address())){
+				result.set_code(protocol::ERRCODE_INVALID_ADDRESS);
+				result.set_desc(utils::String::Format("Dest account address(%s) invalid.", pay_coin.dest_address().c_str()));
+				break;
+			}
+
 			break;
 		}
 		case protocol::Operation_Type_LOG:

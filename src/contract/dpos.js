@@ -145,9 +145,8 @@ function rewardInput(){
  * [0] : reward received
  * [1] : vote reward pool
  * [2] : vote reward ratio */
-function award(address){
-    let dist = elect.valDist[address] !== undefined ? elect.valDist : elect.kolDist;
-    if(dist[address] === undefined || dist[address] === '0'){
+function award(candidates, dist, address){
+    if(dist[address] === '0'){
         return;
     }
 
@@ -172,8 +171,7 @@ function award(address){
     dist[address][0] = '0';
     distributed = true;
 
-    if(elect.valCands.find(function(x){ return x[0] === address; }) === undefined &&
-       elect.kolCands.find(function(x){ return x[0] === address; }) === undefined){
+    if(candidates.find(function(x){ return x[0] === address; }) === undefined){
         delete dist[address];
     }
 }
@@ -183,7 +181,13 @@ function extract(list){
     rewardDistribution();
 
     if(list === undefined){
-        return award(Chain.msg.sender);
+        if(elect.valDist[Chain.msg.sender] !== undefined){
+            award(elect.valCands, elect.valDist, Chain.msg.sender);
+        }
+
+        if(elect.kolDist[Chain.msg.sender] !== undefined){
+            award(elect.kolCands, elect.kolDist, Chain.msg.sender);
+        }
     }
 
     assert(typeof list === 'object', 'Wrong parameter type.');
@@ -191,7 +195,13 @@ function extract(list){
 
     let i = 0;
     for(i = 0; i < list.length; i += 1){
-        award(list[i]);
+        if(elect.valDist[list[i]] !== undefined){
+            award(elect.valCands, elect.valDist, list[i]);
+        }
+
+        if(elect.kolDist[list[i]] !== undefined){
+            award(elect.kolCands, elect.kolDist, list[i]);
+        }
     }
 }
 
