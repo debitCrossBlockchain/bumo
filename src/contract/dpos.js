@@ -572,13 +572,17 @@ function unVote(roleType, address){
     updateStake(roleType, found, formalSize, '-' + amount);
 }
 
-function abolitionProposal(proof){
+function abolitionProposal(roleType, proof){
     let proposal = {
         'informer': Chain.msg.sender,
         'reason': proof,
         'expiration': Chain.block.timestamp + cfg.valid_period,
         'ballot': []
     };
+
+    if(roleType === role.COMMITTEE){
+        proposal.ballot.push(Chain.msg.sender);
+    }
 
     return proposal;
 }
@@ -631,7 +635,7 @@ function abolish(roleType, address, proof){
     let proposal = loadObj(key);
 
     if(proposal === false){
-        proposal = abolitionProposal(proof);
+        proposal = abolitionProposal(roleType, proof);
         saveObj(key, proposal);
     }
 
