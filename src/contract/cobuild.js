@@ -129,7 +129,7 @@ function subscribe(shares){
 
 function revoke(){
     if(Chain.tx.sender === cfg.initiator){
-        Utils.assert(!states.disable, Chain.tx.sender + ' is initiator.');
+        Utils.assert(states.disabled, Chain.tx.sender + ' is initiator.');
     }
     Utils.assert(cobuilders[Chain.tx.sender][pledged] === false, 'The share of '+ Chain.tx.sender + ' has been pledged.');
 
@@ -205,7 +205,7 @@ function appendInput(){
 }
 
 function coAppend(){
-    Utils.assert(states.applied === true, 'Has not applied.');
+    Utils.assert(states.applied, 'Has not applied.');
     Utils.assert(Chain.tx.sender === cfg.initiator, 'Only the initiator has the right to append.');
 
     let appendShares = Utils.int64Sub(states.allShares, states.pledgedShares);
@@ -258,7 +258,7 @@ function transferKey(from, to){
 function transfer(to, shares){
     Utils.assert(Utils.addressCheck(to), 'Invalid address:' + to + '.');
     Utils.assert(shares > 0 && shares % 1 === 0, 'Invalid shares:' + shares + '.');
-    Utils.assert(cobuilders[Chain.tx.sender][pledged] === true, 'Unpled shares can be withdrawn directly.');
+    Utils.assert(cobuilders[Chain.tx.sender][pledged], 'Unpled shares can be withdrawn directly.');
     Utils.assert(Utils.int64Compare(shares, cobuilders[Chain.tx.sender][share]) <= 0, 'Transfer shares > holding shares.');
 
     shares = String(shares);
@@ -274,7 +274,7 @@ function transfer(to, shares){
 
 function accept(transferor){
     Utils.assert(Utils.addressCheck(transferor), 'Invalid address:' + transferor + '.');
-    Utils.assert(cobuilders[transferor][pledged] === true, 'Unpled shares can be revoked directly.');
+    Utils.assert(cobuilders[transferor][pledged], 'Unpled shares can be revoked directly.');
 
     let key = transferKey(transferor, Chain.tx.sender);
     let shares = Chain.load(key);
@@ -339,16 +339,22 @@ function withdrawing(proposal){
 }
 
 function coWithdraw(){
-    Utils.assert(states.applied === true, 'Has not applied yet.');
     Utils.assert(Chain.tx.sender === cfg.initiator, 'Only the initiator has the right to withdraw.');
 
-    let proposal = withdrawProposal();
-    withdrawing(proposal);
-    Chain.tlog('coWithdraw', cfg.initiator);
+    if(states.applied){
+        let proposal = withdrawProposal();
+        withdrawing(proposal);
+        Chain.tlog('coWithdraw', cfg.initiator);
+    }
+    else{
+        states.disabled = true;
+        saveObj(statesKey, states);
+        Chain.tlog('disabled', cfg.initiator);
+    }
 }
 
 function poll(){
-    Utils.assert(states.applied === true, 'Has not applied yet.');
+    Utils.assert(states.applied, 'Has not applied yet.');
     Utils.assert(cobuilders[Chain.tx.sender][pledged], Chain.tx.sender + ' is not involved in application.');
 
     let proposal = loadObj(withdrawKey);
@@ -375,7 +381,7 @@ function poll(){
 function resetStatus(){
     delete states.role;
 
-    states.disable = true;
+    states.disabled = true;
     states.applied = false;
     states.pledgedShares = '0';
     saveObj(statesKey, states);
@@ -389,8 +395,6 @@ function takeback(){
     assert(proposal !== false, 'Failed to get ' + withdrawKey + ' from metadata.');
     assert(proposal.withdrawed && Chain.block.timestamp >= proposal.expiration, 'Insufficient conditions for recovering the deposit.');
 
-    resetStatus();
-    Chain.del(withdrawKey);
     callDPOS('0', withdrawInput());
 }
 
@@ -479,7 +483,7 @@ function main(input_str){
 
     prepare();
 
-    if(states.disable && input.method !== 'revoke'){
+    if(states.disabled && input.method !== 'revoke'){
         return 'Co-build is disband.';
     }
 
@@ -561,7 +565,7 @@ function init(input_str){
     saveObj(cobuildersKey, cobuilders);
 
     states = {
-        'disable':false,
+        'disabled':false,
         'applied': false,
         'allShares': initShare,
         'pledgedShares': '0'

@@ -1015,7 +1015,7 @@ function main(input_str){
         setVoteDividend(params.role, params.pool, params.ratio);
     }
     else if(input.method === 'clean'){
-	    clean(params.operate, params.item, params.address);
+        clean(params.operate, params.item, params.address);
     }
     else{
         throw 'Unknown operating: ' + input.method + '.';
