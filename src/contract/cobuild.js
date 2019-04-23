@@ -545,12 +545,10 @@ function init(input_str){
     Utils.assert(typeof params.unit === 'number' && params.unit % oneBU === 0, 'Illegal unit:' + params.unit + '.');
     Utils.assert(typeof params.shares === 'number'&& params.shares % 1 === 0, 'Illegal raise shares:' + params.shares + '.');
 
-    let mul = Utils.int64Mul(params.unit, params.shares);
-    Utils.assert(Utils.int64Compare(Chain.msg.coinAmount, minInitAmount) > 0, 'Initiating funds <= ' + minInitAmount + '.');
-
-    let reserve = Utils.int64Mod(Chain.msg.coinAmount, params.unit);
     let dpos_cfg = queryDposCfg();
-    Utils.assert(Utils.int64Compare(reserve, dpos_cfg.base_reserve) >= 0, 'Reserve balance < ' + dpos_cfg.base_reserve + '.');
+    let bail = Utils.int64Sub(Chain.msg.coinAmount, dpos_cfg.base_reserve);
+    Utils.assert(Utils.int64Compare(bail, minInitAmount) >= 0, 'Initiating funds <= ' + minInitAmount + '.');
+    Utils.assert(Utils.int64Mod(bail, params.unit) === 0, '(Initiating funds - base_reserve) % unit != 0.');
 
     cfg = {
         'initiator'   : Chain.tx.sender,

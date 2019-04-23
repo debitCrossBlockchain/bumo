@@ -987,7 +987,7 @@ function initialization(params){
     saveObj(kolCandsKey, []);
     saveObj(valRewardKey, dist);
     saveObj(kolRewardKey, {});
-    saveObj(stakeKey, Chain.getBalance(Chain.thisAddress));
+    saveObj(stakeKey, Chain.msg.coinAmount);
     Chain.tlog('init', Chain.tx.sender, Chain.thisAddress, cfg.logic_contract);
 }
 
