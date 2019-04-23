@@ -933,15 +933,15 @@ function initialization(params){
         'committee_size'           : 10,
         'kol_size'                 : 21,
         'kol_candidate_size'       : 100,
-        'kol_min_pledge'           : 500000000000000,/* 500 0000 0000 0000 */
+        'kol_min_pledge'           : 300000000000000,/* 300 0000 0000 0000 */
         'validator_size'           : 19,
         'validator_candidate_size' : 100,
-        'validator_min_pledge'     : 500000000000000,/* 500 0000 0000 0000 */
+        'validator_min_pledge'     : 300000000000000,/* 300 0000 0000 0000 */
         'pledge_magnification'     : 2,
         'pass_rate'                : 0.5,
         'valid_period'             : 2592000000000,  /* 30 * 24 * 60 * 60 * 1000 * 1000 */
         'vote_unit'                : 1000000000,     /* 10 0000 0000 */
-        'reward_allocation_share'  : [50,6,40,4],    /* validators 50%, validator candidates 6%, kols 40%, kol candidates 4% */
+        'reward_allocation_share'  : [50,8,35,7],    /* validators 50%, validator candidates 8%, kols 35%, kol candidates 7% */
         'logic_contract'           : params.logic_contract
     };
     saveObj(configKey, cfg);
