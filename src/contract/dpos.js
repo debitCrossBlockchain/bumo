@@ -4,7 +4,7 @@ const stakeKey     = 'all_stake';
 const configKey    = 'dpos_config';
 const valCandsKey  = 'validator_candidates';
 const kolCandsKey  = 'kol_candidates';
-const valRewardKey = 'valiator_reward_distribution';
+const valRewardKey = 'validator_reward_distribution';
 const kolRewardKey = 'kol_reward_distribution';
 const committeeKey = 'committee';
 
@@ -752,7 +752,7 @@ function configure(item, value){
 
     proposal = configProposal(item, value);
     saveObj(key, proposal);
-    Chain.tlog('configure', Chain.msg.sender, item, value);
+    Chain.tlog('configure', Chain.msg.sender, item, JSON.stringify(value));
 }
 
 function setNodeAddress(address){
