@@ -845,6 +845,26 @@ function calculateReward(){
    return { 'validators' : elect.valDist, 'kols' : elect.kolDist };
 }
 
+function validatorsList(){
+    cfg = loadObj(configKey);
+    Utils.assert(cfg !== false, 'Failed to get ' + configKey + ' from metadata.');
+
+    let valCands = loadObj(valCandsKey);
+    Utils.assert(valCands !== false, 'Failed to get ' + valCandsKey + ' from metadata.');
+
+    return valCands.slice(0, cfg.validator_size);
+}
+
+function kolList(){
+    cfg = loadObj(configKey);
+    Utils.assert(cfg !== false, 'Failed to get ' + configKey + ' from metadata.');
+
+    let kolCands = loadObj(kolCandsKey);
+    Utils.assert(kolCands !== false, 'Failed to get ' + kolCandsKey + ' from metadata.');
+
+    return kolCands.slice(0, cfg.kol_size);
+}
+
 function query(input_str){
     let input  = JSON.parse(input_str);
     let params = input.params;
@@ -859,19 +879,13 @@ function query(input_str){
         result.voterInfo = loadObj(vKey);
     }
     else if(input.method === 'getValidators') {
-        let valCands = loadObj(valCandsKey);
-        Utils.assert(valCands !== false, 'Failed to get ' + valCands + ' from metadata.');
-
-        result.validators = valCands.slice(0, cfg.validator_size);
+        result.validators = validatorsList();
     }
     else if(input.method === 'getValidatorCandidates') {
         result.validator_candidates = loadObj(valCandsKey);
     }
     else if(input.method === 'getKols') {
-        let kolCands = loadObj(kolCandsKey);
-        Utils.assert(kolCands !== false, 'Failed to get ' + kolCandsKey + ' from metadata.');
-
-        result.kols = kolCands.slice(0, cfg.kol_size);
+        result.kols = kolList();
     }
     else if(input.method === 'getKolCandidates') {
         result.kol_candidates = loadObj(kolCandsKey);
