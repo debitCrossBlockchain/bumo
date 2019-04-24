@@ -535,13 +535,13 @@ function main(input_str){
 
 function init(input_str){
     let params = JSON.parse(input_str).params;
-    Utils.assert(Utils.int64Mod(params.unit, oneBU) === 0 && Utils.int64Compare(params.unit, minUnit) >= 0, 'Illegal unit:' + params.unit + '.');
-    Utils.assert(Utils.int64Mod(params.shares, 1) === 0, 'Illegal raise shares:' + params.shares + '.');
+    Utils.assert(Utils.int64Mod(params.unit, oneBU) === '0' && Utils.int64Compare(params.unit, minUnit) >= 0, 'Illegal unit:' + params.unit + '.');
+    Utils.assert(Utils.int64Mod(params.shares, 1) === '0', 'Illegal raise shares:' + params.shares + '.');
 
     let dpos_cfg = queryDposCfg();
     let initFund = Utils.int64Sub(Chain.msg.coinAmount, dpos_cfg.base_reserve);
     Utils.assert(Utils.int64Compare(initFund, minInitAmount) >= 0, 'Initiating funds <= ' + minInitAmount + '.');
-    Utils.assert(Utils.int64Mod(initFund, params.unit) === 0, '(Initiating funds - base_reserve) % unit != 0.');
+    Utils.assert(Utils.int64Mod(initFund, params.unit) === '0', '(Initiating funds - base_reserve) % unit != 0.');
 
     cfg = {
         'initiator'   : Chain.tx.sender,

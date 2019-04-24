@@ -239,11 +239,11 @@ function checkPledge(roleType){
 
     if(roleType === role.VALIDATOR){
         com = Utils.int64Compare(Chain.msg.coinAmount, cfg.validator_min_pledge);
-        Utils.assert(com === 0 || com === 1, 'The pledge:' + Chain.msg.coinAmount + ' is less than the minimum requirement:' + cfg.validator_min_pledge +  ' of the validator.');
+        Utils.assert(com >= 0, 'The pledge:' + Chain.msg.coinAmount + ' is less than the minimum requirement:' + cfg.validator_min_pledge +  ' of the validator.');
     }
     else if(roleType === role.KOL){
         com = Utils.int64Compare(Chain.msg.coinAmount, cfg.kol_min_pledge);
-        Utils.assert(com === 0 || com === 1, 'The pledge:' + Chain.msg.coinAmount + ' is less than the minimum requirement:' + cfg.kol_min_pledge + ' of the KOL.');
+        Utils.assert(com >= 0, 'The pledge:' + Chain.msg.coinAmount + ' is less than the minimum requirement:' + cfg.kol_min_pledge + ' of the KOL.');
     }
     else if(roleType === role.COMMITTEE){
         Utils.assert(Chain.msg.coinAmount === '0', 'No pledge is required to apply to join the committee.');
