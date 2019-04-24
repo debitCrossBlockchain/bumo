@@ -81,12 +81,8 @@ function getReward(){
 }
 
 function distribute(allReward){
-    let initiator  = cobuilders[cfg.initiator];
-    let dividend   = Utils.int64Mul(Utils.int64Div(allReward, 100), cfg.rewardRatio); 
-    let coShares   = Utils.int64Sub(states.pledgedShares, initiator[share]);
-    let unitReward = Utils.int64Div(dividend, coShares);
+    let unitReward = Utils.int64Div(allReward, states.pledgedShares);
 
-    delete cobuilders[cfg.initiator];
     Object.keys(cobuilders).forEach(function(key){
         if(cobuilders[key][pledged]){
             let each = Utils.int64Mul(unitReward, cobuilders[key][share]);
@@ -94,11 +90,8 @@ function distribute(allReward){
         }
     });
     
-    let left    = Utils.int64Mod(dividend, coShares);
-    let reserve = Utils.int64Sub(allReward, dividend);
-    reserve = Utils.int64Add(reserve, left);
-    initiator[award] = Utils.int64Add(initiator[award], reserve);
-    cobuilders[cfg.initiator] = initiator;
+    let left = Utils.int64Mod(allReward, states.pledgedShares);
+    cobuilders[cfg.initiator][award] = Utils.int64Add(cobuilders[cfg.initiator][award], left);
 }
 
 function cobuilder(shares, isPledged){
@@ -541,7 +534,6 @@ function main(input_str){
 
 function init(input_str){
     let params = JSON.parse(input_str).params;
-    Utils.assert(0 <= params.ratio && params.ratio <= 100 && params.ratio % 1 === 0, 'Illegal reward ratio:' + params.ratio + '.');
     Utils.assert(typeof params.unit === 'number' && params.unit % oneBU === 0, 'Illegal unit:' + params.unit + '.');
     Utils.assert(typeof params.shares === 'number'&& params.shares % 1 === 0, 'Illegal raise shares:' + params.shares + '.');
 
@@ -552,7 +544,6 @@ function init(input_str){
 
     cfg = {
         'initiator'   : Chain.tx.sender,
-        'rewardRatio' : params.ratio,
         'unit'        : params.unit,
         'raiseShares' : params.shares
     };
