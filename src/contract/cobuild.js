@@ -1,6 +1,7 @@
 'use strict';
 
 const oneBU          = 100000000; /* 1 0000 0000 MO */
+const minUnit        = 100000 * oneBU; /* 10 0000 BU */
 const minInitAmount  = 1000000 * oneBU; /* 100 0000 BU */
 
 const statesKey     = 'states';
@@ -534,13 +535,13 @@ function main(input_str){
 
 function init(input_str){
     let params = JSON.parse(input_str).params;
-    Utils.assert(typeof params.unit === 'number' && params.unit % oneBU === 0, 'Illegal unit:' + params.unit + '.');
-    Utils.assert(typeof params.shares === 'number'&& params.shares % 1 === 0, 'Illegal raise shares:' + params.shares + '.');
+    Utils.assert(Utils.int64Mod(params.unit, oneBU) === 0 && Utils.int64Compare(params.unit, minUnit) >= 0, 'Illegal unit:' + params.unit + '.');
+    Utils.assert(Utils.int64Mod(params.shares, 1) === 0, 'Illegal raise shares:' + params.shares + '.');
 
     let dpos_cfg = queryDposCfg();
-    let bail = Utils.int64Sub(Chain.msg.coinAmount, dpos_cfg.base_reserve);
-    Utils.assert(Utils.int64Compare(bail, minInitAmount) >= 0, 'Initiating funds <= ' + minInitAmount + '.');
-    Utils.assert(Utils.int64Mod(bail, params.unit) === 0, '(Initiating funds - base_reserve) % unit != 0.');
+    let initFund = Utils.int64Sub(Chain.msg.coinAmount, dpos_cfg.base_reserve);
+    Utils.assert(Utils.int64Compare(initFund, minInitAmount) >= 0, 'Initiating funds <= ' + minInitAmount + '.');
+    Utils.assert(Utils.int64Mod(initFund, params.unit) === 0, '(Initiating funds - base_reserve) % unit != 0.');
 
     cfg = {
         'initiator'   : Chain.tx.sender,
@@ -549,7 +550,7 @@ function init(input_str){
     };
     saveObj(configKey, cfg);
 
-    let initShare = Utils.int64Div(Chain.msg.coinAmount, cfg.unit);
+    let initShare = Utils.int64Div(initFund, cfg.unit);
     cobuilders[Chain.tx.sender] = cobuilder(initShare);
     saveObj(cobuildersKey, cobuilders);
 
