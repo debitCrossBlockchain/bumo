@@ -645,13 +645,13 @@ function abolish(roleType, address, proof){
     let proposal = loadObj(key);
 
     if(proposal === false){
-        proposal = abolitionProposal(roleType, proof);
+        proposal = abolitionProposal(roleType, proof||'none');
         saveObj(key, proposal);
     }
 
     proposal.expiration = Chain.block.timestamp + cfg.valid_period;
     saveObj(key, proposal);
-    Chain.tlog('abolish', Chain.msg.sender, roleType, address, proof);
+    Chain.tlog('abolish', Chain.msg.sender, roleType, address, proof||'none');
 }
 
 function exitProposal(exiter, pledge){
