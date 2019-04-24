@@ -188,6 +188,8 @@ function extract(list){
         if(elect.kolDist[Chain.msg.sender] !== undefined){
             award(elect.kolCands, elect.kolDist, Chain.msg.sender);
         }
+
+        return true;
     }
 
     assert(typeof list === 'object', 'Wrong parameter type.');
