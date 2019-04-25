@@ -223,6 +223,10 @@ namespace bumo {
 		v8::TryCatch try_catch(isolate_);
 
 		v8::Local<v8::Context> context = CreateContext(isolate_, false);
+		if (context.IsEmpty()) {
+			result_.set_code(protocol::ERRCODE_CONTRACT_EXECUTE_FAIL);
+			result_.set_desc("Failed to create v8 context");
+		}
 		v8::Context::Scope context_scope(context);
 		SetV8InterfaceFunc(context, false);
 		CreateJsObject(context, false);
