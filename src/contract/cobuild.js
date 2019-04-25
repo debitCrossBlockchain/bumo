@@ -73,14 +73,6 @@ function extractInput(){
     return JSON.stringify({ 'method' : 'extract' });
 }
 
-function getReward(){
-    let before = Chain.getBalance(Chain.thisAddress);
-    callDPOS('0', extractInput());
-    let after = Chain.getBalance(Chain.thisAddress);
-
-    return Utils.int64Sub(after, before);
-}
-
 function distribute(allReward){
     let unitReward = Utils.int64Div(allReward, states.pledgedShares);
 
@@ -93,6 +85,7 @@ function distribute(allReward){
     
     let left = Utils.int64Mod(allReward, states.pledgedShares);
     cobuilders[cfg.initiator][award] = Utils.int64Add(cobuilders[cfg.initiator][award], left);
+    saveObj(cobuildersKey, cobuilders);
 }
 
 function cobuilder(shares, isPledged){
@@ -275,11 +268,7 @@ function accept(transferor){
     Utils.assert(shares !== false, 'Failed to get ' + key + ' from metadata.');
     Utils.assert(Utils.int64Compare(Utils.int64Mul(cfg.unit, shares), Chain.msg.coinAmount) === 0, 'unit * shares !== Chain.msg.coinAmount.');
 
-    let allReward = getReward();
-    if(allReward !== '0'){
-        distribute(allReward);
-    }
-
+    callDPOS('0', extractInput());
     if(cobuilders[Chain.tx.sender] === undefined){
         cobuilders[Chain.tx.sender] = cobuilder(shares, true);
     }
@@ -403,11 +392,7 @@ function received(){
 }
 
 function coExtract(list){
-    let allReward = getReward();
-    if(allReward !== '0'){
-        distribute(allReward);
-    }
-
+    callDPOS('0', extractInput());
     if(list === undefined){
         let profit = cobuilders[Chain.tx.sender][award];
         cobuilders[Chain.tx.sender][award] = '0';
