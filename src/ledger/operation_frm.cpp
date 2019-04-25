@@ -63,6 +63,12 @@ namespace bumo {
 		case protocol::Operation_Type_CREATE_ACCOUNT:
 		{
 			if (CHECK_VERSION_GT_1000){
+				if (!dposAddrAvailable(source_address, create_account.dest_address())){
+					result.set_code(protocol::ERRCODE_INVALID_ADDRESS);
+					result.set_desc(utils::String::Format("Dest account address(%s) invalid.", create_account.dest_address().c_str()));
+					break;
+				}
+
 				result = CheckCreateAccountGt1000(create_account, ldcontext_stack_size);
 				break;
 			}

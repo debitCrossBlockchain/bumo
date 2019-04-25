@@ -85,7 +85,9 @@ function distribute(allReward){
     
     let left = Utils.int64Mod(allReward, states.pledgedShares);
     cobuilders[cfg.initiator][award] = Utils.int64Add(cobuilders[cfg.initiator][award], left);
+
     saveObj(cobuildersKey, cobuilders);
+    Chain.tlog('distribute', allReward);
 }
 
 function cobuilder(shares, isPledged){
@@ -466,19 +468,20 @@ function main(input_str){
         return 'Co-build is disband.';
     }
 
+    if(input.method !== 'subscribe' && input.method !== 'accept' && input.method !== 'reward' && input.method !== 'refund'){
+        Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
+    }
+
     if(input.method === 'subscribe'){
 	    subscribe(params.shares);
     }
     else if(input.method === 'revoke'){
-        Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
 	    revoke();
     }
     else if(input.method === 'coApply'){
-        Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
         coApply(params.role, params.pool, params.ratio, params.node);
     }
     else if(input.method === 'coAppend'){
-        Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
         coAppend();
     }
     else if(input.method === 'coSetNodeAddress'){
@@ -488,7 +491,6 @@ function main(input_str){
         coSetVoteDividend(params.role, params.pool, params.ratio);
     }
     else if(input.method === 'transfer'){
-        Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
     	transfer(params.to, params.shares);
     }
     else if(input.method === 'accept'){
@@ -498,20 +500,16 @@ function main(input_str){
         coExtract(params !== undefined ? params.list : params);
     }
     else if(input.method === 'coWithdraw'){
-        Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
     	coWithdraw();
     }
     else if(input.method === 'poll'){
-        Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
 	    poll();
     }
     else if(input.method === 'takeback'){
-        Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
     	takeback();
     }
     else if(input.method === 'reward'){
         distribute(Chain.msg.coinAmount);
-        Chain.tlog('reward', Chain.msg.coinAmount);
     }
     else if(input.method === 'refund'){
         received();
