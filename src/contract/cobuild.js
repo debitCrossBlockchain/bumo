@@ -395,9 +395,13 @@ function received(){
 
 function coExtract(list){
     callDPOS('0', extractInput());
+    cobuilders = loadObj(cobuildersKey);
+    Utils.assert(cobuilders !== false, 'Failed to get ' + cobuildersKey + ' from metadata.');
+
     if(list === undefined){
         let profit = cobuilders[Chain.tx.sender][award];
         cobuilders[Chain.tx.sender][award] = '0';
+
         saveObj(cobuildersKey, cobuilders);
         transferCoin(Chain.tx.sender, profit);
         return Chain.tlog('coExtract', Chain.tx.sender, profit);
@@ -410,6 +414,7 @@ function coExtract(list){
     for(i = 0; i < list.length; i += 1){
         let gain = cobuilders[list[i]][award];
         cobuilders[list[i]][award] = '0';
+
         transferCoin(list[i], gain);
         Chain.tlog('coExtract', list[i], gain);
     }
