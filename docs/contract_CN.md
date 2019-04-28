@@ -274,14 +274,17 @@ Chain.issueAsset("CNY", 10000);
 
 - ### 转账
 
-    `Chain.payCoin(address, amount[, input]);`
+    `Chain.payCoin(address, amount[, input], [, metadata]);`
      - address: 发送BU的目标地址
      - amount: 发送BU的数量
      - input: 可选，合约参数，如果用户未填入，默认为空字符串
+     - metadata: 可选，转账备注，调用`GET /getTransactionHistory`方法查询交易结果时，显示为十六进制字符串，需要转换为明文。
+
+     注意，如果提供metadata参数，那么也必须提供input参数，否则内置接口无法区分该参数是谁，因为两者都是可选的。如果没有input，可以传入空字符串""占位,以防止内置接口将metadata参数误认为inut参数。
 
     例如
     ```javascript
-    Chain.payCoin("buQsZNDpqHJZ4g5hz47CqVMk5154w1bHKsHY", "10000", "{}");
+    Chain.payCoin("buQsZNDpqHJZ4g5hz47CqVMk5154w1bHKsHY", "10000", "", "vote reward");
     /*
       权限：可写
       返回：成功返回 true，失败抛异常  
@@ -311,10 +314,13 @@ Chain.issueAsset("CNY", 10000);
      - code: 资产代码
      - amount: 转移资产的数量
      - input: 可选，合约参数，如果用户未填入，默认为空字符串
+     - metadata: 可选，转账备注，调用`GET /getTransactionHistory`方法查询交易结果时，显示为十六进制字符串，需要转换为明文。
+
+     注意，如果提供metadata参数，那么也必须提供input参数，否则内置接口无法区分该参数是谁，因为两者都是可选的。如果不需要input，可以传入空字符串""占位,以防止内置接口将metadata参数误认为inut参数。
 
     例如
     ```javascript
-    Chain.payAsset("buQsZNDpqHJZ4g5hz47CqVMk5154w1bHKsHY", "buQgmhhxLwhdUvcWijzxumUHaNqZtJpWvNsf", "CNY", "10000", "{}");
+    Chain.payAsset("buQsZNDpqHJZ4g5hz47CqVMk5154w1bHKsHY", "buQgmhhxLwhdUvcWijzxumUHaNqZtJpWvNsf", "CNY", "10000", "", "Trading certificate");
     /*
       权限：可写
       返回：成功返回 true，失败抛异常    
