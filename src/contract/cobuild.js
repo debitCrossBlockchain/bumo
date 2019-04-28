@@ -36,12 +36,12 @@ function saveObj(key, value){
     Utils.log('Set key(' + key + '), value(' + str + ') in metadata succeed.');
 }
 
-function transferCoin(dest, amount){
+function transferCoin(dest, amount, remark){
     if(amount === '0'){
         return true; 
     }
 
-    Chain.payCoin(dest, amount);
+    Chain.payCoin(dest, amount, '', remark);
     Utils.log('Pay coin( ' + amount + ') to dest account(' + dest + ') succeed.');
 }
 
@@ -74,6 +74,7 @@ function extractInput(){
 }
 
 function distribute(allReward){
+    Utils.assert(Chain.msg.sender === dposContract, 'Chain.msg.sender != dpos contract(' + dposContract + ').');
     let unitReward = Utils.int64Div(allReward, states.pledgedShares);
 
     Object.keys(cobuilders).forEach(function(key){
@@ -87,7 +88,6 @@ function distribute(allReward){
     cobuilders[cfg.initiator][award] = Utils.int64Add(cobuilders[cfg.initiator][award], left);
 
     saveObj(cobuildersKey, cobuilders);
-    Chain.tlog('distribute', allReward);
 }
 
 function cobuilder(shares, isPledged){
@@ -113,7 +113,6 @@ function subscribe(shares){
     states.allShares = Utils.int64Add(states.allShares, shares);
     saveObj(statesKey, states);
     saveObj(cobuildersKey, cobuilders);
-    Chain.tlog('subscribe', Chain.tx.sender, shares, Chain.msg.coinAmount);
 }
 
 function revoke(){
@@ -134,8 +133,7 @@ function revoke(){
         amount = Utils.int64Add(amount, stake[award]);
     }
 
-    transferCoin(Chain.tx.sender, amount);
-    Chain.tlog('revoke', Chain.tx.sender, stake[share], amount);
+    transferCoin(Chain.tx.sender, amount, 'revoke');
 }
 
 function applyInput(pool, ratio, node){
@@ -181,7 +179,6 @@ function coApply(role, pool, ratio, node){
    
     let pledgeAmount = Utils.int64Mul(cfg.unit, states.allShares);
     callDPOS(pledgeAmount, applyInput(pool, ratio, node));
-    Chain.tlog('apply', pledgeAmount, pool, ratio);
 }
 
 function appendInput(){
@@ -202,7 +199,6 @@ function coAppend(){
 
     setStatus();
     callDPOS(appendAmount, appendInput());
-    Chain.tlog('coAppend', appendAmount);
 }
 
 function coSetNodeAddress(address){
@@ -216,8 +212,6 @@ function coSetNodeAddress(address){
     };
 
     callDPOS('0', input);
-    Chain.tlog('coSetNodeAddress', address);
-
 }
 
 function coSetVoteDividend(pool, ratio){
@@ -237,7 +231,6 @@ function coSetVoteDividend(pool, ratio){
     }
 
     callDPOS('0', input);
-    Chain.tlog('coSetVoteDividend', pool, ratio);
 }
 
 function transferKey(from, to){
@@ -289,8 +282,7 @@ function accept(transferor){
 
     Chain.del(key);
     saveObj(cobuildersKey, cobuilders);
-    transferCoin(transferor, Utils.int64Add(Chain.msg.coinAmount, gain));
-    Chain.tlog('deal', transferor, Chain.tx.sender, shares, Chain.msg.coinAmount);
+    transferCoin(transferor, Utils.int64Add(Chain.msg.coinAmount, gain), 'transfer');
 }
 
 function withdrawProposal(){
@@ -329,12 +321,10 @@ function coWithdraw(){
     if(states.applied){
         let proposal = withdrawProposal();
         withdrawing(proposal);
-        Chain.tlog('coWithdraw', cfg.initiator);
     }
     else{
         states.disabled = true;
         saveObj(statesKey, states);
-        Chain.tlog('disabled', cfg.initiator);
     }
 }
 
@@ -390,7 +380,6 @@ function received(){
     if(false !== loadObj(withdrawKey)){
         Chain.del(withdrawKey);
     }
-    Chain.tlog('receivedPledge', Chain.msg.coinAmount);
 }
 
 function coExtract(list){
@@ -403,8 +392,7 @@ function coExtract(list){
         cobuilders[Chain.tx.sender][award] = '0';
 
         saveObj(cobuildersKey, cobuilders);
-        transferCoin(Chain.tx.sender, profit);
-        return Chain.tlog('coExtract', Chain.tx.sender, profit);
+        return transferCoin(Chain.tx.sender, profit, 'coReward');
     }
 
     assert(typeof list === 'object', 'Wrong parameter type.');
@@ -415,8 +403,7 @@ function coExtract(list){
         let gain = cobuilders[list[i]][award];
         cobuilders[list[i]][award] = '0';
 
-        transferCoin(list[i], gain);
-        Chain.tlog('coExtract', list[i], gain);
+        transferCoin(list[i], gain, 'coReward');
     }
 
     saveObj(cobuildersKey, cobuilders);

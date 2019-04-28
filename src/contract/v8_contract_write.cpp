@@ -508,6 +508,11 @@ namespace bumo {
 				input = ToCString(v8::String::Utf8Value(args[2]));
 			}
 
+			std::string remark;
+			if (args.Length() > 3 && CHECK_VERSION_GT_1002){
+				remark = ToCString(v8::String::Utf8Value(args[3]));
+			}
+
 			V8Contract *v8_contract = GetContractFrom(args.GetIsolate());
 			if (!v8_contract || !v8_contract->parameter_.ledger_context_) {
 				error_desc = "Failed to find contract object by isolate id";
@@ -536,6 +541,7 @@ namespace bumo {
 			protocol::Operation *ope = txenv.mutable_transaction()->add_operations();
 
 			ope->set_type(protocol::Operation_Type_PAY_COIN);
+			ope->set_metadata(remark);
 			ope->mutable_pay_coin()->set_dest_address(dest_address);
 			ope->mutable_pay_coin()->set_amount(pay_amount);
 			ope->mutable_pay_coin()->set_input(input);
@@ -660,6 +666,11 @@ namespace bumo {
 				input = ToCString(v8::String::Utf8Value(args[4]));
 			}
 
+			std::string remark;
+			if (args.Length() > 5 && CHECK_VERSION_GT_1002){
+				remark = ToCString(v8::String::Utf8Value(args[5]));
+			}
+
 			V8Contract *v8_contract = GetContractFrom(args.GetIsolate());
 			if (!v8_contract || !v8_contract->parameter_.ledger_context_) {
 				error_desc = "Failed to find contract object by isolate id";
@@ -690,6 +701,7 @@ namespace bumo {
 			protocol::Operation *ope = txenv.mutable_transaction()->add_operations();
 
 			ope->set_type(protocol::Operation_Type_PAY_ASSET);
+			ope->set_metadata(remark);
 
 			ope->mutable_pay_asset()->set_dest_address(dest_address);
 			ope->mutable_pay_asset()->mutable_asset()->mutable_key()->set_issuer(issuer);
