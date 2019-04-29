@@ -516,7 +516,7 @@ function init(input_str){
     let dpos_cfg = queryDposCfg();
     let initFund = Utils.int64Sub(Chain.msg.coinAmount, dpos_cfg.base_reserve);
     Utils.assert(Utils.int64Compare(initFund, minInitAmount) >= 0, 'Initiating funds <= ' + minInitAmount + '.');
-    Utils.assert(Utils.int64Mod(initFund, params.unit) === '0', '(Initiating funds - base_reserve) % unit != 0.');
+    Utils.assert(Utils.int64Mod(initFund, params.unit) === '0', '(Initiating funds - base reserve) % unit != 0.');
 
     cfg = {
         'initiator'   : Chain.tx.sender,
