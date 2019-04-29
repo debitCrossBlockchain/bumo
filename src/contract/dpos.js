@@ -150,18 +150,18 @@ function award(candidates, dist, address){
     }
 
     if(dist[address][2] === 0){
-        transferCoin(address,dist[address][0], rewardInput(), 'nodeReward');
+        transferCoin(address,dist[address][0], rewardInput(), address + '_nodeReward');
     }
     else if(dist[address][2] === 100){
-        transferCoin(dist[address][1],dist[address][0], rewardInput(), 'votingReward');
+        transferCoin(dist[address][1],dist[address][0], rewardInput(), address + '_votingReward');
     }
     else{
         let onePercent = Utils.int64Div(dist[address][0], 100);
         let dividend   = Utils.int64Mul(onePercent,dist[address][2]);
-        transferCoin(dist[address][1], dividend, rewardInput(), 'votingReward');
+        transferCoin(dist[address][1], dividend, rewardInput(), address + '_votingReward');
 
         let reserve = Utils.int64Sub(dist[address][0], dividend);
-        transferCoin(address, reserve, rewardInput(), 'nodeReward');
+        transferCoin(address, reserve, rewardInput(), address + '_nodeReward');
     }
 
     dist[address][0] = '0';
