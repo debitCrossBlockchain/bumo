@@ -206,12 +206,10 @@ function coSetNodeAddress(address){
 
     let input = {
         'method' : 'setNodeAddress',
-        'params':{
-            'address': address
-        }
+        'params':{ 'address': address }
     };
 
-    callDPOS('0', input);
+    callDPOS('0', JSON.stringify(input));
 }
 
 function coSetVoteDividend(pool, ratio){
@@ -230,7 +228,7 @@ function coSetVoteDividend(pool, ratio){
         input.params.ratio = ratio;
     }
 
-    callDPOS('0', input);
+    callDPOS('0', JSON.stringify(input));
 }
 
 function transferKey(from, to){
