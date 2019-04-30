@@ -38,7 +38,7 @@ namespace bumo {
 
 	bool OperationFrm::dposAddrAvailable(const std::string& src, const std::string& dest){
 		AccountFrm::pointer dpos;
-		if (!Environment::AccountFromDB(dest, dpos) && dest == General::CONTRACT_DPOS_ADDRESS && src != Configure::Instance().genesis_configure_.account_){
+		if (!Environment::AccountFromDB(dest, dpos) && dest == General::CONTRACT_DPOS_ADDRESS && src != General::DPOS_CREATOR_ADDRESS){
 			return false;
 		}
 
