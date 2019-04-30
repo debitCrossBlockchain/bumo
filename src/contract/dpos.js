@@ -935,12 +935,11 @@ function initialization(params){
         'pass_rate'                : 0.5,
         'valid_period'             : 2592000000000,  /* 30 * 24 * 60 * 60 * 1000 * 1000 */
         'vote_unit'                : 1000000000,     /* 10 0000 0000 */
-        'reward_allocation_share'  : [50,8,35,7],    /* validators 50%, validator candidates 8%, kols 35%, kol candidates 7% */
+        'reward_allocation_share'  : [50,10,35,5],    /* validators 50%, validator candidates 10%, kols 35%, kol candidates 5% */
         'logic_contract'           : params.logic_contract
     };
     saveObj(configKey, cfg);
-
-    Utils.assert(Utils.int64Compare(params.committee.length, cfg.committee_size) <= 0, 'The committee size is exceeded.');
+    Utils.assert(params.committee.length >= 1 && params.committee.length <= cfg.committee_size, 'Illegal committee size.');
 
     let i = 0;
     for(i = 0; i < params.committee.length; i += 1){
