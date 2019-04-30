@@ -203,6 +203,7 @@ function coAppend(){
 
 function coSetNodeAddress(address){
     Utils.assert(Utils.addressCheck(address),  'Invalid address:' + address + '.');
+    Utils.assert(Chain.tx.sender === cfg.initiator, 'Only the initiator has the right to set node address.');
 
     let input = {
         'method' : 'setNodeAddress',
@@ -213,6 +214,8 @@ function coSetNodeAddress(address){
 }
 
 function coSetVoteDividend(pool, ratio){
+    Utils.assert(Chain.tx.sender === cfg.initiator, 'Only the initiator has the right to set voting dividend.');
+
     let input = {
         'method' : 'setVoteDividend',
         'params':{}
