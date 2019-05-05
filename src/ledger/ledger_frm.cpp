@@ -516,6 +516,7 @@ namespace bumo {
 					return false;
 				}
 				account->GetProtoAccount().set_balance(new_balance);
+				LOG_TRACE("Allocate block reward, amount:(" FMT_I64 "), seq:(" FMT_I64 ")", total_reward, ledger_.header().seq());
 			}
 			else {
 				LOG_TRACE("Failed to get dpos contract address(%s), allocate reward to validators directly", GET_CONTRACT_VALIDATOR_ADDRESS);

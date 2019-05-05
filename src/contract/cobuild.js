@@ -1,9 +1,8 @@
 'use strict';
 
 const oneBU          = 100000000; /* 1 0000 0000 MO */
-const maxShare       = 1000;
+const minUnit        = 100000 * oneBU; /* 10 0000 BU */
 const minInitAmount  = 1000000 * oneBU; /* 100 0000 BU */
-const minApplyPledge = 5000000 * oneBU; /* 500 0000 BU */
 
 const statesKey     = 'states';
 const configKey     = 'config';
@@ -11,9 +10,12 @@ const withdrawKey   = 'withdraw';
 const cobuildersKey = 'cobuilders';
 const dposContract  = 'buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss';
 
-const share   = 'share';
-const gain    = 'gain';
-const pledged = 'pledged';
+const share     = 'share';
+const award     = 'award';
+const pledged   = 'pledged';
+const validator = 'validator';
+const kol       = 'kol';
+
 
 let cfg  = {};
 let states = {};
@@ -34,18 +36,26 @@ function saveObj(key, value){
     Utils.log('Set key(' + key + '), value(' + str + ') in metadata succeed.');
 }
 
-function transferCoin(dest, amount){
+function transferCoin(dest, amount, remark){
     if(amount === '0'){
         return true; 
     }
 
-    Chain.payCoin(dest, amount);
+    Chain.payCoin(dest, amount, '', remark);
     Utils.log('Pay coin( ' + amount + ') to dest account(' + dest + ') succeed.');
 }
 
 function callDPOS(amount, input){
     Chain.payCoin(dposContract, amount, input);
     Utils.log('Call DPOS contract(address: ' + dposContract + ', input: ' + input +') succeed.');
+}
+
+function queryDposCfg(){
+    let input = {'method': 'getConfiguration'};
+    let res = Chain.contractQuery(dposContract, JSON.stringify(input)); /* get base_reserve and valid_period from dpos contract */
+    Utils.assert(res.error === undefined && res.result !== undefined, 'Failed to query contract, ' + JSON.stringify(res));
+    Utils.log('Query DPOS contract(address: ' + dposContract + ', input:' + input + ') succeed.');
+    return JSON.parse(res.result).configuration;
 }
 
 function prepare(){
@@ -63,62 +73,33 @@ function extractInput(){
     return JSON.stringify({ 'method' : 'extract' });
 }
 
-function getReward(){
-    let before = Chain.getBalance(Chain.thisAddress);
-    callDPOS('0', extractInput());
-    let after = Chain.getBalance(Chain.thisAddress);
-
-    return Utils.int64Sub(after, before);
-}
-
-function rewardCobuilders(reward, shares){
-    let unitReward = Utils.int64Div(reward, shares);
+function distribute(allReward){
+    Utils.assert(Chain.msg.sender === dposContract, 'Chain.msg.sender != dpos contract(' + dposContract + ').');
+    let unitReward = Utils.int64Div(allReward, states.pledgedShares);
 
     Object.keys(cobuilders).forEach(function(key){
         if(cobuilders[key][pledged]){
-            let keyReward = Utils.int64Mul(unitReward, cobuilders[key][share]);
-            cobuilders[key][gain] = Utils.int64Add(cobuilders[key][gain], keyReward);
+            let each = Utils.int64Mul(unitReward, cobuilders[key][share]);
+            cobuilders[key][award] = Utils.int64Add(cobuilders[key][award], each);
         }
     });
+    
+    let left = Utils.int64Mod(allReward, states.pledgedShares);
+    cobuilders[cfg.initiator][award] = Utils.int64Add(cobuilders[cfg.initiator][award], left);
 
-    return Utils.int64Mod(reward, shares);
-}
-
-function distribute(){
-    let reward = getReward();
-    if(reward === '0'){
-        return;
-    }
-
-    let left = 0;
-    if(cfg.rewardRatio === 100){
-        left = rewardCobuilders(reward, states.pledgedShares);
-    }
-    else{
-        let initiator = cobuilders[cfg.initiator];
-        delete cobuilders[cfg.initiator];
-
-        let cobuildersReward = Utils.int64Mul(Utils.int64Div(reward, 100), cfg.rewardRatio); 
-        let cobuildersShares = Utils.int64Sub(states.pledgedShares, initiator[share]);
-        left = rewardCobuilders(cobuildersReward, cobuildersShares);
-
-        initiator[gain] = Utils.int64Add(initiator[gain], Utils.int64Sub(reward, cobuildersReward));
-        cobuilders[cfg.initiator] = initiator;
-    }
-
-    cobuilders[cfg.initiator][gain] = Utils.int64Add(cobuilders[cfg.initiator][gain], left);
+    saveObj(cobuildersKey, cobuilders);
 }
 
 function cobuilder(shares, isPledged){
     return {
         share   :shares,
         pledged :isPledged || false,
-        gain    :'0'
+        award    :'0'
     };
 }
 
 function subscribe(shares){
-    Utils.assert(typeof shares === 'number', 'Illegal parameter type.');
+    Utils.assert(shares > 0 && shares % 1 === 0, 'Invalid shares:' + shares + '.');
     Utils.assert(Utils.int64Compare(Utils.int64Mul(cfg.unit, shares), Chain.msg.coinAmount) === 0, 'unit * shares !== Chain.msg.coinAmount.');
 
     if(cobuilders[Chain.tx.sender] === undefined){
@@ -130,13 +111,14 @@ function subscribe(shares){
     }
 
     states.allShares = Utils.int64Add(states.allShares, shares);
-    Utils.assert(Utils.int64Compare(states.allShares, maxShare) <= 0, 'Share overrun.');
-
     saveObj(statesKey, states);
     saveObj(cobuildersKey, cobuilders);
 }
 
 function revoke(){
+    if(Chain.tx.sender === cfg.initiator){
+        Utils.assert(states.disabled, Chain.tx.sender + ' is initiator.');
+    }
     Utils.assert(cobuilders[Chain.tx.sender][pledged] === false, 'The share of '+ Chain.tx.sender + ' has been pledged.');
 
     let stake = cobuilders[Chain.tx.sender];
@@ -147,24 +129,29 @@ function revoke(){
     saveObj(statesKey, states);
 
     let amount = Utils.int64Mul(cfg.unit, stake[share]);
-    if(stake[gain] !== '0'){
-        amount = Utils.int64Add(amount, stake[gain]);
+    if(stake[award] !== '0'){
+        amount = Utils.int64Add(amount, stake[award]);
     }
 
-    transferCoin(Chain.tx.sender, amount);
+    transferCoin(Chain.tx.sender, amount, 'revoke');
 }
 
-function applyInput(node){
+function applyInput(pool, ratio, node){
     let application = {
         'method' : 'apply',
         'params':{
-            'role': states.role || 'kol'
+            'role': states.role,
+            'pool': pool,
+            'ratio':ratio
         }
     };
 
-    if(node !== undefined && Utils.addressCheck(node)){
-        application.params.node = node;
+    if(application.params.role === kol){
+        return JSON.stringify(application);
     }
+
+    Utils.assert(Utils.addressCheck(node) && node !== Chain.thisAddress, 'Invalid address:' + node + '.');
+    application.params.node = node;
 
     return JSON.stringify(application);
 }
@@ -178,7 +165,11 @@ function setStatus(){
     saveObj(cobuildersKey, cobuilders);
 }
 
-function apply(role, node){
+function coApply(role, pool, ratio, node){
+    Utils.assert(role === validator || role === kol,  'Unknown role:' + role + '.');
+    Utils.assert(Utils.addressCheck(pool), 'Invalid address:' + pool + '.');
+    Utils.assert(0 <= ratio && ratio <= 100 && ratio % 1 === 0, 'Invalid vote reward ratio:' + ratio + '.');
+
     Utils.assert(states.applied === false, 'Already applied.');
     Utils.assert(Chain.tx.sender === cfg.initiator, 'Only the initiator has the right to apply.');
     Utils.assert(Utils.int64Compare(states.allShares, cfg.raiseShares) >= 0, 'Co-building fund is not enough.');
@@ -187,7 +178,7 @@ function apply(role, node){
     setStatus();
    
     let pledgeAmount = Utils.int64Mul(cfg.unit, states.allShares);
-    callDPOS(pledgeAmount, applyInput(node));
+    callDPOS(pledgeAmount, applyInput(pool, ratio, node));
 }
 
 function appendInput(){
@@ -199,8 +190,8 @@ function appendInput(){
     return JSON.stringify(addition);
 }
 
-function append(){
-    Utils.assert(states.applied === true, 'Has not applied.');
+function coAppend(){
+    Utils.assert(states.applied, 'Has not applied.');
     Utils.assert(Chain.tx.sender === cfg.initiator, 'Only the initiator has the right to append.');
 
     let appendShares = Utils.int64Sub(states.allShares, states.pledgedShares);
@@ -210,31 +201,70 @@ function append(){
     callDPOS(appendAmount, appendInput());
 }
 
+function coSetNodeAddress(address){
+    Utils.assert(Utils.addressCheck(address),  'Invalid address:' + address + '.');
+    Utils.assert(Chain.tx.sender === cfg.initiator, 'Only the initiator has the right to set node address.');
+
+    let input = {
+        'method' : 'setNodeAddress',
+        'params':{ 'address': address }
+    };
+
+    callDPOS('0', JSON.stringify(input));
+}
+
+function coSetVoteDividend(pool, ratio){
+    Utils.assert(Chain.tx.sender === cfg.initiator, 'Only the initiator has the right to set voting dividend.');
+
+    let input = {
+        'method' : 'setVoteDividend',
+        'params':{}
+    };
+
+    if(pool !== undefined){
+        Utils.assert(Utils.addressCheck(pool), 'Invalid address:' + pool + '.');
+        input.params.pool = pool;
+    }
+
+    if(ratio !== undefined){
+        Utils.assert(0 <= ratio && ratio <= 100 && ratio % 1 === 0, 'Invalid vote reward ratio:' + ratio + '.');
+        input.params.ratio = ratio;
+    }
+
+    callDPOS('0', JSON.stringify(input));
+}
+
 function transferKey(from, to){
     return 'transfer_' + from + '_to_' + to;
 }
 
 function transfer(to, shares){
-    Utils.assert(Utils.addressCheck(to), 'Arg-to is not a valid address.');
-    Utils.assert(Utils.int64Compare(shares, '0') >= 0, 'Arg-shares must be >= 0.');
-    Utils.assert(cobuilders[Chain.tx.sender][pledged] === true, 'Unpled shares can be withdrawn directly.');
+    Utils.assert(Utils.addressCheck(to), 'Invalid address:' + to + '.');
+    Utils.assert(shares > 0 && shares % 1 === 0, 'Invalid shares:' + shares + '.');
+    Utils.assert(cobuilders[Chain.tx.sender][pledged], 'Unpled shares can be withdrawn directly.');
     Utils.assert(Utils.int64Compare(shares, cobuilders[Chain.tx.sender][share]) <= 0, 'Transfer shares > holding shares.');
 
+    shares = String(shares);
+
     let key = transferKey(Chain.tx.sender, to);
+    let transfered = Chain.load(key);
+    if(transfered !== false){
+        shares = Utils.int64Add(transfered ,shares);
+    }
+    
     Chain.store(key, shares);
 }
 
 function accept(transferor){
-    Utils.assert(Utils.addressCheck(transferor), 'Arg-to is not a valid address.');
-    Utils.assert(cobuilders[transferor][pledged] === true, 'Unpled shares can be revoked directly.');
+    Utils.assert(Utils.addressCheck(transferor), 'Invalid address:' + transferor + '.');
+    Utils.assert(cobuilders[transferor][pledged], 'Unpled shares can be revoked directly.');
 
     let key = transferKey(transferor, Chain.tx.sender);
     let shares = Chain.load(key);
     Utils.assert(shares !== false, 'Failed to get ' + key + ' from metadata.');
     Utils.assert(Utils.int64Compare(Utils.int64Mul(cfg.unit, shares), Chain.msg.coinAmount) === 0, 'unit * shares !== Chain.msg.coinAmount.');
 
-    distribute();
-
+    callDPOS('0', extractInput());
     if(cobuilders[Chain.tx.sender] === undefined){
         cobuilders[Chain.tx.sender] = cobuilder(shares, true);
     }
@@ -242,23 +272,25 @@ function accept(transferor){
         cobuilders[Chain.tx.sender][share] = Utils.int64Add(cobuilders[Chain.tx.sender][share], shares);
     }
 
-    let reward = '0';
+    let gain = '0';
     if(Utils.int64Sub(cobuilders[transferor][share], shares) === 0){
-        reward = cobuilders[transferor][gain];
+        gain = cobuilders[transferor][award];
         delete cobuilders[transferor];
     }
     else{
         cobuilders[transferor][share] = Utils.int64Sub(cobuilders[transferor][share], shares);
     }
 
+    Chain.del(key);
     saveObj(cobuildersKey, cobuilders);
-    transferCoin(transferor, Utils.int64Add(Chain.msg.coinAmount, reward));
+    transferCoin(transferor, Utils.int64Add(Chain.msg.coinAmount, gain), 'transfer');
 }
 
 function withdrawProposal(){
+    let dpos_cfg = queryDposCfg();
     let proposal = {
         'withdrawed' : false,
-        'expiration' : Chain.block.timestamp + cfg.valid_period,
+        'expiration' : Chain.block.timestamp + dpos_cfg.valid_period,
         'sum':'0',
         'ballot': {}
 
@@ -271,7 +303,7 @@ function withdrawInput(){
     let application = {
         'method' : 'withdraw',
         'params':{
-            'role':states.role || 'kol'
+            'role':states.role || kol
         }
     };
 
@@ -284,16 +316,21 @@ function withdrawing(proposal){
     callDPOS('0', withdrawInput());
 }
 
-function withdraw(){
-    Utils.assert(states.applied === true, 'Has not applied yet.');
+function coWithdraw(){
     Utils.assert(Chain.tx.sender === cfg.initiator, 'Only the initiator has the right to withdraw.');
 
-    let proposal = withdrawProposal();
-    withdrawing(proposal);
+    if(states.applied){
+        let proposal = withdrawProposal();
+        withdrawing(proposal);
+    }
+    else{
+        states.disabled = true;
+        saveObj(statesKey, states);
+    }
 }
 
 function poll(){
-    Utils.assert(states.applied === true, 'Has not applied yet.');
+    Utils.assert(states.applied, 'Has not applied yet.');
     Utils.assert(cobuilders[Chain.tx.sender][pledged], Chain.tx.sender + ' is not involved in application.');
 
     let proposal = loadObj(withdrawKey);
@@ -314,11 +351,13 @@ function poll(){
     } 
 
     withdrawing(proposal);
+    Chain.tlog('votePassed', proposal.sum);
 }
 
 function resetStatus(){
     delete states.role;
 
+    states.disabled = true;
     states.applied = false;
     states.pledgedShares = '0';
     saveObj(statesKey, states);
@@ -332,29 +371,43 @@ function takeback(){
     assert(proposal !== false, 'Failed to get ' + withdrawKey + ' from metadata.');
     assert(proposal.withdrawed && Chain.block.timestamp >= proposal.expiration, 'Insufficient conditions for recovering the deposit.');
 
-    resetStatus();
-    Chain.del(withdrawKey);
     callDPOS('0', withdrawInput());
 }
 
 function received(){
-    resetStatus(); 
+    Utils.assert(Chain.msg.sender === dposContract, 'Chain.msg.sender != dpos contract(' + dposContract + ').');
 
+    resetStatus(); 
     if(false !== loadObj(withdrawKey)){
         Chain.del(withdrawKey);
     }
 }
 
-function extract(){
-    Utils.assert(cobuilders[Chain.tx.sender] !== undefined, Chain.tx.sender + ' is not involved in co-building.');
+function coExtract(list){
+    callDPOS('0', extractInput());
+    cobuilders = loadObj(cobuildersKey);
+    Utils.assert(cobuilders !== false, 'Failed to get ' + cobuildersKey + ' from metadata.');
 
-    distribute();
-    let reward = cobuilders[Chain.tx.sender][gain];
+    if(list === undefined){
+        let profit = cobuilders[Chain.tx.sender][award];
+        cobuilders[Chain.tx.sender][award] = '0';
 
-    cobuilders[Chain.tx.sender][gain] = '0';
+        saveObj(cobuildersKey, cobuilders);
+        return transferCoin(Chain.tx.sender, profit, 'coReward');
+    }
+
+    assert(typeof list === 'object', 'Wrong parameter type.');
+    assert(list.length <= 100, 'The award-receiving addresses:' + list.length + ' exceed upper limit:100.');
+
+    let i = 0;
+    for(i = 0; i < list.length; i += 1){
+        let gain = cobuilders[list[i]][award];
+        cobuilders[list[i]][award] = '0';
+
+        transferCoin(list[i], gain, 'coReward');
+    }
+
     saveObj(cobuildersKey, cobuilders);
-
-    transferCoin(Chain.tx.sender, reward);
 }
 
 function getCobuilders(){
@@ -392,10 +445,9 @@ function query(input_str){
     }
     else if(input.method === 'getTransferInfo'){
         let key = transferKey(params.from, params.to);
-        result.transferInfo = Chain.load(key);
+        result.transferShares = Chain.load(key);
     }
 
-    Utils.log(result);
     return JSON.stringify(result);
 }
 
@@ -405,42 +457,52 @@ function main(input_str){
 
     prepare();
 
+    if(states.disabled && input.method !== 'revoke'){
+        return 'Co-build is disband.';
+    }
+
+    if(input.method !== 'subscribe' && input.method !== 'accept' && input.method !== 'reward' && input.method !== 'refund'){
+        Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
+    }
+
     if(input.method === 'subscribe'){
 	    subscribe(params.shares);
     }
     else if(input.method === 'revoke'){
-        Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
 	    revoke();
     }
-    else if(input.method === 'apply'){
-        Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
-        apply(params.role, params.node);
+    else if(input.method === 'coApply'){
+        coApply(params.role, params.pool, params.ratio, params.node);
     }
-    else if(input.method === 'append'){
-        Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
-        append();
+    else if(input.method === 'coAppend'){
+        coAppend();
     }
-    else if(input.method === 'withdraw'){
-        Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
-    	withdraw();
+    else if(input.method === 'coSetNodeAddress'){
+	    coSetNodeAddress(params.address);
+    }
+    else if(input.method === 'coSetVoteDividend'){
+        coSetVoteDividend(params.role, params.pool, params.ratio);
     }
     else if(input.method === 'transfer'){
-        Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
     	transfer(params.to, params.shares);
     }
     else if(input.method === 'accept'){
     	accept(params.transferor);
     }
-    else if(input.method === 'extract'){
-        extract();
+    else if(input.method === 'coExtract'){
+        coExtract(params !== undefined ? params.list : params);
     }
-    else if(input.method === 'takeback'){
-        Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
-    	takeback();
+    else if(input.method === 'coWithdraw'){
+    	coWithdraw();
     }
     else if(input.method === 'poll'){
-        Utils.assert(Chain.msg.coinAmount === '0', 'Chain.msg.coinAmount != 0.');
 	    poll();
+    }
+    else if(input.method === 'takeback'){
+    	takeback();
+    }
+    else if(input.method === 'reward'){
+        distribute(Chain.msg.coinAmount);
     }
     else if(input.method === 'refund'){
         received();
@@ -449,30 +511,30 @@ function main(input_str){
 
 function init(input_str){
     let params = JSON.parse(input_str).params;
-    Utils.assert(typeof params.ratio === 'number' && typeof params.unit === 'number' && typeof params.shares === 'number', 'Illegal parameter type.');
+    Utils.assert(Utils.int64Mod(params.unit, oneBU) === '0' && Utils.int64Compare(params.unit, minUnit) >= 0, 'Illegal unit:' + params.unit + '.');
+    Utils.assert(Utils.int64Mod(params.shares, 1) === '0', 'Illegal raise shares:' + params.shares + '.');
 
-    let mul = Utils.int64Mul(params.unit, params.shares);
-    Utils.assert(Utils.int64Compare(mul, minApplyPledge) >= 0, 'Crowdfunding < minimum application pledge.');
-    Utils.assert(params.ratio > 0 && params.ratio <= 100, 'The reward ratio should be > 0 and <= 100.');
-    Utils.assert(Utils.int64Compare(Chain.msg.coinAmount, minInitAmount) >= 0 && Utils.int64Mod(Chain.msg.coinAmount, params.unit) === '0', 'Initiator subscription amount is illegal.');
+    let dpos_cfg = queryDposCfg();
+    let initFund = Utils.int64Sub(Chain.msg.coinAmount, dpos_cfg.base_reserve);
+    Utils.assert(Utils.int64Compare(initFund, minInitAmount) >= 0, 'Initiating funds <= ' + minInitAmount + '.');
+    Utils.assert(Utils.int64Mod(initFund, params.unit) === '0', '(Initiating funds - base reserve) % unit != 0.');
 
     cfg = {
         'initiator'   : Chain.tx.sender,
-        'rewardRatio' : params.ratio,
         'unit'        : params.unit,
         'raiseShares' : params.shares
     };
     saveObj(configKey, cfg);
 
-    let initShare = Utils.int64Div(Chain.msg.coinAmount, cfg.unit);
+    let initShare = Utils.int64Div(initFund, cfg.unit);
     cobuilders[Chain.tx.sender] = cobuilder(initShare);
     saveObj(cobuildersKey, cobuilders);
 
     states = {
+        'disabled':false,
         'applied': false,
         'allShares': initShare,
         'pledgedShares': '0'
     };
     saveObj(statesKey, states);
-
 }

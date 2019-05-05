@@ -45,6 +45,7 @@ namespace bumo{
 		Result GetResult() const;
 		int64_t GetOpeFee() const;
 
+		static bool dposAddrAvailable(const std::string& src, const std::string& dest);
 		static Result CheckValid(const protocol::Operation& ope, const std::string &source_address, uint32_t ldcontext_stack_size);
 	protected:
 		void CreateAccount(std::shared_ptr<Environment> environment);

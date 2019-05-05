@@ -34,7 +34,7 @@ namespace bumo {
 	const uint32_t General::LEDGER_VERSION = 1003;
 	const uint32_t General::LEDGER_MIN_VERSION = 1000;
 	const uint32_t General::MONITOR_VERSION = 1000;
-	const char *General::BUMO_VERSION = "1.2.0";
+	const char *General::BUMO_VERSION = "1.3.0";
 
 #ifdef WIN32
 	const char *General::DEFAULT_KEYVALUE_DB_PATH = "data/keyvalue.db";
@@ -91,9 +91,12 @@ namespace bumo {
 	//std::string account1 = pub_key.GetEncAddress(); "buQtxgoaDrVJGtoPT66YnA2S84yE8FbBqQDJ"
 	//pub_key.Init("2");
 	//std::string account2 = pub_key.GetEncAddress();"buQiQgRerQM1fUM3GkqUftpNxGzNg2AdJBpe"
+	//pub_key.Init("3");
+	//std::string account3 = pub_key.GetEncAddress();"buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss"
 
 	const char *General::CONTRACT_VALIDATOR_ADDRESS = "buQtxgoaDrVJGtoPT66YnA2S84yE8FbBqQDJ";
 	const char *General::CONTRACT_FEE_ADDRESS = "buQiQgRerQM1fUM3GkqUftpNxGzNg2AdJBpe";
+	const char *General::DPOS_CREATOR_ADDRESS = "buQgCBN4MSZMWRfJbksh9PWpKqgY3tSEMM4d";
 	const char *General::CONTRACT_DPOS_ADDRESS = "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss";
 
 	const int32_t General::TRANSACTION_LIMIT_SIZE = utils::BYTES_PER_MEGA;
