@@ -90,7 +90,7 @@ namespace bumo {
 		}
 
 		if (!ledger_db->Put(General::KEY_LEDGER_SEQ, account_db_seq)) {
-			LOG_ERROR("Failed to get ledger seq from account-db");
+			LOG_ERROR("Failed to set ledger seq to account-db");
 			return false;
 		}
 
@@ -495,7 +495,7 @@ namespace bumo {
 				PROCESS_EXIT("Failed to write ledger and transaction to database(%s)", ledger_db->error_desc().c_str());
 			}
 
-			//Write acount db
+			//Write account db
 			if (!Storage::Instance().account_db()->WriteBatch(*batch)) {
 				PROCESS_EXIT("Failed to write account to database, %s", Storage::Instance().account_db()->error_desc().c_str());
 			}
@@ -561,7 +561,7 @@ namespace bumo {
 		data["name"] = "ledger_manager";
 		data["tx_count"] = GetLastClosedLedger().tx_count();
 		data["account_count"] = GetAccountNum();
-		data["ledger_sequence"] = GetLastClosedLedger().seq();
+		data["ledger_sequence"] = GetLastClosedLedger().seq(); 
 		data["time"] = utils::String::Format(FMT_I64 " ms",
 			(utils::Timestamp::HighResolution() - begin_time) / utils::MICRO_UNITS_PER_MILLI);
 		data["hash_type"] = HashWrapper::GetLedgerHashType() == HashWrapper::HASH_TYPE_SM3 ? "sm3" : "sha256";
@@ -974,6 +974,10 @@ namespace bumo {
 				new_tx->GetResult().code() == protocol::ERRCODE_CONTRACT_TOO_MANY_TRANSACTIONS) {
 				result = new_tx->GetResult();
 				LOG_ERROR("%s", new_tx->GetResult().desc().c_str());
+				// Version check condition can be remove after version 1002
+				if (CHECK_VERSION_GT_1002) {
+					ledger_context->transaction_stack_.pop_back();
+				}
 				return result;
 			}
 

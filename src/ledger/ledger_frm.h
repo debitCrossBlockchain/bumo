@@ -100,7 +100,8 @@ namespace bumo {
 		bool Commit(KVTrie* trie, int64_t& new_count, int64_t& change_count);
 
 		bool AllocateReward();
-		
+		bool AllocateRewardDirectly(int64_t total_reward);
+
 		void SetTestMode(bool test_mode);
 		bool IsTestMode();
 

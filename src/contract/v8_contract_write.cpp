@@ -21,7 +21,7 @@ namespace bumo {
 				break;
 			}
 
-			if (v8_contract->parameter_.this_address_ != General::CONTRACT_FEE_ADDRESS) {
+			if (v8_contract->parameter_.this_address_ != GET_CONTRACT_FEE_ADDRESS) {
 				error_desc = "This address has no priority.";
 				break;
 			}
@@ -53,14 +53,14 @@ namespace bumo {
 				break;
 			}
 			if (!args[0]->IsBoolean()) {
-				error_desc.append("parameter 0 should be boolean");
+				error_desc.append(",parameter 0 should be boolean");
 				break;
 			}
 
 			v8::HandleScope scope(args.GetIsolate());
 			if (args.Length() == 2) {
 				if (!args[1]->IsString()) {
-					error_desc.append("parameter 1 should be string");
+					error_desc.append(",parameter 1 should be string");
 					break;
 				}
 				else {
@@ -187,7 +187,7 @@ namespace bumo {
 			bumo::AccountFrm::pointer account_frm = nullptr;
 			V8Contract *v8_contract = GetContractFrom(args.GetIsolate());
 			LedgerContext *ledger_context = v8_contract->GetParameter().ledger_context_;
-			ledger_context->GetBottomTx()->ContractStepInc(1000);
+			ledger_context->GetBottomTx()->ContractStepInc(100);
 
 			if (v8_contract->IsReadonly()) {
 				error_desc = "The contract is readonly";
@@ -221,13 +221,12 @@ namespace bumo {
 			parameter.this_address_ = v8_contract->GetParameter().this_address_;
 
 			Result tmp_result = ContractManager::Instance().Execute(contract.type(), parameter);
+			ledger_context->transaction_stack_.pop_back();
 			if (tmp_result.code() > 0) {
 				v8_contract->SetResult(tmp_result);
 				error_desc = utils::String::Format("Failed to process transaction(%s)", tmp_result.desc().c_str());
 				break;
 			}
-
-			ledger_context->transaction_stack_.pop_back();
 
 			v8::Local<v8::Value> v8_result;
 			CppJsonToJsValue(args.GetIsolate(), tmp_result.contract_result(), v8_result);
@@ -261,7 +260,7 @@ namespace bumo {
 				break;
 			}
 
-			if (v8_contract->parameter_.this_address_ != General::CONTRACT_VALIDATOR_ADDRESS) {
+			if (v8_contract->parameter_.this_address_ != GET_CONTRACT_VALIDATOR_ADDRESS) {
 				error_desc = utils::String::Format("contract(%s) has no permission to call callBackSetValidators interface.", v8_contract->parameter_.this_address_.c_str());
 				break;
 			}
@@ -509,6 +508,11 @@ namespace bumo {
 				input = ToCString(v8::String::Utf8Value(args[2]));
 			}
 
+			std::string remark;
+			if (args.Length() > 3 && CHECK_VERSION_GT_1002){
+				remark = ToCString(v8::String::Utf8Value(args[3]));
+			}
+
 			V8Contract *v8_contract = GetContractFrom(args.GetIsolate());
 			if (!v8_contract || !v8_contract->parameter_.ledger_context_) {
 				error_desc = "Failed to find contract object by isolate id";
@@ -537,6 +541,7 @@ namespace bumo {
 			protocol::Operation *ope = txenv.mutable_transaction()->add_operations();
 
 			ope->set_type(protocol::Operation_Type_PAY_COIN);
+			ope->set_metadata(remark);
 			ope->mutable_pay_coin()->set_dest_address(dest_address);
 			ope->mutable_pay_coin()->set_amount(pay_amount);
 			ope->mutable_pay_coin()->set_input(input);
@@ -661,6 +666,11 @@ namespace bumo {
 				input = ToCString(v8::String::Utf8Value(args[4]));
 			}
 
+			std::string remark;
+			if (args.Length() > 5 && CHECK_VERSION_GT_1002){
+				remark = ToCString(v8::String::Utf8Value(args[5]));
+			}
+
 			V8Contract *v8_contract = GetContractFrom(args.GetIsolate());
 			if (!v8_contract || !v8_contract->parameter_.ledger_context_) {
 				error_desc = "Failed to find contract object by isolate id";
@@ -691,6 +701,7 @@ namespace bumo {
 			protocol::Operation *ope = txenv.mutable_transaction()->add_operations();
 
 			ope->set_type(protocol::Operation_Type_PAY_ASSET);
+			ope->set_metadata(remark);
 
 			ope->mutable_pay_asset()->set_dest_address(dest_address);
 			ope->mutable_pay_asset()->mutable_asset()->mutable_key()->set_issuer(issuer);

@@ -68,9 +68,7 @@ namespace bumo {
 		protocol::FeeConfig GetCurFeeConfig();
 
 		Result DoTransaction(protocol::TransactionEnv& env, LedgerContext *ledger_context); // -1: false, 0 : successs, > 0 exception
-
 		bool CheckContractDepthSafe(uint32_t tx_size);
-
 		void NotifyLedgerClose(LedgerFrm::pointer closing_ledger, bool has_upgrade);
 
 		virtual void OnTimer(int64_t current_time) override;

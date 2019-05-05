@@ -298,8 +298,8 @@ namespace bumo {
 		} while (false);
 
 		return false;
-	}
-	
+	}	
+
 	//Use this function to calculate the total fee.
 	bool TransactionFrm::ReturnFee(int64_t& total_fee) {
 		int64_t actual_fee=0;
@@ -324,11 +324,11 @@ namespace bumo {
 
 		do {
 			if (!environment_->GetEntry(str_address, source_account)) {
-				LOG_ERROR("Source account(%s) does not exist", str_address.c_str());
+				result_.set_desc(utils::String::Format("Source account(%s) does not exist", str_address.c_str()));
 				result_.set_code(protocol::ERRCODE_ACCOUNT_NOT_EXIST);
 				break;
 			}
-
+			
 			if (!utils::SafeIntSub(total_fee, fee, total_fee)){
 				result_.set_desc(utils::String::Format("Calculation overflowed when total fee(" FMT_I64 ") - extra fee(" FMT_I64 ") paid by source account(%s).", total_fee, fee, str_address.c_str()));
 				result_.set_code(protocol::ERRCODE_MATH_OVERFLOW);
@@ -339,10 +339,9 @@ namespace bumo {
 			protocol::Account& proto_source_account = source_account->GetProtoAccount();
 			int64_t new_balance =0;
 			if (!utils::SafeIntAdd(proto_source_account.balance(), fee, new_balance)){
-				result_.set_desc(utils::String::Format("Calculation overflowed when Source account(%s)'s blance:(" FMT_I64 ") + extra fee(" FMT_I64 ") of return.",
+				result_.set_desc(utils::String::Format("Calculation overflowed when Source account(%s)'s balance:(" FMT_I64 ") + extra fee(" FMT_I64 ") of return.",
 					str_address.c_str(), proto_source_account.balance(), fee));
 				result_.set_code(protocol::ERRCODE_MATH_OVERFLOW);
-				LOG_ERROR(result_.desc().c_str());
 				break;
 			}
 
@@ -353,6 +352,7 @@ namespace bumo {
 			return true;
 		} while (false);
 
+		if (result_.code() != ERROR_SUCCESS) LOG_ERROR(result_.desc().c_str());
 		return false;
 	}
 

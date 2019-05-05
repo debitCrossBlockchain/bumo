@@ -29,6 +29,7 @@ namespace bumo {
 		const static uint32_t OVERLAY_MIN_VERSION;
 		const static uint32_t LEDGER_VERSION_HISTORY_1000;
 		const static uint32_t LEDGER_VERSION_HISTORY_1001;
+		const static uint32_t LEDGER_VERSION_HISTORY_1002;
 		const static uint32_t LEDGER_VERSION;
 		const static uint32_t LEDGER_MIN_VERSION;
 		const static uint32_t MONITOR_VERSION;
@@ -97,6 +98,8 @@ namespace bumo {
 
 		const static char *CONTRACT_VALIDATOR_ADDRESS;
 		const static char *CONTRACT_FEE_ADDRESS;
+		const static char *DPOS_CREATOR_ADDRESS;
+		const static char *CONTRACT_DPOS_ADDRESS;
 
 		const static int32_t TRANSACTION_LIMIT_SIZE;
 		const static int32_t TXSET_LIMIT_SIZE;
@@ -298,6 +301,9 @@ namespace bumo {
 
 #define CHECK_VERSION_GT_1000 (LedgerManager::Instance().GetLastClosedLedger().version() > General::LEDGER_VERSION_HISTORY_1000)
 #define CHECK_VERSION_GT_1001 (LedgerManager::Instance().GetLastClosedLedger().version() > General::LEDGER_VERSION_HISTORY_1001)
+#define CHECK_VERSION_GT_1002 (LedgerManager::Instance().GetLastClosedLedger().version() > General::LEDGER_VERSION_HISTORY_1002)
+#define GET_CONTRACT_VALIDATOR_ADDRESS (CHECK_VERSION_GT_1002 ? General::CONTRACT_DPOS_ADDRESS : General::CONTRACT_VALIDATOR_ADDRESS)
+#define GET_CONTRACT_FEE_ADDRESS (CHECK_VERSION_GT_1002 ? General::CONTRACT_DPOS_ADDRESS : General::CONTRACT_FEE_ADDRESS)
 }
 
 #endif

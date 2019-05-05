@@ -68,7 +68,6 @@ namespace bumo {
 		return false;
 	}
 
-
 	bool LedgerFrm::AddToDb(WRITE_BATCH &batch) {
 		KeyValueDb *db = Storage::Instance().ledger_db();
 
@@ -99,7 +98,7 @@ namespace bumo {
 
 			list.add_entry(ptr->GetContentHash());
 
-			//If a transaction succeeds, the transactions tiggerred by it can be stored in db.
+			//If a transaction succeeds, the transactions triggered by it can be stored in db.
 			if (ptr->GetResult().code() == protocol::ERRCODE_SUCCESS) {
 				for (size_t j = 0; j < ptr->instructions_.size(); j++){
 					protocol::TransactionEnvStore &env_sto = ptr->instructions_[j];
@@ -504,7 +503,35 @@ namespace bumo {
 		if (total_reward == 0 || IsTestMode()) {
 			return true;
 		}
+		LOG_INFO("total reward(" FMT_I64 ") = total fee(" FMT_I64 ") + block reward(" FMT_I64 ") in ledger(" FMT_I64 ")", total_reward, total_fee_, block_reward, ledger_.header().seq());
 
+		// Allocate reward directly or through contract
+		if (CHECK_VERSION_GT_1002)
+		{
+			std::shared_ptr<AccountFrm> account;
+			if (environment_->GetEntry(GET_CONTRACT_VALIDATOR_ADDRESS, account)) {
+				int64_t new_balance = 0;
+				if (!utils::SafeIntAdd(account->GetAccountBalance(), total_reward, new_balance)){
+					LOG_ERROR("Overflowed when rewarding account. Account balance:(" FMT_I64 "), total reward:(" FMT_I64 ")", account->GetAccountBalance(), total_reward);
+					return false;
+				}
+				account->GetProtoAccount().set_balance(new_balance);
+				LOG_TRACE("Allocate block reward, amount:(" FMT_I64 "), seq:(" FMT_I64 ")", total_reward, ledger_.header().seq());
+			}
+			else {
+				LOG_TRACE("Failed to get dpos contract address(%s), allocate reward to validators directly", GET_CONTRACT_VALIDATOR_ADDRESS);
+				if (!AllocateRewardDirectly(total_reward)) return false;
+			}
+		}
+		else {
+			if (!AllocateRewardDirectly(total_reward)) return false;
+		}
+
+		environment_->Commit();
+		return true;
+	}
+
+	bool LedgerFrm::AllocateRewardDirectly(int64_t total_reward) {
 		protocol::ValidatorSet set;
 		if (!LedgerManager::Instance().GetValidators(ledger_.header().seq() - 1, set)) {
 			LOG_ERROR("Failed to get validator of ledger(" FMT_I64 ")", ledger_.header().seq() - 1);
@@ -519,7 +546,7 @@ namespace bumo {
 		std::shared_ptr<AccountFrm> random_account;
 		int64_t random_index = ledger_.header().seq() % set.validators_size();
 		int64_t average_fee = total_reward / set.validators_size();
-		LOG_INFO("total reward(" FMT_I64 ") = total fee(" FMT_I64 ") + block reward(" FMT_I64 ") in ledger(" FMT_I64 ")", total_reward, total_fee_, block_reward, ledger_.header().seq());
+		
 		for (int32_t i = 0; i < set.validators_size(); i++) {
 			std::shared_ptr<AccountFrm> account;
 			if (!environment_->GetEntry(set.validators(i).address(), account)) {
@@ -552,7 +579,6 @@ namespace bumo {
 			LOG_TRACE("Account(%s) aquired last reward(" FMT_I64 ") of allocation in ledger(" FMT_I64 ")", proto_account.address().c_str(), left_reward, ledger_.header().seq());
 		}
 
-		environment_->Commit();
 		return true;
 	}
 

@@ -580,8 +580,6 @@ namespace bumo {
 		std::string with_validator = request.GetParamValue("with_validator");
 		std::string with_consvalue = request.GetParamValue("with_consvalue");
 		std::string with_fee = request.GetParamValue("with_fee");
-		std::string with_block_reward = request.GetParamValue("with_block_reward");
-
 
 		/// By default query the last closed ledger
 		if (ledger_seq.empty())
@@ -606,8 +604,11 @@ namespace bumo {
 			if (with_validator == "true") {
 				protocol::ValidatorSet set;
 				if (LedgerManager::Instance().GetValidators(seq, set)) {
-					Json::Value validator = Proto2Json(set);
-					result["validators"] = validator["validators"];
+					Json::Value validators;
+					for (int i = 0; i < set.validators_size(); i++) {
+						validators.append(set.validators(i).address());
+					}
+					result["validators"] = validators;
 				}
 				else {
 					error_code = protocol::ERRCODE_NOT_EXIST;
@@ -645,41 +646,6 @@ namespace bumo {
 				}
 
 				json_cons["previous_proof_plain"] = Proto2Json(pbft_evidence);
-			}
-
-			if (with_block_reward == "true"){
-				if (seq <= 1){
-					result["block_reward"] = 0;
-					break;
-				}
-
-				int64_t blockReward = GetBlockReward(seq);
-				result["block_reward"] = blockReward;
-
-				protocol::ValidatorSet sets;
-				if (!LedgerManager::Instance().GetValidators(seq - 1, sets)) {
-					error_code = protocol::ERRCODE_NOT_EXIST;
-					break;
-				}
-
-				if (sets.validators_size() == 0) {
-					error_code = protocol::ERRCODE_INTERNAL_ERROR;
-					break;
-				}
-				
-				int64_t average_reward = 0;
-				Json::Value &validatorsReward = result["validators_reward"];
-
-				average_reward = blockReward / sets.validators_size();
-
-				int64_t leftReward = blockReward;
-				for (int32_t i = 0; i < sets.validators_size(); i++) {
-					validatorsReward[sets.validators(i).address()] = average_reward;
-					leftReward -= average_reward;
-				}
-
-				int64_t randomIndex = seq % sets.validators_size();
-				validatorsReward[sets.validators(randomIndex).address()] = average_reward + leftReward;
 			}
 			
 		} while (false);
