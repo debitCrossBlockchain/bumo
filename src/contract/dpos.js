@@ -203,6 +203,16 @@ function extract(list){
     }
 }
 
+function nodeAddressValid(node){
+    Utils.assert(Utils.addressCheck(node), 'Invalid address:' + node + '.');
+
+    let candidates = loadObj(valCandsKey);
+    Utils.assert(candidates !== false, 'Failed to get ' + valCandsKey + ' from metadata.');
+
+    let found = candidates.find(function(x){ return x[2] === node; });
+    Utils.assert(found === undefined, node + ' has already been applied.');
+}
+
 function proposalKey(operate, content, address){
     return operate + '_' + content + '_' + address;
 }
@@ -227,7 +237,7 @@ function applicationProposal(roleType, pool, ratio, node){
         return proposal;
     }
 
-    Utils.assert(Utils.addressCheck(node), 'Invalid address:' + node + '.');
+    nodeAddressValid(node);
     proposal.node = node;
     return proposal;
 }
@@ -740,7 +750,7 @@ function configure(item, value){
 }
 
 function setNodeAddress(address){
-    Utils.assert(Utils.addressCheck(address),  'Invalid address:' + address + '.');
+    nodeAddressValid(address);
 
     let key      = proposalKey(motion.APPLY, role.VALIDATOR, Chain.msg.sender);
     let proposal = loadObj(key);
