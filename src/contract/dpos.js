@@ -789,13 +789,19 @@ function setVoteDividend(roleType, pool, ratio){
     if(pool !== undefined){
         Utils.assert(Utils.addressCheck(pool), 'Invalid address:' + pool + '.');
         proposal.rewardPool = pool;
-        dist[Chain.msg.sender][1] = pool;
+
+        if(dist[Chain.msg.sender] !== undefined){
+            dist[Chain.msg.sender][1] = pool;
+        }
     }
     
     if(ratio !== undefined){
         Utils.assert(Number.isInteger(ratio) && 0 <= ratio && ratio <= 100, 'Invalid vote reward ratio:' + ratio + '.');
         proposal.rewardRatio = ratio;
-        dist[Chain.msg.sender][2] = ratio;
+
+        if(dist[Chain.msg.sender] !== undefined){
+            dist[Chain.msg.sender][2] = ratio;
+        }
     }
 
     saveObj(key, proposal);
