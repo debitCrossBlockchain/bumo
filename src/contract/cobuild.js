@@ -168,7 +168,7 @@ function setStatus(){
 function coApply(role, pool, ratio, node){
     Utils.assert(role === validator || role === kol,  'Unknown role:' + role + '.');
     Utils.assert(Utils.addressCheck(pool), 'Invalid address:' + pool + '.');
-    Utils.assert(0 <= ratio && ratio <= 100 && ratio % 1 === 0, 'Invalid vote reward ratio:' + ratio + '.');
+    Utils.assert(Number.isInteger(ratio) && 0 <= ratio && ratio <= 100, 'Invalid vote reward ratio:' + ratio + '.');
 
     Utils.assert(states.applied === false, 'Already applied.');
     Utils.assert(Chain.tx.sender === cfg.initiator, 'Only the initiator has the right to apply.');
@@ -229,7 +229,7 @@ function coSetVoteDividend(pool, ratio){
     }
 
     if(ratio !== undefined){
-        Utils.assert(0 <= ratio && ratio <= 100 && ratio % 1 === 0, 'Invalid vote reward ratio:' + ratio + '.');
+        Utils.assert(Number.isInteger(ratio) && 0 <= ratio && ratio <= 100, 'Invalid vote reward ratio:' + ratio + '.');
         input.params.ratio = ratio;
     }
 

@@ -229,10 +229,10 @@ function applicationProposal(roleType, pool, ratio, node){
     }
 
     Utils.assert(Utils.addressCheck(pool), 'Invalid address:' + pool + '.');
-    Utils.assert(0 <= ratio && ratio <= 100 && ratio % 1 === 0, 'Invalid vote reward ratio:' + ratio + '.');
+    Utils.assert(Number.isInteger(ratio) && 0 <= ratio && ratio <= 100, 'Invalid vote reward ratio:' + ratio + '.');
 
     proposal.rewardPool = pool;
-    proposal.rewardRatio = Number(ratio);
+    proposal.rewardRatio = ratio;
     if(roleType === role.KOL){
         return proposal;
     }
@@ -793,9 +793,9 @@ function setVoteDividend(roleType, pool, ratio){
     }
     
     if(ratio !== undefined){
-        Utils.assert(0 <= ratio && ratio <= 100 && ratio % 1 === 0, 'Invalid vote reward ratio:' + ratio + '.');
-        proposal.rewardRatio = Number(ratio);
-        dist[Chain.msg.sender][2] = proposal.rewardRatio;
+        Utils.assert(Number.isInteger(ratio) && 0 <= ratio && ratio <= 100, 'Invalid vote reward ratio:' + ratio + '.');
+        proposal.rewardRatio = ratio;
+        dist[Chain.msg.sender][2] = ratio;
     }
 
     saveObj(key, proposal);
