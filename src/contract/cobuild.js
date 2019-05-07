@@ -218,7 +218,9 @@ function coSetVoteDividend(pool, ratio){
 
     let input = {
         'method' : 'setVoteDividend',
-        'params':{}
+        'params':{
+            'role': states.role
+        }
     };
 
     if(pool !== undefined){
@@ -481,7 +483,7 @@ function main(input_str){
 	    coSetNodeAddress(params.address);
     }
     else if(input.method === 'coSetVoteDividend'){
-        coSetVoteDividend(params.role, params.pool, params.ratio);
+        coSetVoteDividend(params.pool, params.ratio);
     }
     else if(input.method === 'transfer'){
     	transfer(params.to, params.shares);
