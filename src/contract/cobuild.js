@@ -242,19 +242,16 @@ function transferKey(from, to){
 
 function transfer(to, shares){
     Utils.assert(Utils.addressCheck(to), 'Invalid address:' + to + '.');
-    Utils.assert(shares > 0 && shares % 1 === 0, 'Invalid shares:' + shares + '.');
+    Utils.assert(Number.isInteger(shares) && shares >= 0, 'Invalid shares:' + shares + '.');
     Utils.assert(cobuilders[Chain.tx.sender][pledged], 'Unpled shares can be withdrawn directly.');
     Utils.assert(Utils.int64Compare(shares, cobuilders[Chain.tx.sender][share]) <= 0, 'Transfer shares > holding shares.');
 
-    shares = String(shares);
-
     let key = transferKey(Chain.tx.sender, to);
-    let transfered = Chain.load(key);
-    if(transfered !== false){
-        shares = Utils.int64Add(transfered ,shares);
+    if(shares === 0){
+        return Chain.del(key);
     }
-    
-    Chain.store(key, shares);
+
+    Chain.store(key, String(shares));
 }
 
 function accept(transferor){
@@ -264,9 +261,9 @@ function accept(transferor){
     let key = transferKey(transferor, Chain.tx.sender);
     let shares = Chain.load(key);
     Utils.assert(shares !== false, 'Failed to get ' + key + ' from metadata.');
+    Utils.assert(Utils.int64Compare(shares, cobuilders[Chain.tx.sender][share]) <= 0, 'Transfer shares > holding shares.');
     Utils.assert(Utils.int64Compare(Utils.int64Mul(cfg.unit, shares), Chain.msg.coinAmount) === 0, 'unit * shares !== Chain.msg.coinAmount.');
 
-    callDPOS('0', extractInput());
     if(cobuilders[Chain.tx.sender] === undefined){
         cobuilders[Chain.tx.sender] = cobuilder(shares, true);
     }
@@ -276,6 +273,7 @@ function accept(transferor){
 
     let gain = '0';
     if(Utils.int64Sub(cobuilders[transferor][share], shares) === 0){
+        callDPOS('0', extractInput());
         gain = cobuilders[transferor][award];
         delete cobuilders[transferor];
     }
