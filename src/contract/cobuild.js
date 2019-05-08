@@ -99,7 +99,7 @@ function cobuilder(shares, isPledged){
 }
 
 function subscribe(shares){
-    Utils.assert(shares > 0 && shares % 1 === 0, 'Invalid shares:' + shares + '.');
+    Utils.assert(Number.isInteger(shares) && shares > 0, 'Invalid shares:' + shares + '.');
     Utils.assert(Utils.int64Compare(Utils.int64Mul(cfg.unit, shares), Chain.msg.coinAmount) === 0, 'unit * shares !== Chain.msg.coinAmount.');
 
     if(cobuilders[Chain.tx.sender] === undefined){

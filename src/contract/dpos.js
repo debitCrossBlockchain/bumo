@@ -728,7 +728,7 @@ function cfgValid(item, value){
         Utils.assert(value <= 1, 'Invalid passing rate: ' + value + '.');
     }
     else{
-        Utils.assert(value % 1 === 0, 'Illegal configuration value: ' + value + '.'); 
+        Utils.assert(Number.isInteger(value), 'Illegal configuration value: ' + value + '.'); 
     }
 }
 
