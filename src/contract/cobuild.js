@@ -261,7 +261,7 @@ function accept(transferor){
     let key = transferKey(transferor, Chain.tx.sender);
     let shares = Chain.load(key);
     Utils.assert(shares !== false, 'Failed to get ' + key + ' from metadata.');
-    Utils.assert(Utils.int64Compare(shares, cobuilders[Chain.tx.sender][share]) <= 0, 'Transfer shares > holding shares.');
+    Utils.assert(Utils.int64Compare(shares, cobuilders[transferor][share]) <= 0, 'Transfer shares > holding shares.');
     Utils.assert(Utils.int64Compare(Utils.int64Mul(cfg.unit, shares), Chain.msg.coinAmount) === 0, 'unit * shares !== Chain.msg.coinAmount.');
 
     if(cobuilders[Chain.tx.sender] === undefined){
