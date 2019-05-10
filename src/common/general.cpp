@@ -34,7 +34,7 @@ namespace bumo {
 	const uint32_t General::LEDGER_VERSION = 1003;
 	const uint32_t General::LEDGER_MIN_VERSION = 1000;
 	const uint32_t General::MONITOR_VERSION = 1000;
-	const char *General::BUMO_VERSION = "1.3.0";
+	const char *General::BUMO_VERSION = "1.3.1";
 
 #ifdef WIN32
 	const char *General::DEFAULT_KEYVALUE_DB_PATH = "data/keyvalue.db";
@@ -93,11 +93,27 @@ namespace bumo {
 	//std::string account2 = pub_key.GetEncAddress();"buQiQgRerQM1fUM3GkqUftpNxGzNg2AdJBpe"
 	//pub_key.Init("3");
 	//std::string account3 = pub_key.GetEncAddress();"buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss"
+	//pub_key.Init("4");
+	//std::string account4 = pub_key.GetEncAddress();"buQcHGxxpPDBcPKys8cD5NY1CAiyAfFBjgtg"
+	//pub_key.Init("5");
+	//std::string account5 = pub_key.GetEncAddress();"buQraU2Y5niuYyDdS7FNfJYRrGe8q21RmWc3"
+	//pub_key.Init("6");
+	//std::string account6 = pub_key.GetEncAddress();"buQXoma4baahLbAcnZdC7hFqCHoAxbnytYxd"
+	//pub_key.Init("7");
+	//std::string account7 = pub_key.GetEncAddress();"buQVpA6eKpuDcNfubXsgG9ihN32psE1jyygm"
+	//pub_key.Init("8");
+	//std::string account8 = pub_key.GetEncAddress();"buQa9pRC8B38zd8Z47q97D4X5WwqhMry3VEm"
 
 	const char *General::CONTRACT_VALIDATOR_ADDRESS = "buQtxgoaDrVJGtoPT66YnA2S84yE8FbBqQDJ";
 	const char *General::CONTRACT_FEE_ADDRESS = "buQiQgRerQM1fUM3GkqUftpNxGzNg2AdJBpe";
-	const char *General::DPOS_CREATOR_ADDRESS = "buQgCBN4MSZMWRfJbksh9PWpKqgY3tSEMM4d";
+	const char *General::RESERVED_CREATOR_ADDRESS = "buQgCBN4MSZMWRfJbksh9PWpKqgY3tSEMM4d";
 	const char *General::CONTRACT_DPOS_ADDRESS = "buQqzdS9YSnokDjvzg4YaNatcFQfkgXqk6ss";
+	const char *General::RESERVED_ADDRESS4 = "buQcHGxxpPDBcPKys8cD5NY1CAiyAfFBjgtg";
+	const char *General::RESERVED_ADDRESS5 = "buQraU2Y5niuYyDdS7FNfJYRrGe8q21RmWc3";
+	const char *General::RESERVED_ADDRESS6 = "buQXoma4baahLbAcnZdC7hFqCHoAxbnytYxd";
+	const char *General::RESERVED_ADDRESS7 = "buQVpA6eKpuDcNfubXsgG9ihN32psE1jyygm";
+	const char *General::RESERVED_ADDRESS8 = "buQa9pRC8B38zd8Z47q97D4X5WwqhMry3VEm";
+
 
 	const int32_t General::TRANSACTION_LIMIT_SIZE = utils::BYTES_PER_MEGA;
 	const int32_t General::TXSET_LIMIT_SIZE = 16 * utils::BYTES_PER_MEGA;

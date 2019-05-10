@@ -422,7 +422,7 @@ motion = [
         \"params\":
         {
           \"role\":\"validator\",
-          \"address\":\"buQtZrMdBQqYzfxvqKX3M8qLZD3LNAuoSKj4\",
+          \"address\":\"buQtZrMdBQqYzfxvqKX3M8qLZD3LNAuoSKj4\"
         }
     }"
   }
