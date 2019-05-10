@@ -809,7 +809,7 @@ function setVoteDividend(roleType, pool, ratio){
 }
 
 function clean(operate, item, address){
-    Utils.assert(operateValid(operate), 'Unknown proposal operation:' + operate + '.');
+    Utils.assert(operateValid(operate) || operate === motion.WITHDRAW, 'Unknown proposal operation:' + operate + '.');
     Utils.assert(roleValid(item) || cfg[item] !== undefined, 'Unknown proposal item:' + item + '.');
     Utils.assert(Utils.addressCheck(address),  'Invalid address:' + address + '.');
 
