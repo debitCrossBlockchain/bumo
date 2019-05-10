@@ -25,7 +25,6 @@ function query(input_str){
        	throw '<unidentified operation type>';
     }
 
-    Utils.log(object);
     return object.result;
 }
 
@@ -36,7 +35,6 @@ function main(input_str){
         let cfg = loadObj(configKey);
 		Utils.assert(cfg !== false, 'Failed to load configuration.');
 		Chain.delegateCall(cfg.logic_contract, input_str);
-		Utils.log('Delegate call contract ', cfg.logic_contract);
 	}
     else {
         throw '<undidentified operation type>';

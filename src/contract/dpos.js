@@ -203,6 +203,16 @@ function extract(list){
     }
 }
 
+function nodeAddressValid(node){
+    Utils.assert(Utils.addressCheck(node), 'Invalid address:' + node + '.');
+
+    let candidates = loadObj(valCandsKey);
+    Utils.assert(candidates !== false, 'Failed to get ' + valCandsKey + ' from metadata.');
+
+    let found = candidates.find(function(x){ return x[2] === node; });
+    Utils.assert(found === undefined, node + ' has already been applied.');
+}
+
 function proposalKey(operate, content, address){
     return operate + '_' + content + '_' + address;
 }
@@ -219,7 +229,7 @@ function applicationProposal(roleType, pool, ratio, node){
     }
 
     Utils.assert(Utils.addressCheck(pool), 'Invalid address:' + pool + '.');
-    Utils.assert(0 <= ratio && ratio <= 100 && ratio % 1 === 0, 'Invalid vote reward ratio:' + ratio + '.');
+    Utils.assert(Number.isInteger(ratio) && 0 <= ratio && ratio <= 100, 'Invalid vote reward ratio:' + ratio + '.');
 
     proposal.rewardPool = pool;
     proposal.rewardRatio = ratio;
@@ -227,7 +237,7 @@ function applicationProposal(roleType, pool, ratio, node){
         return proposal;
     }
 
-    Utils.assert(Utils.addressCheck(node), 'Invalid address:' + node + '.');
+    nodeAddressValid(node);
     proposal.node = node;
     return proposal;
 }
@@ -718,7 +728,7 @@ function cfgValid(item, value){
         Utils.assert(value <= 1, 'Invalid passing rate: ' + value + '.');
     }
     else{
-        Utils.assert(value % 1 === 0, 'Illegal configuration value: ' + value + '.'); 
+        Utils.assert(Number.isInteger(value), 'Illegal configuration value: ' + value + '.'); 
     }
 }
 
@@ -740,7 +750,7 @@ function configure(item, value){
 }
 
 function setNodeAddress(address){
-    Utils.assert(Utils.addressCheck(address),  'Invalid address:' + address + '.');
+    nodeAddressValid(address);
 
     let key      = proposalKey(motion.APPLY, role.VALIDATOR, Chain.msg.sender);
     let proposal = loadObj(key);
@@ -779,13 +789,19 @@ function setVoteDividend(roleType, pool, ratio){
     if(pool !== undefined){
         Utils.assert(Utils.addressCheck(pool), 'Invalid address:' + pool + '.');
         proposal.rewardPool = pool;
-        dist[Chain.msg.sender][1] = pool;
+
+        if(dist[Chain.msg.sender] !== undefined){
+            dist[Chain.msg.sender][1] = pool;
+        }
     }
     
     if(ratio !== undefined){
-        Utils.assert(0 <= ratio && ratio <= 100 && ratio % 1 === 0, 'Invalid vote reward ratio:' + ratio + '.');
+        Utils.assert(Number.isInteger(ratio) && 0 <= ratio && ratio <= 100, 'Invalid vote reward ratio:' + ratio + '.');
         proposal.rewardRatio = ratio;
-        dist[Chain.msg.sender][2] = ratio;
+
+        if(dist[Chain.msg.sender] !== undefined){
+            dist[Chain.msg.sender][2] = ratio;
+        }
     }
 
     saveObj(key, proposal);
