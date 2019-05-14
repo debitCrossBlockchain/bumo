@@ -272,7 +272,7 @@ function accept(transferor){
     }
 
     let gain = '0';
-    if(Utils.int64Sub(cobuilders[transferor][share], shares) === 0){
+    if(Utils.int64Sub(cobuilders[transferor][share], shares) === '0'){
         callDPOS('0', extractInput());
         gain = cobuilders[transferor][award];
         delete cobuilders[transferor];
