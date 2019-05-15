@@ -290,6 +290,8 @@ function addCandidates(roleType, address, proposal, maxSize){
 
     let addition = [address, stake];
     if(roleType === role.VALIDATOR){
+        let node = candidates.find(function(x){ return x[2] === proposal.node; });
+        Utils.assert(node === undefined, proposal.node + ' has already been applied.');
         addition.push(proposal.node);
     }
 
