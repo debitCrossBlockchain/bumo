@@ -612,9 +612,9 @@ namespace bumo {
 	}
 
 	bool Argument::SignDataWithKList(int argc, char *argv[]) {
-		std::string data_path = argc > 3 ? argv[2] : "";
-		std::string keystore_dir_path = argc > 4 ? argv[3] : "";
-		int start_id = argc > 5 ? utils::String::Stoi(argv[4]) : 0;
+		std::string data_path = argc > 2 ? argv[2] : "";
+		std::string keystore_dir_path = argc > 3 ? argv[3] : "";
+		int start_id = argc > 4 ? utils::String::Stoi(argv[4]) : 0;
 		std::string password;
 
 		if (5 == argc) {
