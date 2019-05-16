@@ -513,7 +513,7 @@ function main(input_str){
 function init(input_str){
     let params = JSON.parse(input_str).params;
     Utils.assert(Utils.int64Mod(params.unit, oneBU) === '0' && Utils.int64Compare(params.unit, minUnit) >= 0, 'Illegal unit:' + params.unit + '.');
-    Utils.assert(Utils.int64Mod(params.shares, 1) === '0', 'Illegal raise shares:' + params.shares + '.');
+    Utils.assert(Number.isInteger(params.shares) && params.shares > 0, 'Illegal raise shares:' + params.shares + '.');
 
     let dpos_cfg = queryDposCfg();
     let initFund = Utils.int64Sub(Chain.msg.coinAmount, dpos_cfg.base_reserve);
