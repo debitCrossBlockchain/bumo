@@ -278,6 +278,7 @@ function accept(transferor){
         delete cobuilders[transferor];
     }
     else{
+        Utils.assert(cobuilders[Chain.tx.sender][pledged], Chain.tx.sender + ' has unplied share.');
         cobuilders[transferor][share] = Utils.int64Sub(cobuilders[transferor][share], shares);
     }
 
