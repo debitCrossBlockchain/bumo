@@ -636,7 +636,7 @@ namespace bumo {
 
 		//open source file
 		utils::File file_data;
-		if (!file_data.Open(data_path, utils::File::FILE_M_READ | utils::File::FILE_M_TEXT)) {
+		if (!file_data.Open(data_path, utils::File::FILE_M_READ | utils::File::FILE_M_BINARY)) {
 			printf("Failed to open file, path:%s\n", data_path.c_str());
 			return true;
 		}
@@ -669,7 +669,7 @@ namespace bumo {
 			std::string file_content;
 			utils::File file_keystore;
 			std::string dest_file_path = utils::String::Format("%s/%s", keystore_dir_path.c_str(), strName.c_str());
-			if (!file_keystore.Open(dest_file_path, utils::File::FILE_M_READ | utils::File::FILE_M_TEXT)) {
+			if (!file_keystore.Open(dest_file_path, utils::File::FILE_M_READ | utils::File::FILE_M_BINARY)) {
 				printf("Failed to open keystore file, path:%s\n", dest_file_path.c_str());
 				return true;
 			}
@@ -711,7 +711,7 @@ namespace bumo {
 		//compose dest file path
 		size_t dot_pos = data_path.rfind(".");
 		std::string data_dest_path = data_path.insert(dot_pos, "_1");
-		if (!file_dest.Open(data_dest_path, utils::File::FILE_M_WRITE| utils::File::FILE_M_TEXT)) {
+		if (!file_dest.Open(data_dest_path, utils::File::FILE_M_WRITE| utils::File::FILE_M_BINARY)) {
 			printf("Failed to open dest file, path:%s\n", data_dest_path.c_str());
 			return true;
 		}
