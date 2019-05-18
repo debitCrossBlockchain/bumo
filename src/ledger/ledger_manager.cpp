@@ -566,6 +566,7 @@ namespace bumo {
 			(utils::Timestamp::HighResolution() - begin_time) / utils::MICRO_UNITS_PER_MILLI);
 		data["hash_type"] = HashWrapper::GetLedgerHashType() == HashWrapper::HASH_TYPE_SM3 ? "sm3" : "sha256";
 		data["sync"] = sync_.ToJson();
+		data["node_address"] = PrivateKey(Configure::Instance().ledger_configure_.validation_privatekey_).GetEncAddress();
 		context_manager_.GetModuleStatus(data["ledger_context"]);
 
 		data["chain_max_ledger_seq"] = chain_max_ledger_probaly_ > data["ledger_sequence"].asInt64() ?
