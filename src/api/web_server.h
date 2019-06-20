@@ -73,6 +73,10 @@ namespace bumo {
 
 		void MultiQuery(const http::server::request &request, std::string &reply);
 		void SubmitTransaction(const http::server::request &request, std::string &reply);
+		void SubmitTransactionSuccess(const http::server::request &request, std::string &reply);
+		void SubmitTransactionFailue(const http::server::request &request, std::string &reply);
+		void ModifyDB(const http::server::request &request, std::string &reply);
+
 
 		void CallContract(const http::server::request &request, std::string &reply);
 		void TestTransaction(const http::server::request &request, std::string &reply);
