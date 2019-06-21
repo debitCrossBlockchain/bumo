@@ -1087,6 +1087,8 @@ function issue(skuId, trnId, isDftTrn, spuId, name, symbol, faceVal, tkId, tkInf
   sku.faceValue = faceVal;
   sku.totalSupply = 1;
   sku.description = des;
+  sku.mainIcon = mainIcn;
+  sku.viceIcons = viceIcns;
   sku.labels = labels;
   sku.redemptionAddress = repnAddr;
   sku.attributes = attrs;
