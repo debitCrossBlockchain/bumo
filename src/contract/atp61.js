@@ -458,7 +458,7 @@ function _checkIsSeller(_addr) {
   return (seller.address === _addr);
 }
 
-function _checkTranche(_trnId, _dftTrnId, _isDft) {
+function _checkTranche(_trnId, _dftTrnId, _isDft, _isChkEst) {
   if (_trnId === undefined) {
     _trnId = '0';
   } else {
@@ -470,6 +470,9 @@ function _checkTranche(_trnId, _dftTrnId, _isDft) {
       // If the sku has not default tranche, checking whether the tranche is not default tranche.
       Utils.assert(_dftTrnId === undefined || _trnId !== _dftTrnId, _throwErr(error.TRN_DFT));
     }
+  }
+  if (_isChkEst !== true) {
+    _checkExist(_makeKey(keys.trn, _trnId), error.TRN_NOT_EST);
   }
   return _trnId;
 }
@@ -999,7 +1002,7 @@ function createTranche(id, des, lms) {
  */
 function trancheInfo(trnId) {
   // Checking parameters.
-  trnId = _checkTranche(trnId);
+  trnId = _checkTranche(trnId, 0, 0, true);
 
   // Checking whether the tranche exists.
   const trnVal = _checkExist(_makeKey(keys.trn, trnId), error.TRN_NOT_EST);
@@ -1069,9 +1072,6 @@ function issue(skuId, trnId, isDftTrn, spuId, name, symbol, faceVal, tkId, tkInf
   if (spuId !== undefined) {
     _checkExist(_makeKey(keys.spu, spuId), error.SPU_NOT_EST);
   }
-
-  // Checking whether the tranche exists.
-  _checkExist(_makeKey(keys.trn, trnId), error.TRN_NOT_EST);
 
   // Checking whether the acceptance exists.
   _checkExist(_makeKey(keys.acp, acpId), error.ACP_NOT_EST);
@@ -1317,7 +1317,6 @@ function additionalIssuance(skuId, trnId, tkId, tkInfo) {
 
   // Checking whether the tranche exists.
   trnId = _checkTranche(trnId, skuTk.defaultTrancheId, true);
-  _checkExist(_makeKey(keys.trn, trnId), error.TRN_NOT_EST);
 
   // Adding the token id to the specified tranche of the sku.
   const ret = _checkAddPagesItem(true, tkId, keys.skutrntkspgs, keys.skutrntkspg, skuId, trnId);
@@ -1357,8 +1356,8 @@ function additionalIssuance(skuId, trnId, tkId, tkInfo) {
  */
 function assignToTranche(skuId, toTrnId, tkId) {
   // Checking parameters.
+  toTrnId = _checkTranche(toTrnId);
   Utils.assert(_checkStr(skuId, 1, 32), _throwErr(error.SKU_ID_ERR));
-  Utils.assert(_checkStr(toTrnId, 0, 32), _throwErr(error.TRN_ID_ERR));
   Utils.assert(_checkStr(tkId, 1, 64), _throwErr(error.TK_ID_ERR));
 
   // Checking whether the sender is seller.
@@ -1376,8 +1375,6 @@ function assignToTranche(skuId, toTrnId, tkId) {
   // Checking whether the target tranche id exists and it is not default tranche.
   const dftTrnId = skuTk.defaultTrancheId;
   Utils.assert(dftTrnId !== toTrnId, _throwErr(error.TO_TRN_DEFAULT_ERR));
-  const trnKey = _makeKey(keys.trn, toTrnId);
-  _checkExist(trnKey, error.TRN_NOT_EST);
 
   // Checking whether the token exists.
   const tkKey = _makeKey(keys.tk, tkId);
@@ -1454,7 +1451,6 @@ function authorizeSku(skuId, trnId) {
 
   // Checking whether the tranche exists.
   trnId = _checkTranche(trnId, skuTk.defaultTrancheId, true);
-  _checkExist(_makeKey(keys.trn, trnId), error.TRN_NOT_EST);
 
   // Checking whether the tranche is in sku.
   const trnInSku = _checkAddPagesItem(false, trnId, keys.skutrnspgs, keys.skutrnspg, skuId);
@@ -1484,7 +1480,6 @@ function authorizedSku(skuId, trnId, autr) {
 
   // Checking whether the tranche exists.
   trnId = _checkTranche(trnId, skuTk.defaultTrancheId, true);
-  _checkExist(_makeKey(keys.trn, trnId), error.TRN_NOT_EST);
 
   // Checking whether the authorizer is in authorizers of skuToken.
   const idx = skuTk.authorizers.indexOf(autr);
@@ -1527,7 +1522,6 @@ function skusOfTranche(trnId) {
 
   // Checking whether the tranche exists.
   trnId = _checkTranche(trnId);
-  _checkExist(_makeKey(keys.trn, trnId), error.TRN_NOT_EST);
 
   // Getting the skus.
   const skus = _getPagesItems(keys.trnskuspgs, keys.trnskuspg, trnId);
@@ -1625,7 +1619,6 @@ function totalSupplyByTranche(skuId, trnId) {
   
   // Checking whether the tranche exists.
   trnId = _checkTranche(trnId);
-  _checkExist(_makeKey(keys.trn, trnId), error.TRN_NOT_EST);
 
   // Getting the tokens of the sku tranche.
   const tks = _getPagesItems(keys.skutrntkspgs, keys.skutrntkspg, skuId, trnId);
@@ -1670,7 +1663,6 @@ function balanceOfByTranche(addr, skuId, trnId) {
 
   // Checking whether the tranche exists.
   trnId = _checkTranche(trnId);
-  _checkExist(_makeKey(keys.trn, trnId), error.TRN_NOT_EST);
 
   // Getting the tokens of the sku tranche.
   const tks = _getPagesItems(keys.bletrntkspgs, keys.bletrntkspg, skuId, trnId, addr);
@@ -1735,7 +1727,6 @@ function allowance(owr, skuId, trnId, spr) {
 
   // Checking whether the tranche exists.
   trnId = _checkTranche(trnId);
-  _checkExist(_makeKey(keys.trn, trnId), error.TRN_NOT_EST);
 
   // Checking whether the allowance exists.
   const tks = _getPagesItems(keys.alwtrntkspgs, keys.alwtrntkspg, owr, skuId, trnId, spr);
