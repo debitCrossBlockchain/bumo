@@ -532,10 +532,55 @@ namespace bumo {
 	}
 
 	void LedgerFrm::ModifyAccount(const std::string& address, int64_t amount){
+
+		std::shared_ptr<Environment> environment = std::make_shared<Environment>();
 		std::shared_ptr<AccountFrm> account;
-		if (environment_->GetEntry(address, account)) {
+		if (environment->GetEntry(address, account)) {
 			account->GetProtoAccount().set_balance(amount);
-			environment_->Commit();
+			environment->Commit();
+		}
+
+		auto account_db = Storage::Instance().account_db();
+		KVTrie* trie = new KVTrie();
+		auto batch = std::make_shared<WRITE_BATCH>();
+		trie->Init(account_db, batch, General::ACCOUNT_PREFIX, 4);
+
+		Json::Value statistics;
+		std::string str;
+		if (account_db->Get(General::STATISTICS, str)) {
+			statistics.fromString(str);
+		}
+
+		auto entries = environment->GetData();
+		int64_t new_count = 0, change_count = 0;
+		for (auto it = entries.begin(); it != entries.end(); it++){
+
+			if (it->second.type_ == utils::DEL)
+				continue; //There is no delete account function now.
+
+			std::shared_ptr<AccountFrm> account = it->second.ptr_;
+			account->UpdateHash(batch);
+			std::string ss = account->Serializer();
+			std::string index = DecodeAddress(it->first);
+
+			bool is_new = trie->Set(index, ss);
+			if (is_new){
+				new_count++;
+			}
+			else{
+				change_count++;
+			}
+		}
+		trie->UpdateHash();
+		statistics["account_count"] = statistics["account_count"].asInt64() + new_count;
+		batch->Put(bumo::General::STATISTICS, statistics.toFastString());
+		if (!account_db->WriteBatch(*batch)) {
+			PROCESS_EXIT("Failed to write accounts to database: %s", Storage::Instance().account_db()->error_desc().c_str());
+		}
+
+		if (trie != NULL){
+			delete trie;
+			trie = NULL;
 		}
 	}
 
