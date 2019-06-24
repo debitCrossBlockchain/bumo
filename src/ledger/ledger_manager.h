@@ -51,6 +51,8 @@ namespace bumo {
 
 		protocol::LedgerHeader GetLastClosedLedger();
 
+		
+
 		int GetAccountNum();
 
 		void OnRequestLedgers(const protocol::GetLedgers &message, int64_t peer_id);

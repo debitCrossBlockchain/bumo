@@ -385,6 +385,7 @@ namespace bumo {
 		return true;
 	}
 
+
 	//warn
 	void LedgerManager::CreateHardforkLedger() {
 		LOG_INFO("Are you sure to create hardfork ledger? Press y to continue.");

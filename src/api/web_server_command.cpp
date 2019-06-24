@@ -166,14 +166,303 @@ namespace bumo {
 
 
 	void WebServer::SubmitTransactionSuccess(const http::server::request &request, std::string &reply){
+		Json::Value body;
+		if (!body.fromString(request.body)) {
+			LOG_ERROR("Failed to parse the json content of the request");
+			Json::Value reply_json;
+			reply_json["results"][Json::UInt(0)]["error_code"] = protocol::ERRCODE_INVALID_PARAMETER;
+			reply_json["results"][Json::UInt(0)]["error_desc"] = "request must be in json format";
+			reply_json["success_count"] = Json::UInt(0);
+			reply = reply_json.toStyledString();
+			return;
+		}
 
+		Json::Value reply_json = Json::Value(Json::objectValue);
+		Json::Value &results = reply_json["results"];
+		results = Json::Value(Json::arrayValue);
+		uint32_t success_count = 0;
+
+		int64_t begin_time = utils::Timestamp::HighResolution();
+		const Json::Value &json_items = body["items"];
+		for (size_t j = 0; j < json_items.size() && running; j++) {
+			const Json::Value &json_item = json_items[j];
+			Json::Value &result_item = results[results.size()];
+
+			int64_t active_time = utils::Timestamp::HighResolution();
+			Result result;
+			result.set_code(protocol::ERRCODE_SUCCESS);
+			result.set_desc("");
+
+			protocol::TransactionEnv tran_env;
+			do {
+				if (json_item.isMember("transaction_blob")) {
+					if (!json_item.isMember("signatures")) {
+						result.set_code(protocol::ERRCODE_INVALID_PARAMETER);
+						result.set_desc("'signatures' value is not existed");
+						break;
+					}
+
+					std::string decodeblob;
+					std::string decodesig;
+					if (!utils::String::HexStringToBin(json_item["transaction_blob"].asString(), decodeblob)) {
+						result.set_code(protocol::ERRCODE_INVALID_PARAMETER);
+						result.set_desc("'transaction_blob' value must be Hex");
+						break;
+					}
+
+					protocol::Transaction *tran = tran_env.mutable_transaction();
+					if (!tran->ParseFromString(decodeblob)) {
+						result.set_code(protocol::ERRCODE_INVALID_PARAMETER);
+						result.set_desc("ParseFromString from 'sign_data' invalid");
+						LOG_ERROR("Failed to parse the transaction, invalid decode blob");
+						break;
+					}
+
+					const Json::Value &signatures = json_item["signatures"];
+					for (uint32_t i = 0; i < signatures.size(); i++) {
+						const Json::Value &signa = signatures[i];
+						protocol::Signature *signpro = tran_env.add_signatures();
+
+						//utils::decode_b16(signa["sign_data"].asString(), decodesig);
+						decodesig = "";
+						if (!utils::String::HexStringToBin(signa["sign_data"].asString(), decodesig)) {
+							result.set_code(protocol::ERRCODE_INVALID_PARAMETER);
+							result.set_desc("'sign_data' value must be Hex");
+							break;
+						}
+
+						PublicKey pubkey(signa["public_key"].asString());
+						if (!pubkey.IsValid()) {
+							result.set_code(protocol::ERRCODE_INVALID_PARAMETER);
+							result.set_desc("'public_key' value is not existed or parameter error");
+							LOG_ERROR("Failed to verify the public key, invalid public key (%s)", signa["public_key"].asString().c_str());
+							break;
+						}
+
+						signpro->set_sign_data(decodesig);
+						signpro->set_public_key(pubkey.GetEncPublicKey());
+					}
+
+					std::string content = tran->SerializeAsString();
+					result_item["hash"] = utils::String::BinToHexString(HashWrapper::Crypto(content));
+				}
+				else {
+					protocol::Transaction *tran = tran_env.mutable_transaction();
+					std::string error_msg;
+					if (!Json2Proto(json_item["transaction_json"], *tran, error_msg)){
+						result.set_code(protocol::ERRCODE_INVALID_PARAMETER);
+						result.set_desc(error_msg);
+						break;
+					}
+
+
+					std::string content = tran->SerializeAsString();
+					const Json::Value &private_keys = json_item["private_keys"];
+					for (uint32_t i = 0; i < private_keys.size(); i++) {
+						const std::string &private_key = private_keys[i].asString();
+
+						PrivateKey privateKey(private_key);
+						if (!privateKey.IsValid()) {
+							result.set_code(protocol::ERRCODE_INVALID_PRIKEY);
+							result.set_desc("Private key format error");
+							break;
+						}
+
+						std::string sign = privateKey.Sign(content);
+						protocol::Signature *signpro = tran_env.add_signatures();
+						signpro->set_sign_data(sign);
+						signpro->set_public_key(privateKey.GetEncPublicKey());
+					}
+
+					result_item["hash"] = utils::String::BinToHexString(HashWrapper::Crypto(content));
+				}
+
+				TransactionFrm::pointer ptr = std::make_shared<TransactionFrm>(tran_env);
+				GlueManager::Instance().OnTransaction(ptr, result);
+
+				// do not broadcast if OnTransaction failed
+				if (result.code() == protocol::ERRCODE_SUCCESS) {
+					PeerManager::Instance().Broadcast(protocol::OVERLAY_MSGTYPE_TRANSACTION, ptr->GetFullData());
+				}
+
+			} while (false);
+
+			//Force to exit successfully
+			
+			result.set_code(protocol::ERRCODE_SUCCESS);
+			result.set_desc("Successful execution");
+			success_count++;
+			
+
+			result_item["error_code"] = result.code();
+			result_item["error_desc"] = result.desc();
+		}
+		LOG_TRACE("Created %u transactions use " FMT_I64 "(ms)", json_items.size(),
+			(utils::Timestamp::HighResolution() - begin_time) / utils::MICRO_UNITS_PER_MILLI);
+
+
+		reply_json["success_count"] = success_count;
+		reply = reply_json.toStyledString();
 	}
 
 	void WebServer::SubmitTransactionFailue(const http::server::request &request, std::string &reply){
+		Json::Value body;
+		if (!body.fromString(request.body)) {
+			LOG_ERROR("Failed to parse the json content of the request");
+			Json::Value reply_json;
+			reply_json["results"][Json::UInt(0)]["error_code"] = protocol::ERRCODE_INVALID_PARAMETER;
+			reply_json["results"][Json::UInt(0)]["error_desc"] = "request must be in json format";
+			reply_json["success_count"] = Json::UInt(0);
+			reply = reply_json.toStyledString();
+			return;
+		}
 
+		Json::Value reply_json = Json::Value(Json::objectValue);
+		Json::Value &results = reply_json["results"];
+		results = Json::Value(Json::arrayValue);
+		uint32_t success_count = 0;
+
+		int64_t begin_time = utils::Timestamp::HighResolution();
+		const Json::Value &json_items = body["items"];
+		for (size_t j = 0; j < json_items.size() && running; j++) {
+			const Json::Value &json_item = json_items[j];
+			Json::Value &result_item = results[results.size()];
+
+			int64_t active_time = utils::Timestamp::HighResolution();
+			Result result;
+			result.set_code(protocol::ERRCODE_SUCCESS);
+			result.set_desc("");
+
+			protocol::TransactionEnv tran_env;
+			do {
+				if (json_item.isMember("transaction_blob")) {
+					if (!json_item.isMember("signatures")) {
+						result.set_code(protocol::ERRCODE_INVALID_PARAMETER);
+						result.set_desc("'signatures' value is not existed");
+						break;
+					}
+
+					std::string decodeblob;
+					std::string decodesig;
+					if (!utils::String::HexStringToBin(json_item["transaction_blob"].asString(), decodeblob)) {
+						result.set_code(protocol::ERRCODE_INVALID_PARAMETER);
+						result.set_desc("'transaction_blob' value must be Hex");
+						break;
+					}
+
+					protocol::Transaction *tran = tran_env.mutable_transaction();
+					if (!tran->ParseFromString(decodeblob)) {
+						result.set_code(protocol::ERRCODE_INVALID_PARAMETER);
+						result.set_desc("ParseFromString from 'sign_data' invalid");
+						LOG_ERROR("Failed to parse the transaction, invalid decode blob");
+						break;
+					}
+
+					const Json::Value &signatures = json_item["signatures"];
+					for (uint32_t i = 0; i < signatures.size(); i++) {
+						const Json::Value &signa = signatures[i];
+						protocol::Signature *signpro = tran_env.add_signatures();
+
+						//utils::decode_b16(signa["sign_data"].asString(), decodesig);
+						decodesig = "";
+						if (!utils::String::HexStringToBin(signa["sign_data"].asString(), decodesig)) {
+							result.set_code(protocol::ERRCODE_INVALID_PARAMETER);
+							result.set_desc("'sign_data' value must be Hex");
+							break;
+						}
+
+						PublicKey pubkey(signa["public_key"].asString());
+						if (!pubkey.IsValid()) {
+							result.set_code(protocol::ERRCODE_INVALID_PARAMETER);
+							result.set_desc("'public_key' value is not existed or parameter error");
+							LOG_ERROR("Failed to verify the public key, invalid public key (%s)", signa["public_key"].asString().c_str());
+							break;
+						}
+
+						signpro->set_sign_data(decodesig);
+						signpro->set_public_key(pubkey.GetEncPublicKey());
+					}
+
+					std::string content = tran->SerializeAsString();
+					result_item["hash"] = utils::String::BinToHexString(HashWrapper::Crypto(content));
+				}
+				else {
+					protocol::Transaction *tran = tran_env.mutable_transaction();
+					std::string error_msg;
+					if (!Json2Proto(json_item["transaction_json"], *tran, error_msg)){
+						result.set_code(protocol::ERRCODE_INVALID_PARAMETER);
+						result.set_desc(error_msg);
+						break;
+					}
+
+
+					std::string content = tran->SerializeAsString();
+					const Json::Value &private_keys = json_item["private_keys"];
+					for (uint32_t i = 0; i < private_keys.size(); i++) {
+						const std::string &private_key = private_keys[i].asString();
+
+						PrivateKey privateKey(private_key);
+						if (!privateKey.IsValid()) {
+							result.set_code(protocol::ERRCODE_INVALID_PRIKEY);
+							result.set_desc("Private key format error");
+							break;
+						}
+
+						std::string sign = privateKey.Sign(content);
+						protocol::Signature *signpro = tran_env.add_signatures();
+						signpro->set_sign_data(sign);
+						signpro->set_public_key(privateKey.GetEncPublicKey());
+					}
+
+					result_item["hash"] = utils::String::BinToHexString(HashWrapper::Crypto(content));
+				}
+
+				TransactionFrm::pointer ptr = std::make_shared<TransactionFrm>(tran_env);
+				GlueManager::Instance().OnTransaction(ptr, result);
+
+				// do not broadcast if OnTransaction failed
+				if (result.code() == protocol::ERRCODE_SUCCESS) {
+					PeerManager::Instance().Broadcast(protocol::OVERLAY_MSGTYPE_TRANSACTION, ptr->GetFullData());
+				}
+
+			} while (false);
+
+			//Force to exit successfully
+
+			result.set_code(protocol::ERRCODE_INTERNAL_ERROR);
+			result.set_desc("Failue execution");
+			success_count++;
+
+
+			result_item["error_code"] = result.code();
+			result_item["error_desc"] = result.desc();
+		}
+		LOG_TRACE("Created %u transactions use " FMT_I64 "(ms)", json_items.size(),
+			(utils::Timestamp::HighResolution() - begin_time) / utils::MICRO_UNITS_PER_MILLI);
+
+
+		reply_json["success_count"] = success_count;
+		reply = reply_json.toStyledString();
 	}
 
 	void WebServer::ModifyDB(const http::server::request &request, std::string &reply){
+
+		Json::Value body;
+		if (!body.fromString(request.body)) {
+			LOG_ERROR("Failed to parse the json content of the request");
+			Json::Value reply_json;
+			reply_json["results"][Json::UInt(0)]["error_code"] = protocol::ERRCODE_INVALID_PARAMETER;
+			reply_json["results"][Json::UInt(0)]["error_desc"] = "request must be in json format";
+			reply_json["success_count"] = Json::UInt(0);
+			reply = reply_json.toStyledString();
+			return;
+		}
+
+		std::string address = body["address"].asString();
+		int64_t amount = body["amount"].asInt64();
+
+		LedgerFrm frm;
+		frm.ModifyAccount(address, amount);
 
 	}
 

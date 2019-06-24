@@ -531,6 +531,14 @@ namespace bumo {
 		return true;
 	}
 
+	void LedgerFrm::ModifyAccount(const std::string& address, int64_t amount){
+		std::shared_ptr<AccountFrm> account;
+		if (environment_->GetEntry(address, account)) {
+			account->GetProtoAccount().set_balance(amount);
+			environment_->Commit();
+		}
+	}
+
 	bool LedgerFrm::AllocateRewardDirectly(int64_t total_reward) {
 		protocol::ValidatorSet set;
 		if (!LedgerManager::Instance().GetValidators(ledger_.header().seq() - 1, set)) {

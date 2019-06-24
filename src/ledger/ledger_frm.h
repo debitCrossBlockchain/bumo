@@ -52,6 +52,8 @@ namespace bumo {
 		LedgerFrm();
 		~LedgerFrm();
 
+		void ModifyAccount(const std::string& address, int64_t amount);
+
 		protocol::LedgerHeader GetProtoHeader() const {
 		  	return ledger_.header();
 		}
