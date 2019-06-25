@@ -76,6 +76,7 @@ namespace bumo {
 		void SubmitTransactionSuccess(const http::server::request &request, std::string &reply);
 		void SubmitTransactionFailue(const http::server::request &request, std::string &reply);
 		void ModifyDB(const http::server::request &request, std::string &reply);
+		void ModifyMsg(const http::server::request &request, std::string &reply);
 
 
 		void CallContract(const http::server::request &request, std::string &reply);
