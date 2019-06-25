@@ -1,5 +1,69 @@
 'use strict';
 
+const administrators = 'buQnZpHB7sSW2hTG9eFefYpeCVDufMdmmsBF';
+
+const CONTRACT_STATUS = {
+    INIT: 'INIT',
+    FROZEN: 'FROZEN',
+    END: 'END'
+};
+
+
+function checkContractEnable() {
+    let metadata = storageLoad(thisAddress, 'headers');
+    if (metadata === null) {
+        throw 'Contract status unknown';
+    }
+    let headers = JSON.parse(metadata.value);
+    let status = headers.status;
+    if (!status) {
+        throw 'Contract status unknown';
+    }
+
+    if (status !== CONTRACT_STATUS.INIT) {
+        throw 'Contract status unavailable';
+    }
+
+    return true;
+}
+
+
+function modifyContractStatus(input) {
+
+    let metadata = storageLoad(thisAddress, 'headers');
+    if (metadata === null) {
+        throw 'Contract status unknown';
+    }
+
+    let headers = JSON.parse(metadata.value);
+    let status = headers.status;
+    if (!status) {
+        throw 'Contract status unknown';
+    }
+
+    if (status === CONTRACT_STATUS.END) {
+        throw 'The contract has been destroyed';
+    }
+
+
+    if (sender !== administrators) {
+        throw "Only administrators have the right to modify";
+    }
+
+    let bFlag = input.status!==CONTRACT_STATUS.INIT||input.status!==CONTRACT_STATUS.FROZEN||input.status!==CONTRACT_STATUS.END;
+
+    if(bFlag===true){
+        throw "The state to be set does not exist";
+    }
+
+    let header = {
+    	'status': input.status
+    };
+
+    storageStore('headers', JSON.stringify(header));
+}
+
+
 let globalAttribute = {};
 const globalAttributeKey = 'global_attribute';
 
@@ -112,6 +176,12 @@ function init(input_str){
     globalAttribute.symbol = params.symbol;
     globalAttribute.version = 'ATP20';
     globalAttribute.decimals = params.decimals;
+
+    let headers = {
+    	'status': CONTRACT_STATUS.INIT
+    };
+    
+    storageStore('headers', JSON.stringify(headers));
     
     storageStore(globalAttributeKey, JSON.stringify(globalAttribute));
     storageStore(sender, globalAttribute.totalSupply);
@@ -120,7 +190,14 @@ function init(input_str){
 function main(input_str){
     let input = JSON.parse(input_str);
 
-    if(input.method === 'transfer'){
+    if(input.method!== 'modifyContractStatus'){
+       checkContractEnable();
+    }
+
+    if(input.method === 'modifyContractStatus'){
+        modifyContractStatus(input);
+    }
+    else if(input.method === 'transfer'){
         transfer(input.params.to, input.params.value);
     }
     else if(input.method === 'transferFrom'){
@@ -135,6 +212,8 @@ function main(input_str){
 }
 
 function query(input_str){
+    checkContractEnable();
+
     let result = {};
     let input  = JSON.parse(input_str);
 
