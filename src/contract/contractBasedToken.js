@@ -9,13 +9,8 @@ const CONTRACT_STATUS = {
 
 
 function checkContractEnable() {
-    let metadata = storageLoad(thisAddress, 'headers');
-    if (metadata === null) {
-        throw 'Contract status unknown';
-    }
-    let headers = JSON.parse(metadata.value);
-    let status = headers.status;
-    if (!status) {
+    let status = storageLoad('headers_status');
+    if (status === null) {
         throw 'Contract status unknown';
     }
 
@@ -29,14 +24,8 @@ function checkContractEnable() {
 
 function modifyContractStatus(input) {
 
-    let metadata = storageLoad(thisAddress, 'headers');
-    if (metadata === null) {
-        throw 'Contract status unknown';
-    }
-
-    let headers = JSON.parse(metadata.value);
-    let status = headers.status;
-    if (!status) {
+    let status = storageLoad('headers_status');
+    if (status === null) {
         throw 'Contract status unknown';
     }
 
@@ -49,17 +38,13 @@ function modifyContractStatus(input) {
         throw 'Only administrators have the right to modify';
     }
 
-    let bFlag = input.status!==CONTRACT_STATUS.INIT||input.status!==CONTRACT_STATUS.FROZEN||input.status!==CONTRACT_STATUS.END;
+    let bFlag = input.status===CONTRACT_STATUS.INIT||input.status===CONTRACT_STATUS.FROZEN||input.status===CONTRACT_STATUS.END;
 
-    if(bFlag===true){
+    if(bFlag!==true){
         throw 'The state to be set does not exist';
     }
 
-    let header = {
-    	'status': input.status
-    };
-
-    storageStore('headers', JSON.stringify(header));
+    storageStore('headers_status', input.status);
 }
 
 
@@ -176,11 +161,8 @@ function init(init_input){
     globalAttribute.version = 'ATP20';
     globalAttribute.decimals = params.decimals;
 
-    let headers = {
-    	'status': CONTRACT_STATUS.INIT
-    };
-    
-    storageStore('headers', JSON.stringify(headers));
+
+    storageStore('headers_status', CONTRACT_STATUS.INIT);
     
     storageStore(globalAttributeKey, JSON.stringify(globalAttribute));
     storageStore(sender, globalAttribute.totalSupply);
