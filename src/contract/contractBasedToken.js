@@ -1,5 +1,4 @@
 'use strict';
-
 const administrators = 'buQnZpHB7sSW2hTG9eFefYpeCVDufMdmmsBF';
 
 const CONTRACT_STATUS = {
@@ -47,13 +46,13 @@ function modifyContractStatus(input) {
 
 
     if (sender !== administrators) {
-        throw "Only administrators have the right to modify";
+        throw 'Only administrators have the right to modify';
     }
 
     let bFlag = input.status!==CONTRACT_STATUS.INIT||input.status!==CONTRACT_STATUS.FROZEN||input.status!==CONTRACT_STATUS.END;
 
     if(bFlag===true){
-        throw "The state to be set does not exist";
+        throw 'The state to be set does not exist';
     }
 
     let header = {
@@ -162,8 +161,8 @@ function balanceOf(address){
     return value;
 }
 
-function init(input_str){
-    let params = JSON.parse(input_str).params;
+function init(init_input){
+    let params = JSON.parse(init_input).params;
 
     assert(stoI64Check(params.totalSupply) === true && params.totalSupply > 0 &&
            typeof params.name === 'string' && params.name.length > 0 &&
