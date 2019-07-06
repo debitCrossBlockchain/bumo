@@ -25,6 +25,9 @@
     <Filter Include="cross">
       <UniqueIdentifier>{e38e6467-9c1d-402c-b414-4678d3af0f3e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="zsl">
+      <UniqueIdentifier>{9c2e51a7-ceb6-40a6-ac64-b0cff8d94819}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\main\main.cpp">
@@ -162,6 +165,9 @@
     <ClCompile Include="..\..\src\cross\cross_manager.cpp">
       <Filter>cross</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\zsl\zsl_utils.cpp">
+      <Filter>zsl</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\overlay\peer_manager.h">
@@ -287,6 +293,12 @@
     </ClInclude>
     <ClInclude Include="..\..\src\cross\cross_manager.h">
       <Filter>cross</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\zsl\zsl_utils.h">
+      <Filter>zsl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\zsl\zsl.h">
+      <Filter>zsl</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

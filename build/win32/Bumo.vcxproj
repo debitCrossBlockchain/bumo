@@ -56,6 +56,7 @@
     <ClCompile Include="..\..\src\main\main.cpp" />
     <ClCompile Include="..\..\src\overlay\broadcast.cpp" />
     <ClCompile Include="..\..\src\overlay\peer_manager.cpp" />
+    <ClCompile Include="..\..\src\zsl\zsl_utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\api\console.h" />
@@ -99,6 +100,8 @@
     <ClInclude Include="..\..\src\overlay\broadcast.h" />
     <ClInclude Include="..\..\src\overlay\peer_manager.h" />
     <ClInclude Include="..\..\src\proto\pb2json.h" />
+    <ClInclude Include="..\..\src\zsl\zsl.h" />
+    <ClInclude Include="..\..\src\zsl\zsl_utils.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
