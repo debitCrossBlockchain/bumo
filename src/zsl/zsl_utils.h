@@ -15,7 +15,7 @@ along with bumo.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef ZSL_UTILS_H_
 #define ZSL_UTILS_H_
-#include<proto/cpp/overlay.pb.h>
+#include <utils/base_int.h>
 using namespace std;
 namespace bumo {
 
@@ -30,14 +30,14 @@ namespace bumo {
 	public:
 		ZSLMerkleTree(int16_t depth);
 		std::vector<string> getEmptyRoots();
-		std::vector<string> getEmptyRoot(int64_t depth);
+		std::string getEmptyRoot(int64_t depth);
 		std::string combine(std::string &left, std::string &right);
 		int64_t getLeafIndex(std::string &cm);
 		std::string getCommitmentAtLeafIndex(int64_t index);
 		void addCommitment(std::string &cm);
 		bool commitmentExists(std::string& cm);
 		std::vector<string> root();
-		std::string _calcSubtree(int64_t &index, int64_t &item_depth);
+		std::string _calcSubtree(int64_t index, int64_t item_depth);
 		void getWitness(std::string& cm);
 		int64_t leftShift(int64_t v, int64_t n);
 		int64_t rightShift(int64_t v, int64_t n);
